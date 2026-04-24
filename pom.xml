@@ -66,7 +66,7 @@
     <!-- sec:authorize y #authentication en vistas Thymeleaf -->
     <dependency>
       <groupId>org.thymeleaf.extras</groupId>
-      <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+      <artifactId>thymeleaf-extras-springsecurity7</artifactId>
       <!-- Versión gestionada por BOM de Spring Boot 4 -->
     </dependency>
 

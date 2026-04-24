@@ -411,7 +411,8 @@ FROM CULTIVOS_AGRICULTOR ca
 JOIN USUARIOS u           ON ca.USUARIO_ID  = u.ID
 JOIN CULTIVOS_CATALOGO cc ON ca.CATALOGO_ID = cc.ID
 JOIN MUNICIPIOS m         ON ca.MUNICIPIO_ID = m.ID
-WHERE u.ACTIVO = 1;
+WHERE u.ACTIVO  = 1
+  AND ca.ACTIVO = 1;
 
 
 -- ============================================================

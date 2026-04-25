@@ -3,7 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+
+  <modelVersion>4.0.6</modelVersion>
 
   <!-- ── Parent: Spring Boot 4.0.x para Java 25 ────── -->
   <parent>
@@ -68,6 +69,7 @@
     <dependency>
       <groupId>org.thymeleaf.extras</groupId>
       <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+      <!-- Versión gestionada por BOM de Spring Boot 4 -->
       <version>3.1.3.RELEASE</version>
     </dependency>
 

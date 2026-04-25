@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xtmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:fragment="base(titulo,contenido)">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <!--titulo dinamico: cada vista pasa su propio titulo -->
+    <title th:replace="${titulo}">Agrocesar </title>
+    <!--Tailwind CSS via CDN() -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" />
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- NAVBAR -->
+    <!-- sec:authorize verifica el rol del usuario autenticado -->
+    <!-- Habilitado por thymeleaf-extras-springsecurity7 (Spring Security 7 + Boot 4)-->
+    <nav class="bg-green-900 text-amber-100 px-6 py-3 flex justify-between items-center">
+        <span class="font-bold text-xl">Agrocesar</span>
+
+        <!-- Este bloque solo aparece si el usuario está tiene rol de AGRICULTOR -->
+
+        <div sec:authorize="hasRole('AGRICULTOR')" class="flex gap-4">
+            <a th:href="@{/dashboard}" class="hover:text-amber-300 transition">Dashboard</a>
+            <a th:href="@{/cultivos}" class="hover:text-amber-300 transition">Mis Cultivos</a>
+            <a th:href="@{/alertas}" class="hover:text-amber-300 transition">Alertas</a>
+        </div>
+
+
+        <!-- Este bloque solo aparece si el usuario está tiene rol de ADMIN -->
+
+        <div sec:authorize="hasRole('ADMIN')" class="flex gap-4">
+            <a th:href="@{/admin/dashboard}" class="hover:text-amber-300 transition">Dashboard</a>
+            <a th:href="@{/admin/catalogos}" class="hover:text-amber-300 transition">Catalogos</a>
+            <a th:href="@{/admin/usuarios}" class="hover:text-amber-300 transition">Usuarios</a>
+        </div>
+
+        <!-- Este bloque solo aparece si el usuario está autenticado (cualquiera que tenga un rol) -->
+        <div sec:authorize="isAuthenticated()">
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="submit">
+                <button type="submit" class="bg-amber-700 px-3 py-1 rounded hover:bg-amber-600">Cerrar sesión</button>
+            </form>
+        </div>
+    </nav>
+</body>
+
+</html>

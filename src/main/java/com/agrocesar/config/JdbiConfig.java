@@ -12,7 +12,8 @@ public class JdbiConfig {
 
     @Bean
     public Jdbi jdbi(DataSource dataSource) {
-        return Jdbi.create(dataSource)
-                   .installPlugin(new SqlObjectPlugin());
+        Jdbi jdbi = Jdbi.create(dataSource);
+        jdbi.installPlugin(new SqlObjectPlugin());
+        return jdbi;
     }
 }

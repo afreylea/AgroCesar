@@ -27,7 +27,7 @@
 
         <!-- Este bloque solo aparece si el usuario está tiene rol de AGRICULTOR -->
 
-        <div sec:authorize="hasRole('AGRICULTOR')" class="flex gap-4">
+        <div th:if="true" class="flex gap-4">
             <a th:href="@{/dashboard}" class="hover:text-amber-300 transition">Dashboard</a>
             <a th:href="@{/cultivos}" class="hover:text-amber-300 transition">Mis Cultivos</a>
             <a th:href="@{/alertas}" class="hover:text-amber-300 transition">Alertas</a>
@@ -50,6 +50,17 @@
             </form>
         </div>
     </nav>
-</body>
 
+    <!-- Contenido principal -->
+    <!--th:replace inserta el contenido especifico de cada vista aqui-->
+    <main class="container mx-auto px-4 py-6" th:replace="${contenido}">
+        <!-- Contenido específico de cada vista se insertará aquí -->
+    </main>
+    <!-- Footer -->
+    <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm mt-auto">
+        Agrocesar -Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy;|Cesar, Colombia
+    </footer>
+    <!-- Flowbite JS: activa los componentes interactivos (modales,dropdowns)-->
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</body>
 </html>

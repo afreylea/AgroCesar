@@ -3,7 +3,6 @@ package com.agrocesar.model;
 import lombok.*;
 import java.time.LocalDateTime;
 
-@Data
 @Getter
 @Setter
 @Builder

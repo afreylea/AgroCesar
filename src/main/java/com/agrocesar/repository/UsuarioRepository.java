@@ -43,3 +43,4 @@ public interface UsuarioRepository {
     int desactivar(@Bind("id") Long id);
 
     @SqlUpdate("UPDATE usuarios
+}

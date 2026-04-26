@@ -8,10 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -26,20 +23,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 //Recursos estáticos y públicos
                 .requestMatchers(
                     "/", "/login", "/registro",
-                    "/css/**", "/js/**", "/images/**"
+                    "/css/**", "/js/**", "/images/**",
+                    "/test-publico", "/test-anyrequest"
+                    ,"/error"
                 ).permitAll()
                 
                 //Agricultor
                 .requestMatchers(
-                    "/dashboard", "/cultivos/**", "/alertas/**"
+                    "/dashboard", "/cultivos/**", "/alertas/**", "/test-agricultor"
                 ).hasRole("AGRICULTOR")
                 
                 //Admin
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin", "/admin/", "/admin/**").hasRole("ADMIN")
                 
                 //Todo lo demás requiere login
                 .anyRequest().authenticated()
@@ -48,7 +48,12 @@ public class SecurityConfig {
             //Form Login
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)  //Siempre redirige
+                .successHandler((request, response, authentication) -> {
+                    boolean isAdmin = authentication.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                    
+                    response.sendRedirect(isAdmin ? "/admin/dashboard" : "/dashboard");
+                })
                 .failureUrl("/login?error")
                 .permitAll()
             )
@@ -68,16 +73,11 @@ public class SecurityConfig {
             )
             
             //Access Denied
-            .exceptionHandling(ex -> ex
+            /*.exceptionHandling(ex -> ex
                 .accessDeniedPage("/access-denied")
-            );
+            )*/;
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();  //Encripta/Valida
     }
 
     @Bean

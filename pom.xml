@@ -30,12 +30,11 @@
     <java.version>25</java.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
+    <maven.compiler.enablePreview>false</maven.compiler.enablePreview>
+    <maven.compiler.release>25</maven.compiler.release>
 
     <!-- JDBI: versión centralizada para los 3 artefactos -->
     <jdbi.version>3.47.0</jdbi.version>
-
-    <!-- Lombok: versión única usada tanto en <dependency> como en el compiler plugin -->
-    <lombok.version>1.18.36</lombok.version>
   </properties>
 
   <!-- ── BOM de JDBI ────────────────────────────────── -->
@@ -113,14 +112,6 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- == LOMBOK == -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
-      <optional>true</optional>
-    </dependency>
-
     <!-- == TESTING == -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -143,12 +134,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <excludes>
-            <exclude>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-            </exclude>
-          </excludes>
+          <jvmArguments>-Djava.awt.headless=false</jvmArguments>
         </configuration>
       </plugin>
 
@@ -157,16 +143,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <source>25</source>
-          <target>25</target>
-          <annotationProcessorPaths>
-            <!-- Misma versión que la propiedad ${lombok.version} -->
-            <path>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-              <version>${lombok.version}</version>
-            </path>
-          </annotationProcessorPaths>
+          <release>25</release>
         </configuration>
       </plugin>
 

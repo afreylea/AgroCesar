@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.6</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
   <!-- ── Parent: Spring Boot 4.0.x para Java 25 ────── -->
   <parent>
@@ -30,12 +30,15 @@
     <java.version>25</java.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
+
     <!-- JDBI: versión centralizada para los 3 artefactos -->
     <jdbi.version>3.47.0</jdbi.version>
+
+    <!-- Lombok: versión única usada tanto en <dependency> como en el compiler plugin -->
+    <lombok.version>1.18.36</lombok.version>
   </properties>
 
-  <!-- ── BOM de JDBI: garantiza que los 3 artefactos  -->
-  <!-- usen exactamente la misma versión               -->
+  <!-- ── BOM de JDBI ────────────────────────────────── -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -89,7 +92,6 @@
     </dependency>
 
     <!-- == JDBI 3 == -->
-    <!-- Las versiones las gestiona jdbi3-bom importado arriba -->
     <dependency>
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-core</artifactId>
@@ -98,9 +100,7 @@
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-sqlobject</artifactId>
     </dependency>
-    <!-- Integración JDBI con Spring Framework 7        -->
-    <!-- El artefacto mantiene nombre -spring5 pero     -->
-    <!-- soporta Spring 6 y 7 sin cambios en la API.   -->
+    <!-- Mantiene nombre -spring5 pero soporta Spring 6 y 7 -->
     <dependency>
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-spring5</artifactId>
@@ -117,6 +117,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -137,6 +138,7 @@
   <!-- ── Plugin de build ─────────────────────────────── -->
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
@@ -149,6 +151,25 @@
           </excludes>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <source>25</source>
+          <target>25</target>
+          <annotationProcessorPaths>
+            <!-- Misma versión que la propiedad ${lombok.version} -->
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

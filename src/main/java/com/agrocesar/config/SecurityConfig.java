@@ -7,18 +7,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    private final UserDetailsService userDetailsService;
-
-    public SecurityConfig(UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;  //CustomUserDetailsService
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,7 +23,7 @@ public class SecurityConfig {
                     "/", "/login", "/registro",
                     "/css/**", "/js/**", "/images/**",
                     "/test-publico", "/test-anyrequest"
-                    ,"/error"
+                    ,"/error", "/access-denied"
                 ).permitAll()
                 
                 //Agricultor
@@ -73,9 +66,9 @@ public class SecurityConfig {
             )
             
             //Access Denied
-            /*.exceptionHandling(ex -> ex
+            .exceptionHandling(ex -> ex
                 .accessDeniedPage("/access-denied")
-            )*/;
+            );
 
         return http.build();
     }

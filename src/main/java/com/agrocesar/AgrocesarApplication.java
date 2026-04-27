@@ -17,7 +17,7 @@ public class AgrocesarApplication {
     public static void main(String[] args) {
         SpringApplication.run(AgrocesarApplication.class, args);
 
-		try {
+		    try {
             java.awt.Desktop.getDesktop().browse(
                 new java.net.URI("http://localhost:8080/test-publico")
             );

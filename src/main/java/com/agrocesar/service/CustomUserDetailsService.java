@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @Profile("!nobd")
@@ -28,6 +29,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmailAndActivo(email)
             .orElseThrow(() -> new UsernameNotFoundException(
                 "Usuario no encontrado o inactivo: " + email));
+        
+        usuarioRepository.actualizarUltimoLogin(email);
+        usuario.setUltimoLogin(LocalDateTime.now());
 
         //Transforma a formato Spring Security
         return new User(

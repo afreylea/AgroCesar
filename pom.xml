@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.6</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
   <!-- ── Parent: Spring Boot 4.0.x para Java 25 ────── -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.6</version>
+    <version>4.0.0</version>  
     <relativePath/>
   </parent>
 

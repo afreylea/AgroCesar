@@ -25,13 +25,13 @@
                     Sesion cerrada correctamente.
                 </div>
 
-                <!-- FORMULARIO DE LOGIN
-               <! -- th:action apunta a la ruta que Spring Security 7 intercepta
+                <!-- FORMULARIO DE LOGIN-->
+               <!-- th:action apunta a la ruta que Spring Security 7 intercepta-->
                 <!-- method='post' es obligatorio para Spring Security-->
                 <form th:action="@{/login}" method="post" class="space-y-4">
 
-                    <!-- Token CSRF: Spring Security 7 lo requiere en cada POST
-                    -- Thymeleaf lo inyecta automaticamente con estas dos lineas-->
+                    <!-- Token CSRF: Spring Security 7 lo requiere en cada POST -->
+                    <!--Thymeleaf lo inyecta automaticamente con estas dos lineas-->
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
                     <!-- Campo email - Spring Security 7 espera el campo 'username'-->

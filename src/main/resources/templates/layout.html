@@ -6,16 +6,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
     <!--titulo dinamico: cada vista pasa su propio titulo -->
-    <title th:replace="${titulo}">Agrocesar </title>
+    <title th:replace="${titulo}">Agrocesar</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+
     <script>
-        // Configuración personalizada de Tailwind (opcional)
         tailwind.config = {
             theme: {
                 extend: {
@@ -26,58 +25,140 @@
             },
         }
     </script>
-    <!--Tailwind CSS via CDN() -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" />
-
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-100 min-h-screen flex">
 
-    <!-- NAVBAR -->
-    <!-- sec:authorize verifica el rol del usuario autenticado -->
-    <!-- Habilitado por thymeleaf-extras-springsecurity7 (Spring Security 7 + Boot 4)-->
-    <nav class="bg-green-900 text-amber-100 px-6 py-3 flex justify-between items-center">
-        <span class="font-bold text-xl">Agrocesar</span>
+    <!-- SIDEBAR -->
+    <!-- Patron aplicado: MVC Vista - el sidebar es parte de la capa de presentacion -->
+    <!-- Patron aplicado: DRY - centraliza la navegacion para que ninguna vista la repita -->
+    <aside class="w-64 min-h-screen bg-green-900 text-amber-100 flex flex-col fixed top-0 left-0"
+           x-data="{ abierto: true }">
 
-        <!-- Este bloque solo aparece si el usuario está tiene rol de AGRICULTOR -->
-
-        <div th:if="true" class="flex gap-4">
-            <a th:href="@{/dashboard}" class="hover:text-amber-300 transition">Dashboard</a>
-            <a th:href="@{/cultivos}" class="hover:text-amber-300 transition">Mis Cultivos</a>
-            <a th:href="@{/alertas}" class="hover:text-amber-300 transition">Alertas</a>
+        <!-- Logo y nombre del sistema -->
+        <div class="px-6 py-5 border-b border-green-700">
+            <span class="font-bold text-xl tracking-wide">Agrocesar</span>
+            <p class="text-xs text-green-300 mt-1">Monitoreo de Cultivos</p>
         </div>
 
+        <!-- Menu AGRICULTOR -->
+        <!-- sec:authorize verifica el rol del usuario autenticado -->
+        <!-- Habilitado por thymeleaf-extras-springsecurity7 (Spring Security 7 + Boot 4) -->
+        <nav sec:authorize="hasRole('AGRICULTOR')" class="flex flex-col gap-1 px-3 py-4 flex-1">
+            <p class="text-xs text-green-400 uppercase px-3 mb-2 tracking-wider">Menu</p>
 
-        <!-- Este bloque solo aparece si el usuario está tiene rol de ADMIN -->
+            <a th:href="@{/dashboard}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <!-- Icono dashboard -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Dashboard
+            </a>
 
-        <div sec:authorize="hasRole('ADMIN')" class="flex gap-4">
-            <a th:href="@{/admin/dashboard}" class="hover:text-amber-300 transition">Dashboard</a>
-            <a th:href="@{/admin/catalogos}" class="hover:text-amber-300 transition">Catalogos</a>
-            <a th:href="@{/admin/usuarios}" class="hover:text-amber-300 transition">Usuarios</a>
-        </div>
+            <a th:href="@{/cultivos}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <!-- Icono cultivos -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                </svg>
+                Mis Cultivos
+            </a>
 
-        <!-- Este bloque solo aparece si el usuario está autenticado (cualquiera que tenga un rol) -->
-        <div sec:authorize="isAuthenticated()">
+            <a th:href="@{/alertas}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <!-- Icono alertas -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                Alertas
+            </a>
+        </nav>
+
+        <!-- Menu ADMIN -->
+        <nav sec:authorize="hasRole('ADMIN')" class="flex flex-col gap-1 px-3 py-4 flex-1">
+            <p class="text-xs text-green-400 uppercase px-3 mb-2 tracking-wider">Administracion</p>
+
+            <a th:href="@{/admin/dashboard}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Dashboard
+            </a>
+
+            <a th:href="@{/admin/catalogo}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Catalogo
+            </a>
+
+            <a th:href="@{/admin/usuarios}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Usuarios
+            </a>
+
+            <a th:href="@{/admin/reportes}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-700 hover:text-amber-300 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Reportes
+            </a>
+        </nav>
+
+        <!-- Boton cerrar sesion al fondo del sidebar -->
+        <!-- sec:authorize verifica que haya un usuario autenticado -->
+        <div sec:authorize="isAuthenticated()" class="px-3 py-4 border-t border-green-700">
             <form th:action="@{/logout}" method="post">
+                <!-- Token CSRF requerido por Spring Security 7 en todo POST -->
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit" class="bg-amber-700 px-3 py-1 rounded hover:bg-amber-600">Cerrar sesión</button>
+                <button type="submit"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 transition text-amber-100 font-semibold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Cerrar sesion
+                </button>
             </form>
         </div>
-    </nav>
+    </aside>
 
-    <!-- Contenido principal -->
-    <!--th:replace inserta el contenido especifico de cada vista aqui-->
-    <main class="container mx-auto px-4 py-6" th:replace="${contenido}">
-        <!-- Contenido específico de cada vista se insertará aquí -->
-    </main>
-    <!-- Footer -->
-    <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm mt-auto">
-        Agrocesar -Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy;|Cesar, Colombia
-    </footer>
-    <!-- Flowbite JS: activa los componentes interactivos (modales,dropdowns)-->
+    <!-- AREA PRINCIPAL: contenido + footer -->
+    <!-- ml-64 desplaza el contenido para que no quede debajo del sidebar fijo -->
+    <div class="flex-1 flex flex-col ml-64">
+
+        <!-- Contenido principal -->
+        <!-- th:replace inserta el contenido especifico de cada vista aqui -->
+        <!-- Patron aplicado: Baja Dependencia (GRASP) - el layout no conoce el contenido de cada vista -->
+        <main class="flex-1 p-6" th:replace="${contenido}">
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
+            Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy; | Cesar, Colombia
+        </footer>
+
+    </div>
+
+    <!-- Flowbite JS: activa los componentes interactivos (modales, dropdowns) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
 </body>
 

@@ -3,14 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
 
   <!-- ── Parent: Spring Boot 4.0.x para Java 25 ────── -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.6</version>
     <relativePath/>
   </parent>
 
@@ -30,12 +29,14 @@
     <java.version>25</java.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
+    <maven.compiler.enablePreview>false</maven.compiler.enablePreview>
+    <maven.compiler.release>25</maven.compiler.release>
+
     <!-- JDBI: versión centralizada para los 3 artefactos -->
     <jdbi.version>3.47.0</jdbi.version>
   </properties>
 
-  <!-- ── BOM de JDBI: garantiza que los 3 artefactos  -->
-  <!-- usen exactamente la misma versión               -->
+  <!-- ── BOM de JDBI ────────────────────────────────── -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -66,8 +67,8 @@
     <!-- sec:authorize y #authentication en vistas Thymeleaf -->
     <dependency>
       <groupId>org.thymeleaf.extras</groupId>
-      <artifactId>thymeleaf-extras-springsecurity7</artifactId>
-      <!-- Versión gestionada por BOM de Spring Boot 4 -->
+      <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+      <version>3.1.3.RELEASE</version>
     </dependency>
 
     <!-- == SPRING SECURITY == -->
@@ -89,15 +90,16 @@
     </dependency>
 
     <!-- == JDBI 3 == -->
-    <!-- Las versiones las gestiona jdbi3-bom importado arriba -->
     <dependency>
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-core</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-sqlobject</artifactId>
     </dependency>
+
     <!-- Integración JDBI con Spring Framework 7        -->
     <!-- El artefacto mantiene nombre -spring5 pero     -->
     <!-- soporta Spring 6 y 7 sin cambios en la API.   -->
@@ -113,19 +115,13 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- == LOMBOK == -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- == TESTING == -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
@@ -137,18 +133,24 @@
   <!-- ── Plugin de build ─────────────────────────────── -->
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <excludes>
-            <exclude>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-            </exclude>
-          </excludes>
+          <jvmArguments>-Djava.awt.headless=false</jvmArguments>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>25</release>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

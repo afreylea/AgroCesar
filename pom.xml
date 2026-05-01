@@ -29,13 +29,14 @@
     <java.version>25</java.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
+    <maven.compiler.enablePreview>false</maven.compiler.enablePreview>
+    <maven.compiler.release>25</maven.compiler.release>
 
     <!-- JDBI: versión centralizada para los 3 artefactos -->
     <jdbi.version>3.47.0</jdbi.version>
   </properties>
 
-  <!-- ── BOM de JDBI: garantiza que los 3 artefactos  -->
-  <!-- usen exactamente la misma versión               -->
+  <!-- ── BOM de JDBI ────────────────────────────────── -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -89,7 +90,6 @@
     </dependency>
 
     <!-- == JDBI 3 == -->
-    <!-- Las versiones las gestiona jdbi3-bom importado arriba -->
     <dependency>
       <groupId>org.jdbi</groupId>
       <artifactId>jdbi3-core</artifactId>
@@ -115,13 +115,6 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- == LOMBOK == -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- == TESTING == -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -140,18 +133,24 @@
   <!-- ── Plugin de build ─────────────────────────────── -->
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <excludes>
-            <exclude>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-            </exclude>
-          </excludes>
+          <jvmArguments>-Djava.awt.headless=false</jvmArguments>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>25</release>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

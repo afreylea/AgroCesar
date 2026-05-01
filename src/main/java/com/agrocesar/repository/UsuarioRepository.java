@@ -42,5 +42,6 @@ public interface UsuarioRepository {
     @SqlUpdate("UPDATE usuarios SET activo = 0 WHERE id = :id")
     int desactivar(@Bind("id") Long id);
 
-    @SqlUpdate("UPDATE usuarios
+    @SqlUpdate("UPDATE usuarios SET activo = 1 WHERE id = :id")
+    int activar(@Bind("id") Long id);
 }

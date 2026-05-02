@@ -2,12 +2,12 @@
 --  AGROCESAR — Sistema de Monitoreo de Cultivos
 --  Script DDL: 01_create_tables.sql
 --  Motor: Oracle XE 18c / 21c
---  Versión: 3.0
---  Cambios respecto a v2.0:
---    · Revertido GENERATED ALWAYS AS IDENTITY → secuencias
---      + triggers BEFORE INSERT para compatibilidad con todas
---      las versiones de Oracle XE y mayor control explícito
---      sobre los valores de PK.
+--  Versión: 3.1
+--  Cambios respecto a v3.0:
+--    · Eliminado CREATE INDEX IDX_USUARIOS_EMAIL — ya existe
+--      implícitamente por la constraint UNIQUE UQ_USUARIOS_EMAIL.
+--    · Eliminado CONSTRAINT CK_CULTAGR_FECHA — Oracle no permite
+--      SYSDATE en constraints CHECK.
 -- ============================================================
 
 
@@ -51,8 +51,6 @@ CREATE SEQUENCE SEQ_ALERTAS             START WITH 1 INCREMENT BY 1 NOCACHE NOCY
 
 -- ============================================================
 --  2. MUNICIPIOS
---     Municipios del departamento del Cesar con coordenadas
---     geográficas para consumir la API Open-Meteo.
 -- ============================================================
 CREATE TABLE MUNICIPIOS (
   ID             NUMBER(10)    NOT NULL,
@@ -81,58 +79,50 @@ CREATE INDEX IDX_MUNICIPIOS_ACTIVO ON MUNICIPIOS(ACTIVO);
 
 -- ============================================================
 --  3. USUARIOS
---     Agricultores y administradores del sistema.
---     MUNICIPIO_ID es informativo (residencia); el motor de
---     alertas NUNCA lo usa — siempre usa el municipio del cultivo.
 -- ============================================================
 CREATE TABLE USUARIOS (
   ID             NUMBER(10)    NOT NULL,
   NOMBRE         VARCHAR2(150) NOT NULL,
   EMAIL          VARCHAR2(255) NOT NULL,
-  PASSWORD_HASH  VARCHAR2(255) NOT NULL,   -- BCrypt $2a$12$...
+  PASSWORD_HASH  VARCHAR2(255) NOT NULL,
   ROL            VARCHAR2(20)  NOT NULL,
-  MUNICIPIO_ID   NUMBER(10),               -- FK opcional; solo residencia del agricultor
-  TELEFONO       VARCHAR2(20),             -- Contacto para notificaciones futuras
+  MUNICIPIO_ID   NUMBER(10),
+  TELEFONO       VARCHAR2(20),
   ACTIVO         NUMBER(1)     DEFAULT 1 NOT NULL,
   FECHA_CREACION DATE          DEFAULT SYSDATE NOT NULL,
   ULTIMO_LOGIN   DATE,
 
-  CONSTRAINT PK_USUARIOS          PRIMARY KEY (ID),
-  CONSTRAINT UQ_USUARIOS_EMAIL    UNIQUE (EMAIL),
-  CONSTRAINT CK_USUARIOS_ROL      CHECK (ROL IN ('AGRICULTOR', 'ADMIN')),
-  CONSTRAINT CK_USUARIOS_ACTIVO   CHECK (ACTIVO IN (0, 1)),
+  CONSTRAINT PK_USUARIOS           PRIMARY KEY (ID),
+  CONSTRAINT UQ_USUARIOS_EMAIL     UNIQUE (EMAIL),
+  CONSTRAINT CK_USUARIOS_ROL       CHECK (ROL IN ('AGRICULTOR', 'ADMIN')),
+  CONSTRAINT CK_USUARIOS_ACTIVO    CHECK (ACTIVO IN (0, 1)),
   CONSTRAINT FK_USUARIOS_MUNICIPIO FOREIGN KEY (MUNICIPIO_ID) REFERENCES MUNICIPIOS(ID)
 );
 
-CREATE INDEX IDX_USUARIOS_EMAIL  ON USUARIOS(EMAIL);
+-- CORRECCIÓN v3.1: eliminado IDX_USUARIOS_EMAIL — la constraint
+-- UNIQUE UQ_USUARIOS_EMAIL ya crea ese índice automáticamente.
 CREATE INDEX IDX_USUARIOS_ROL    ON USUARIOS(ROL);
 CREATE INDEX IDX_USUARIOS_ACTIVO ON USUARIOS(ACTIVO);
 
 
 -- ============================================================
 --  4. CULTIVOS_CATALOGO
---     Catálogo base de cultivos con umbrales climáticos y
---     clasificación por ciclo de vida (CATEGORIA).
---     Solo el ADMIN puede crear/editar/desactivar entradas.
 -- ============================================================
 CREATE TABLE CULTIVOS_CATALOGO (
   ID                  NUMBER(10)    NOT NULL,
   NOMBRE              VARCHAR2(100) NOT NULL,
   DESCRIPCION         VARCHAR2(500),
-  -- Ciclo de vida del cultivo:
-  --   TRANSITORIO: severidad basada en días restantes a cosecha.
-  --   PERMANENTE : severidad basada en antigüedad de la planta.
   CATEGORIA           VARCHAR2(20)  DEFAULT 'TRANSITORIO' NOT NULL,
-  TEMP_MIN            NUMBER(5,2)   NOT NULL,  -- °C mínima tolerable
-  TEMP_MAX            NUMBER(5,2)   NOT NULL,  -- °C máxima tolerable
-  LLUVIA_MIN          NUMBER(8,2)   NOT NULL,  -- mm/día mínimo necesario
-  LLUVIA_MAX          NUMBER(8,2)   NOT NULL,  -- mm/día máximo tolerable
-  HUMEDAD_MIN         NUMBER(5,2)   NOT NULL,  -- % humedad relativa mínima
-  HUMEDAD_MAX         NUMBER(5,2)   NOT NULL,  -- % humedad relativa máxima
-  TIPO_SUELO          VARCHAR2(50)  NOT NULL,  -- Suelo de referencia agronómica
-  DIAS_COSECHA_MIN    NUMBER(5)     NOT NULL,  -- Días mínimos estimados a cosecha
-  DIAS_COSECHA_MAX    NUMBER(5)     NOT NULL,  -- Días máximos estimados a cosecha
-  FUENTE_DATOS        VARCHAR2(100),           -- Ej: 'IDEAM/FAO', 'ICA'
+  TEMP_MIN            NUMBER(5,2)   NOT NULL,
+  TEMP_MAX            NUMBER(5,2)   NOT NULL,
+  LLUVIA_MIN          NUMBER(8,2)   NOT NULL,
+  LLUVIA_MAX          NUMBER(8,2)   NOT NULL,
+  HUMEDAD_MIN         NUMBER(5,2)   NOT NULL,
+  HUMEDAD_MAX         NUMBER(5,2)   NOT NULL,
+  TIPO_SUELO          VARCHAR2(50)  NOT NULL,
+  DIAS_COSECHA_MIN    NUMBER(5)     NOT NULL,
+  DIAS_COSECHA_MAX    NUMBER(5)     NOT NULL,
+  FUENTE_DATOS        VARCHAR2(100),
   ACTIVO              NUMBER(1)     DEFAULT 1 NOT NULL,
   FECHA_CREACION      DATE          DEFAULT SYSDATE NOT NULL,
   FECHA_ACTUALIZACION DATE,
@@ -165,7 +155,6 @@ BEGIN
 END;
 /
 
--- Actualiza FECHA_ACTUALIZACION automáticamente en cada UPDATE
 CREATE OR REPLACE TRIGGER TRG_CATALOGO_FECHA_ACT
   BEFORE UPDATE ON CULTIVOS_CATALOGO
   FOR EACH ROW
@@ -177,25 +166,15 @@ END;
 
 -- ============================================================
 --  5. CULTIVOS_AGRICULTOR
---     Cultivos registrados por cada agricultor.
---     MUNICIPIO_ID referencia el municipio del cultivo
---     (no del usuario), permitiendo cultivos en municipios
---     distintos para un mismo agricultor.
---     Los campos *_OVERRIDE son NULL por defecto;
---     V_CULTIVOS_CON_UMBRALES resuelve el umbral efectivo
---     mediante NVL(override, catalogo).
 -- ============================================================
 CREATE TABLE CULTIVOS_AGRICULTOR (
   ID              NUMBER(10)    NOT NULL,
-  USUARIO_ID      NUMBER(10)    NOT NULL,  -- FK → USUARIOS
-  CATALOGO_ID     NUMBER(10)    NOT NULL,  -- FK → CULTIVOS_CATALOGO
-  MUNICIPIO_ID    NUMBER(10)    NOT NULL,  -- FK → MUNICIPIOS (municipio del cultivo)
+  USUARIO_ID      NUMBER(10)    NOT NULL,
+  CATALOGO_ID     NUMBER(10)    NOT NULL,
+  MUNICIPIO_ID    NUMBER(10)    NOT NULL,
   HECTAREAS       NUMBER(10,2)  NOT NULL,
   FECHA_SIEMBRA   DATE          NOT NULL,
 
-  -- Umbrales personalizados: NULL = heredar del catálogo.
-  -- La vista V_CULTIVOS_CON_UMBRALES aplica NVL en SQL;
-  -- la capa Java NUNCA debe copiar valores del catálogo aquí.
   TEMP_MIN_OVERRIDE    NUMBER(5,2),
   TEMP_MAX_OVERRIDE    NUMBER(5,2),
   LLUVIA_MIN_OVERRIDE  NUMBER(8,2),
@@ -203,8 +182,6 @@ CREATE TABLE CULTIVOS_AGRICULTOR (
   HUMEDAD_MIN_OVERRIDE NUMBER(5,2),
   HUMEDAD_MAX_OVERRIDE NUMBER(5,2),
 
-  -- Tipo de suelo de la parcela. NULL = no informado todavía.
-  -- Reservado para el motor de recomendaciones en versiones futuras.
   TIPO_SUELO      VARCHAR2(50),
 
   ACTIVO          NUMBER(1)     DEFAULT 1 NOT NULL,
@@ -217,9 +194,8 @@ CREATE TABLE CULTIVOS_AGRICULTOR (
   CONSTRAINT FK_CULTAGR_MUNICIPIO   FOREIGN KEY (MUNICIPIO_ID) REFERENCES MUNICIPIOS(ID),
   CONSTRAINT CK_CULTAGR_ACTIVO      CHECK (ACTIVO IN (0, 1)),
   CONSTRAINT CK_CULTAGR_HECTAREAS   CHECK (HECTAREAS > 0),
-  -- Permite sembrar hasta mañana para absorber diferencias de zona horaria
-  CONSTRAINT CK_CULTAGR_FECHA       CHECK (FECHA_SIEMBRA <= SYSDATE + 1),
-  -- Si ambos override de temperatura están presentes, deben ser coherentes
+  -- CORRECCIÓN v3.1: eliminado CK_CULTAGR_FECHA — Oracle no
+  -- permite SYSDATE en constraints CHECK.
   CONSTRAINT CK_CULTAGR_TEMP_OVR    CHECK (
     TEMP_MIN_OVERRIDE IS NULL OR TEMP_MAX_OVERRIDE IS NULL
     OR TEMP_MIN_OVERRIDE < TEMP_MAX_OVERRIDE
@@ -232,8 +208,6 @@ CREATE TABLE CULTIVOS_AGRICULTOR (
     HUMEDAD_MIN_OVERRIDE IS NULL OR HUMEDAD_MAX_OVERRIDE IS NULL
     OR HUMEDAD_MIN_OVERRIDE < HUMEDAD_MAX_OVERRIDE
   ),
-  -- Mismo vocabulario controlado que CULTIVOS_CATALOGO.TIPO_SUELO
-  -- El CHECK en Oracle ignora NULLs, por lo que TIPO_SUELO nullable es válido
   CONSTRAINT CK_CULTAGR_TIPO_SUELO  CHECK (TIPO_SUELO IN (
     'Franco','Franco-arcilloso','Franco-arenoso',
     'Arcilloso','Arenoso','Limoso','Franco-limoso'
@@ -248,7 +222,6 @@ BEGIN
 END;
 /
 
--- Actualiza FECHA_ACTUALIZACION automáticamente en cada UPDATE
 CREATE OR REPLACE TRIGGER TRG_CULTAGR_FECHA_ACT
   BEFORE UPDATE ON CULTIVOS_AGRICULTOR
   FOR EACH ROW
@@ -264,36 +237,30 @@ CREATE INDEX IDX_CULTAGR_ACTIVO    ON CULTIVOS_AGRICULTOR(ACTIVO);
 
 -- ============================================================
 --  6. ALERTAS
---     Alertas generadas automáticamente por el motor.
---     Cada registro = una condición climática violada
---     en un día de pronóstico para un cultivo.
---     El UNIQUE anti-duplicación impide insertar la misma
---     combinación (cultivo, tipo, día) más de una vez.
 -- ============================================================
 CREATE TABLE ALERTAS (
   ID                    NUMBER(10)    NOT NULL,
-  CULTIVO_AGRICULTOR_ID NUMBER(10)    NOT NULL,  -- FK → CULTIVOS_AGRICULTOR
+  CULTIVO_AGRICULTOR_ID NUMBER(10)    NOT NULL,
   TIPO_ALERTA           VARCHAR2(30)  NOT NULL,
   SEVERIDAD             VARCHAR2(10)  NOT NULL,
   DESCRIPCION           VARCHAR2(500) NOT NULL,
-  FECHA_DIA_PRONOSTICO  DATE          NOT NULL,  -- Día del pronóstico que disparó la alerta
+  FECHA_DIA_PRONOSTICO  DATE          NOT NULL,
   FECHA_GENERACION      DATE          DEFAULT SYSDATE NOT NULL,
-  VALOR_DETECTADO       NUMBER(8,2)   NOT NULL,  -- Valor real del pronóstico (ej: 92.5 mm)
-  VALOR_UMBRAL          NUMBER(8,2)   NOT NULL,  -- Umbral efectivo aplicado (ej: 80 mm)
+  VALOR_DETECTADO       NUMBER(8,2)   NOT NULL,
+  VALOR_UMBRAL          NUMBER(8,2)   NOT NULL,
   LEIDA                 NUMBER(1)     DEFAULT 0 NOT NULL,
   FECHA_LECTURA         DATE,
 
-  CONSTRAINT PK_ALERTAS         PRIMARY KEY (ID),
-  CONSTRAINT FK_ALERTAS_CULTIVO FOREIGN KEY (CULTIVO_AGRICULTOR_ID) 
+  CONSTRAINT PK_ALERTAS           PRIMARY KEY (ID),
+  CONSTRAINT FK_ALERTAS_CULTIVO   FOREIGN KEY (CULTIVO_AGRICULTOR_ID)
     REFERENCES CULTIVOS_AGRICULTOR(ID),
-  CONSTRAINT CK_ALERTAS_TIPO    CHECK (TIPO_ALERTA IN (
+  CONSTRAINT CK_ALERTAS_TIPO      CHECK (TIPO_ALERTA IN (
     'TEMPERATURA_ALTA',   'TEMPERATURA_BAJA',
     'LLUVIA_EXCESIVA',    'LLUVIA_INSUFICIENTE',
     'HUMEDAD_EXCESIVA',   'HUMEDAD_INSUFICIENTE'
   )),
   CONSTRAINT CK_ALERTAS_SEVERIDAD CHECK (SEVERIDAD IN ('ALTA','MEDIA','BAJA')),
   CONSTRAINT CK_ALERTAS_LEIDA     CHECK (LEIDA IN (0, 1)),
-  -- Anti-duplicación: un tipo de alerta solo una vez por cultivo por día de pronóstico
   CONSTRAINT UQ_ALERTAS_NODUP     UNIQUE (
     CULTIVO_AGRICULTOR_ID, TIPO_ALERTA, FECHA_DIA_PRONOSTICO
   )
@@ -307,7 +274,6 @@ BEGIN
 END;
 /
 
--- Registra automáticamente cuándo se marcó como leída
 CREATE OR REPLACE TRIGGER TRG_ALERTAS_FECHA_LECTURA
   BEFORE UPDATE OF LEIDA ON ALERTAS
   FOR EACH ROW
@@ -328,13 +294,6 @@ CREATE INDEX IDX_ALERTAS_FECHA_PRON ON ALERTAS(FECHA_DIA_PRONOSTICO);
 -- ============================================================
 --  7. VISTAS
 -- ============================================================
-
--- ------------------------------------------------------------
---  V_ALERTAS_ACTIVAS
---  Alertas con contexto completo para el dashboard del
---  agricultor y el historial de administración.
---  Incluye CATEGORIA para mostrar badge en la vista de alertas.
--- ------------------------------------------------------------
 CREATE OR REPLACE VIEW V_ALERTAS_ACTIVAS AS
 SELECT
   a.ID                     AS ALERTA_ID,
@@ -363,15 +322,6 @@ WHERE ca.ACTIVO = 1
   AND u.ACTIVO  = 1;
 
 
--- ------------------------------------------------------------
---  V_CULTIVOS_CON_UMBRALES
---  Vista principal del motor de alertas.
---  Expone umbrales efectivos (NVL override → catálogo),
---  CATEGORIA para la lógica de severidad diferenciada, y
---  coordenadas del municipio del CULTIVO (no del usuario).
---  Filtra cultivos inactivos Y agricultores inactivos para
---  que el motor no procese cultivos de usuarios desactivados.
--- ------------------------------------------------------------
 CREATE OR REPLACE VIEW V_CULTIVOS_CON_UMBRALES AS
 SELECT
   ca.ID,

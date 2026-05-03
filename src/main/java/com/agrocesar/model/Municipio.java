@@ -59,7 +59,7 @@ public class Municipio {
         public Builder nombre (String nombre)                      { this.nombre = nombre; return this; }
         public Builder departamento (String departamento)          { this.departamento = departamento; return this; }
         public Builder latitud (Double latitud)                    { this.latitud = latitud; return this; }
-        public Builder Longitud (Double longitud)                  { this.longitud = longitud; return this;}
+        public Builder longitud (Double longitud)                  { this.longitud = longitud; return this;}
         public Builder activo (Integer activo)                     { this.activo = activo; return this; }
         public Builder fechaCreacion (LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; return this; }
 

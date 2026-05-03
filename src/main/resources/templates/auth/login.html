@@ -1,9 +1,9 @@
-git <!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
 <!-- th:replace inserta esta vista dentro del layout base-->
 
-<head th:replace="layout :: base('Login - Agrocesar', ~{::main})"></head>
+<head th:replace="~{layout :: base('Login - Agrocesar', ~{::main})}"></head>
 
 <body>
     <main>
@@ -32,7 +32,7 @@ git <!DOCTYPE html>
 
                     <!-- Token CSRF: Spring Security 7 lo requiere en cada POST -->
                     <!--Thymeleaf lo inyecta automaticamente con estas dos lineas-->
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
 
                     <!-- Campo email - Spring Security 7 espera el campo 'username'-->
                     <div>

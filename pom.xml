@@ -68,10 +68,8 @@
 
     <!-- sec:authorize y #authentication en vistas Thymeleaf -->
     <dependency>
-      <groupId>org.thymeleaf.extras</groupId>
-      <artifactId>thymeleaf-extras-springsecurity6</artifactId>
-      <!-- Versión gestionada por BOM de Spring Boot 4 -->
-      <version>3.1.3.RELEASE</version>
+     <groupId>org.thymeleaf.extras</groupId>
+    <artifactId>thymeleaf-extras-springsecurity6</artifactId>
     </dependency>
 
     <!-- == SPRING SECURITY == -->
@@ -130,6 +128,13 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+
+  <!-- Jakarta EE API — requerido por Spring Boot 4.0 -->
+<dependency>
+    <groupId>jakarta.annotation</groupId>
+    <artifactId>jakarta.annotation-api</artifactId>
+</dependency>
 
   </dependencies>
 

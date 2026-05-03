@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="base(titulo, contenido)">
+<html xmlns:th="http://www.thymeleaf.org"
+    th:fragment="base(titulo, contenido)">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${titulo}">Agrocesar</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -15,28 +15,25 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        'sans': ['Lato', 'sans-serif'],
-                    },
+                    fontFamily: { 'sans': ['Lato', 'sans-serif'] },
                 },
             },
         }
     </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-gray-100">
 
-    <!-- HEADER minimalista -->
+    <!-- HEADER -->
     <header class="bg-green-900 text-amber-100 px-6 py-4">
         <span class="font-bold text-xl tracking-wide">Agrocesar</span>
         <p class="text-xs text-green-300">Monitoreo de Cultivos</p>
     </header>
 
     <!-- CONTENIDO -->
-    <main class="flex-1 flex items-center justify-center p-6" th:replace="${contenido}">
-    </main>
+    <main class="flex-1 flex items-center justify-center p-6" th:insert="${contenido}">
+</main>
 
     <!-- FOOTER -->
     <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
@@ -44,5 +41,4 @@
     </footer>
 
 </body>
-
 </html>

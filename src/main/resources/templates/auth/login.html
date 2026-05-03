@@ -1,73 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
-<!-- th:replace inserta esta vista dentro del layout base-->
-
-<head th:replace="~{layout-auth :: base('Login - Agrocesar', ~{::main})}"></head>
-
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout-auth :: base('Login - Agrocesar', ~{::div})}">
 
 <body>
-    <main>
+<div>
+    <div class="bg-white rounded-xl shadow-md p-8 w-full max-w-md">
 
-        <div class="min-h-screen flex items-center justify-center bg-gray-50">
-            <div class="bg-white rounded-xl shadow-md p-8 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-green-900 text-center mb-6">Agrocesar</h1>
 
-                <h1 class="text-2xl font-bold text-green-900 text-center mb-6">
-                    Agrocesar
-                </h1>
-
-                <!-- Mensaje de error: Spring Security 7 agrega ?error a la URL si falla-->
-                <div th:if="${param.error}" class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-                    Correo o contrasena incorrectos. Intenta de nuevo.
-                </div>
-
-                <!-- Mensaje de logout exitoso-->
-                <div th:if="${param.logout}" class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4 text-sm">
-                    Sesion cerrada correctamente.
-                </div>
-
-                <!-- FORMULARIO DE LOGIN-->
-               <!-- th:action apunta a la ruta que Spring Security 7 intercepta-->
-                <!-- method='post' es obligatorio para Spring Security-->
-                <form th:action="@{/login}" method="post" class="space-y-4">
-
-                    <!-- Token CSRF: Spring Security 7 lo requiere en cada POST -->
-                    <!--Thymeleaf lo inyecta automaticamente con estas dos lineas-->
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
-
-                    <!-- Campo email - Spring Security 7 espera el campo 'username'-->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Correo electronico
-                        </label>
-                        <input type="email" name="username" required placeholder="ejemplo@correo.com" class="w-full border border-gray-300 rounded-lg px-3 py-2
-                        focus:outline-none focus:ring-2 focus:ring-green-600">
-                    </div>
-
-                    <!-- Campo contrasena - Spring Security 7 espera el campo 'password'-->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Contrasena
-                        </label>
-                        <input type="password" name="password" required class="w-full border border-gray-300 rounded-lg px-3 py-2
-                        focus:outline-none focus:ring-2 focus:ring-green-600">
-                    </div>
-
-                    <button type="submit" class="w-full bg-green-900 text-amber-100 py-2 rounded-lg
-                       hover:bg-green-800 font-semibold transition">
-                        Ingresar
-                    </button>
-
-                    <p class="text-center text-sm text-gray-500">
-                        No tienes cuenta?
-                        <a th:href="@{/registro}" class="text-green-700 hover:underline">Registrate aqui</a>
-                    </p>
-
-                </form>
-            </div>
+        <div th:if="${param.error}" class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
+            Correo o contrasena incorrectos. Intenta de nuevo.
         </div>
 
-    </main>
-</body>
+        <div th:if="${param.logout}" class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4 text-sm">
+            Sesion cerrada correctamente.
+        </div>
 
+        <form th:action="@{/login}" method="post" class="space-y-4">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Correo electronico</label>
+                <input type="email" name="username" required placeholder="ejemplo@correo.com"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
+                <input type="password" name="password" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600">
+            </div>
+
+            <button type="submit" class="w-full bg-green-900 text-amber-100 py-2 rounded-lg hover:bg-green-800 font-semibold transition">
+                Ingresar
+            </button>
+
+            <p class="text-center text-sm text-gray-500">
+                No tienes cuenta?
+                <a th:href="@{/registro}" class="text-green-700 hover:underline">Registrate aqui</a>
+            </p>
+        </form>
+    </div>
+</div>
+</body>
 </html>

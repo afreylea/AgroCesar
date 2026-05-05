@@ -7,6 +7,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
+
+import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
 
 @Configuration
@@ -38,5 +40,10 @@ public class JdbiConfig {
     @Bean
     public UsuarioRepository usuarioRepository(Jdbi jdbi) {
         return jdbi.onDemand(UsuarioRepository.class);
+    }
+
+    @Bean
+    public MunicipioRepository municipioRepository (Jdbi jdbi){
+        return jdbi.onDemand(MunicipioRepository.class);
     }
 }

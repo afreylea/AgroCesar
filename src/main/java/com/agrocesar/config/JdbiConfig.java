@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
+import com.agrocesar.model.Municipio;
+import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 
 @Configuration
 public class JdbiConfig {
@@ -34,6 +36,7 @@ public class JdbiConfig {
             .build();
         Jdbi jdbi = Jdbi.create(dataSource);
         jdbi.installPlugin(new SqlObjectPlugin());
+        jdbi.registerRowMapper(BeanMapper.factory(Municipio.class));
         return jdbi;
     }
 

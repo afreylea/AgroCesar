@@ -24,8 +24,7 @@ public class UsuarioService {
     }
 
     public void registrar(Long id, String nombre, String email,
-                          String passwordPlano, Long municipioId,
-                          String rol, String telefono) {
+                          String passwordPlano, Long municipioId, String telefono) {
 
         if (id == null || id <= 0)
             throw new IllegalArgumentException("La cédula es obligatoria.");
@@ -42,16 +41,7 @@ public class UsuarioService {
         if (passwordPlano.length() < 8)
             throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres.");
 
-        if (rol == null || rol.isBlank())
-            throw new IllegalArgumentException("El rol es obligatorio.");
-
-        if (!rol.equalsIgnoreCase("AGRICULTOR") && !rol.equalsIgnoreCase("ADMIN"))
-            throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres.");
-
-        if (municipioId == null)
-            throw new IllegalArgumentException("Debes seleccionar un municipio.");
-
-        if (municipioRepository.findById(municipioId).isEmpty()) 
+        if (municipioId != null && municipioRepository.findById(municipioId).isEmpty()) 
             throw new IllegalArgumentException("El municipio ingresado no existe");
 
         if (usuarioRepository.findById(id).isPresent())
@@ -67,7 +57,7 @@ public class UsuarioService {
             .nombre(nombre.trim())
             .email(email.trim())
             .passwordHash(passwordEncoder.encode(passwordPlano))
-            .rol(rol)
+            .rol("AGRICULTOR")
             .municipioId(municipioId)
             .telefono(telefono)
             .build();

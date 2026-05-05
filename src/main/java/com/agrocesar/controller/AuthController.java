@@ -41,13 +41,12 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam String password,
             @RequestParam(required = false) Long municipioId,
-            @RequestParam String rol,
-            @RequestParam String telefono,
+            @RequestParam(required = false) String telefono,
             Model model,
             RedirectAttributes redirectAttrs) {
 
         try {
-            usuarioService.registrar(id, nombre, email, password, municipioId, rol, telefono);
+            usuarioService.registrar(id, nombre, email, password, municipioId, telefono);
             redirectAttrs.addFlashAttribute("registroExitoso",
                     "Cuenta creada. Ya puedes iniciar sesión.");
             return "redirect:/login";

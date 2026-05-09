@@ -1,5 +1,6 @@
 package com.agrocesar.config;
 
+import com.agrocesar.service.UsuarioService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,10 +9,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final UsuarioService usuarioService;
+
+    public SecurityConfig(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -22,13 +30,12 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/login", "/registro",
                     "/css/**", "/js/**", "/images/**",
-                    "/test-publico", "/test-anyrequest"
-                    ,"/error", "/access-denied"
+                    "/error", "/access-denied"
                 ).permitAll()
                 
                 //Agricultor
                 .requestMatchers(
-                    "/dashboard", "/cultivos/**", "/alertas/**", "/test-agricultor"
+                    "/dashboard", "/cultivos/**", "/alertas/**"
                 ).hasRole("AGRICULTOR")
                 
                 //Admin
@@ -42,6 +49,10 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler((request, response, authentication) -> {
+                    String email = authentication.getName();
+
+                    usuarioService.actualizarUltimoLogin(email);
+
                     boolean isAdmin = authentication.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                     
@@ -77,5 +88,10 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean 
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

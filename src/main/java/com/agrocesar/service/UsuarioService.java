@@ -3,12 +3,12 @@ package com.agrocesar.service;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Pattern;
+
 @Service
-@Profile("!nobd")
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
@@ -23,11 +23,8 @@ public class UsuarioService {
         this.municipioRepository = municipioRepository;
     }
 
-    public void registrar(Long id, String nombre, String email,
+    public void registrar(String nombre, String email, 
                           String passwordPlano, Long municipioId, String telefono) {
-
-        if (id == null || id <= 0)
-            throw new IllegalArgumentException("La cédula es obligatoria.");
 
         if (nombre == null || nombre.isBlank())
             throw new IllegalArgumentException("El nombre es obligatorio.");
@@ -38,24 +35,27 @@ public class UsuarioService {
         if (passwordPlano == null || passwordPlano.isBlank())
             throw new IllegalArgumentException("La contraseña es obligatoria.");
 
+
+        if (!formatoEmailValido(email))
+            throw new IllegalArgumentException("Formato de email inválido.");
+
         if (passwordPlano.length() < 8)
             throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres.");
 
-        if (municipioId != null && municipioRepository.findById(municipioId).isEmpty()) 
-            throw new IllegalArgumentException("El municipio ingresado no existe");
+        if (telefono != null && !formatoTelefonoValido(telefono))
+            throw new IllegalArgumentException("Formato de número de teléfono inválido.");
 
-        if (usuarioRepository.findById(id).isPresent())
-            throw new IllegalArgumentException("La cédula ya está registrada.");
+ 
+        if (municipioId != null && municipioRepository.findById(municipioId).isEmpty())
+            throw new IllegalArgumentException("El municipio ingresado no existe.");
 
         if (usuarioRepository.findByEmail(email).isPresent())
             throw new IllegalArgumentException("El correo ya está registrado.");
-        
-        
+
 
         Usuario nuevo = Usuario.builder()
-            .id(id)
             .nombre(nombre.trim())
-            .email(email.trim())
+            .email(email.trim().toLowerCase())
             .passwordHash(passwordEncoder.encode(passwordPlano))
             .rol("AGRICULTOR")
             .municipioId(municipioId)
@@ -63,5 +63,20 @@ public class UsuarioService {
             .build();
 
         usuarioRepository.insert(nuevo);
+    }
+
+
+    public void actualizarUltimoLogin (String email) {
+        usuarioRepository.actualizarUltimoLogin(email);
+    }
+    
+
+    private boolean formatoEmailValido(String email) {
+        String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return Pattern.compile(regex).matcher(email.trim().toLowerCase()).matches();
+    }
+
+    private boolean formatoTelefonoValido(String telefono) {
+        return Pattern.compile("^\\+?(57)?[0-9]{10}$").matcher(telefono.trim()).matches();
     }
 }

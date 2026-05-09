@@ -75,6 +75,8 @@ public class CultivoCatalogo {
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
 
+    public boolean isActivo()                        { return Integer.valueOf(1).equals(this.activo); }
+
     // Setters
     public void setId(Long id)                                      { this.id = id; }
     public void setNombre(String nombre)                            { this.nombre = nombre; }
@@ -140,5 +142,19 @@ public class CultivoCatalogo {
                     tipoSuelo, diasCosechaMin, diasCosechaMax, fuenteDatos,
                     activo, fechaCreacion, fechaActualizacion);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "CultivoCatalogo{" +
+            "id=" + id +
+            ", nombre='" + nombre + '\'' +
+            ", categoria='" + categoria + '\'' +
+            ", temp=[" + tempMin + ", " + tempMax + "]" +
+            ", lluvia=[" + lluviaMin + ", " + lluviaMax + "]" +
+            ", humedad=[" + humedadMin + ", " + humedadMax + "]" +
+            ", diasCosecha=[" + diasCosechaMin + ", " + diasCosechaMax + "]" +
+            ", activo=" + activo +
+            '}';
     }
 }

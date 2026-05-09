@@ -50,6 +50,8 @@ public class Usuario {
     public String getTelefono()            { return telefono; }
     public LocalDateTime getUltimoLogin()  { return ultimoLogin; }
 
+    public boolean isActivo()              { return Integer.valueOf(1).equals(this.activo); }
+
     // Setters
     public void setId(Long id)                           { this.id = id; }
     public void setNombre(String nombre)                 { this.nombre = nombre; }
@@ -92,5 +94,18 @@ public class Usuario {
             return new Usuario(id, nombre, email, passwordHash, rol, activo,
                                fechaCreacion, municipioId, telefono, ultimoLogin);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Usuario{" +
+            "id=" + id +
+            ", nombre='" + nombre + '\'' +
+            ", email='" + email + '\'' +
+            ", rol='" + rol + '\'' +
+            ", municipioId=" + municipioId +
+            ", activo=" + activo +
+            ", ultimoLogin=" + ultimoLogin +
+            '}';
     }
 }

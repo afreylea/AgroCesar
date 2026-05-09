@@ -27,13 +27,7 @@ public class JdbiConfig {
 
     @Bean
     @ConditionalOnMissingBean(Jdbi.class)
-    public Jdbi jdbi() {
-        javax.sql.DataSource dataSource = DataSourceBuilder.create()
-            .url(url)
-            .username(username)
-            .password(password)
-            .driverClassName("oracle.jdbc.OracleDriver")
-            .build();
+    public Jdbi jdbi(DataSource dataSource) {
         Jdbi jdbi = Jdbi.create(dataSource);
         jdbi.installPlugin(new SqlObjectPlugin());
         jdbi.registerRowMapper(BeanMapper.factory(Municipio.class));

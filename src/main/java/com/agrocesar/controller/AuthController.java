@@ -1,8 +1,7 @@
 package com.agrocesar.controller;
 
-import com.agrocesar.repository.MunicipioRepository;
+import com.agrocesar.service.MunicipioService;
 import com.agrocesar.service.UsuarioService;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,16 +10,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@Profile("!nobd")
 public class AuthController {
 
     private final UsuarioService usuarioService;
-    private final MunicipioRepository municipioRepository;
+    private final MunicipioService municipioService;
 
     public AuthController(UsuarioService usuarioService,
-                          MunicipioRepository municipioRepository) {
+                          MunicipioService municipioService) {
         this.usuarioService      = usuarioService;
-        this.municipioRepository = municipioRepository;
+        this.municipioService = municipioService;
     }
 
     @GetMapping("/login")
@@ -30,13 +28,12 @@ public class AuthController {
 
     @GetMapping("/registro")
     public String registroPage(Model model) {
-        model.addAttribute("municipios", municipioRepository.findAllActivos());
+        model.addAttribute("municipios", municipioService.findAllActivos());
         return "auth/registro";
     }
 
     @PostMapping("/registro")
     public String registrar(
-            @RequestParam Long id,
             @RequestParam String nombre,
             @RequestParam String email,
             @RequestParam String password,
@@ -46,14 +43,14 @@ public class AuthController {
             RedirectAttributes redirectAttrs) {
 
         try {
-            usuarioService.registrar(id, nombre, email, password, municipioId, telefono);
+            usuarioService.registrar(nombre, email, password, municipioId, telefono);
             redirectAttrs.addFlashAttribute("registroExitoso",
                     "Cuenta creada. Ya puedes iniciar sesión.");
             return "redirect:/login";
 
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("municipios", municipioRepository.findAllActivos());
+            model.addAttribute("municipios", municipioService.findAllActivos());
             return "auth/registro";
         }
     }

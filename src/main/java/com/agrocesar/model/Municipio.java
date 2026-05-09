@@ -1,5 +1,6 @@
 package com.agrocesar.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Municipio {
@@ -10,13 +11,13 @@ public class Municipio {
     private Double latitud;
     private Double longitud;
     private Integer activo;
-    private LocalDateTime fechaCreacion;
+    private LocalDate fechaCreacion;
 
     public Municipio () { }
 
     public Municipio (Long id, String nombre, String departamento, 
                       Double latitud, Double longitud, Integer activo, 
-                      LocalDateTime fechaCreacion ) {
+                      LocalDate fechaCreacion ) {
         
         this.id            = id;
         this.nombre        = nombre;
@@ -33,7 +34,7 @@ public class Municipio {
     public Double getLatitud ()              { return latitud; }
     public Double getLongitud ()             { return longitud; }
     public Integer getActivo ()              { return activo; }
-    public LocalDateTime getFechaCreacion () { return fechaCreacion; }
+    public LocalDate getFechaCreacion () { return fechaCreacion; }
 
     public void setId (Long id)                                {this.id = id; }
     public void setNombre (String nombre)                      { this.nombre = nombre; }
@@ -41,7 +42,7 @@ public class Municipio {
     public void setLatitud (Double latitud)                    { this.latitud = latitud; }
     public void setLongitud (Double longitud)                  { this.longitud = longitud; }
     public void setActivo (Integer activo)                     { this.activo = activo; }
-    public void setFechaCreacion (LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+    public void setFechaCreacion (LocalDate fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
     public static Builder builder () { return new Builder(); }
 
@@ -53,7 +54,7 @@ public class Municipio {
         private Double latitud;
         private Double longitud;
         private Integer activo;
-        private LocalDateTime fechaCreacion;
+        private LocalDate fechaCreacion;
 
         public Builder id (Long id)                                { this.id = id; return this; }
         public Builder nombre (String nombre)                      { this.nombre = nombre; return this; }
@@ -61,7 +62,7 @@ public class Municipio {
         public Builder latitud (Double latitud)                    { this.latitud = latitud; return this; }
         public Builder longitud (Double longitud)                  { this.longitud = longitud; return this;}
         public Builder activo (Integer activo)                     { this.activo = activo; return this; }
-        public Builder fechaCreacion (LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; return this; }
+        public Builder fechaCreacion (LocalDate fechaCreacion)     { this.fechaCreacion = fechaCreacion; return this; }
 
         public Municipio build () {
             return new Municipio(id, nombre, departamento, latitud,

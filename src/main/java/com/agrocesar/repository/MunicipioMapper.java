@@ -6,7 +6,7 @@ import org.jdbi.v3.core.statement.StatementContext;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class MunicipioMapper implements RowMapper<Municipio> {
 
@@ -14,7 +14,7 @@ public class MunicipioMapper implements RowMapper<Municipio> {
     public Municipio map(ResultSet rs, StatementContext ctx) throws SQLException {
 
         // Oracle DATE -> Timestamp -> LocalDateTime
-        Timestamp fechaCreacion = rs.getTimestamp("FECHA_CREACION");
+        Date fechaCreacion = rs.getDate("FECHA_CREACION");
 
         return Municipio.builder()
             // NOT NULL garantizado por DDL
@@ -24,7 +24,7 @@ public class MunicipioMapper implements RowMapper<Municipio> {
             .latitud(rs.getDouble("LATITUD"))
             .longitud(rs.getDouble("LONGITUD"))
             .activo(rs.getInt("ACTIVO"))
-            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDateTime() : null)
+            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDate() : null)
 
             .build();
     }

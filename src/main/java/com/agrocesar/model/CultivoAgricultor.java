@@ -25,6 +25,10 @@ public class CultivoAgricultor {
     private Double humedadMinOverride;
     private Double humedadMaxOverride;
 
+    // Nullable - overrides de latitud y longitud (NULL = heredar de municipio)
+    private Double latitudCultivo;
+    private Double longitudCultivo;
+
     // Nullable — tipo de suelo de la parcela (informativo, para versiones futuras)
     private String tipoSuelo;
 
@@ -40,6 +44,7 @@ public class CultivoAgricultor {
                              Double tempMinOverride, Double tempMaxOverride,
                              Double lluviaMinOverride, Double lluviaMaxOverride,
                              Double humedadMinOverride, Double humedadMaxOverride,
+                             Double latitudCultivo, Double longitudCultivo, 
                              Integer activo, LocalDateTime fechaCreacion,
                              LocalDateTime fechaActualizacion) {
                                 
@@ -56,6 +61,8 @@ public class CultivoAgricultor {
         this.lluviaMaxOverride  = lluviaMaxOverride;
         this.humedadMinOverride = humedadMinOverride;
         this.humedadMaxOverride = humedadMaxOverride;
+        this.latitudCultivo     = latitudCultivo;
+        this.longitudCultivo    = longitudCultivo;
         this.activo             = activo;
         this.fechaCreacion      = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
@@ -75,6 +82,8 @@ public class CultivoAgricultor {
     public Double getLluviaMaxOverride()             { return lluviaMaxOverride; }
     public Double getHumedadMinOverride()            { return humedadMinOverride; }
     public Double getHumedadMaxOverride()            { return humedadMaxOverride; }
+    public Double getLatitudCultivo()                { return latitudCultivo;}
+    public Double getLongitudCultivo()               { return longitudCultivo;}
     public Integer getActivo()                       { return activo; }
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
@@ -93,6 +102,8 @@ public class CultivoAgricultor {
     public void setLluviaMaxOverride(Double lluviaMaxOverride)      { this.lluviaMaxOverride = lluviaMaxOverride; }
     public void setHumedadMinOverride(Double humedadMinOverride)    { this.humedadMinOverride = humedadMinOverride; }
     public void setHumedadMaxOverride(Double humedadMaxOverride)    { this.humedadMaxOverride = humedadMaxOverride; }
+    public void setLatitudCultivo(Double latitudCultivo)            { this.latitudCultivo = latitudCultivo; }
+    public void setLongitudCultivo(Double longitudCultivo)          { this.longitudCultivo = longitudCultivo; }
     public void setActivo(Integer activo)                           { this.activo = activo; }
     public void setFechaCreacion(LocalDateTime fechaCreacion)       { this.fechaCreacion = fechaCreacion; }
     public void setFechaActualizacion(LocalDateTime f)              { this.fechaActualizacion = f; }
@@ -114,6 +125,8 @@ public class CultivoAgricultor {
         private Double lluviaMaxOverride;
         private Double humedadMinOverride;
         private Double humedadMaxOverride;
+        private Double latitudCultivo;
+        private Double longitudCultivo;
         private Integer activo;
         private LocalDateTime fechaCreacion;
         private LocalDateTime fechaActualizacion;
@@ -131,6 +144,8 @@ public class CultivoAgricultor {
         public Builder lluviaMaxOverride(Double v)                  { this.lluviaMaxOverride = v; return this; }
         public Builder humedadMinOverride(Double v)                 { this.humedadMinOverride = v; return this; }
         public Builder humedadMaxOverride(Double v)                 { this.humedadMaxOverride = v; return this; }
+        public Builder latitudCultivo(Double latitud)               { this.latitudCultivo = latitud; return this; }
+        public Builder longitudCultivo(Double longitud)             { this.longitudCultivo = longitud; return this; }
         public Builder activo(Integer activo)                       { this.activo = activo; return this; }
         public Builder fechaCreacion(LocalDateTime f)               { this.fechaCreacion = f; return this; }
         public Builder fechaActualizacion(LocalDateTime f)          { this.fechaActualizacion = f; return this; }
@@ -141,6 +156,7 @@ public class CultivoAgricultor {
                     tempMinOverride, tempMaxOverride,
                     lluviaMinOverride, lluviaMaxOverride,
                     humedadMinOverride, humedadMaxOverride,
+                    latitudCultivo, longitudCultivo,
                     activo, fechaCreacion, fechaActualizacion);
         }
     }

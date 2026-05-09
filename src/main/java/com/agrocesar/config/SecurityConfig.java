@@ -1,6 +1,6 @@
 package com.agrocesar.config;
 
-import com.agrocesar.repository.UsuarioRepository;
+import com.agrocesar.service.UsuarioService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,10 +15,10 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
 
-    public SecurityConfig(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
+    public SecurityConfig(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
     }
 
     @Bean
@@ -30,13 +30,12 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/login", "/registro",
                     "/css/**", "/js/**", "/images/**",
-                    "/test-publico", "/test-anyrequest"
-                    ,"/error", "/access-denied"
+                    "/error", "/access-denied"
                 ).permitAll()
                 
                 //Agricultor
                 .requestMatchers(
-                    "/dashboard", "/cultivos/**", "/alertas/**", "/test-agricultor"
+                    "/dashboard", "/cultivos/**", "/alertas/**"
                 ).hasRole("AGRICULTOR")
                 
                 //Admin
@@ -52,7 +51,7 @@ public class SecurityConfig {
                 .successHandler((request, response, authentication) -> {
                     String email = authentication.getName();
 
-                    usuarioRepository.actualizarUltimoLogin(email);
+                    usuarioService.actualizarUltimoLogin(email);
 
                     boolean isAdmin = authentication.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));

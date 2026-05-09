@@ -143,4 +143,18 @@ public class CultivoCatalogo {
                     activo, fechaCreacion, fechaActualizacion);
         }
     }
+    
+    @Override
+    public String toString() {
+        return "CultivoCatalogo{" +
+            "id=" + id +
+            ", nombre='" + nombre + '\'' +
+            ", categoria='" + categoria + '\'' +
+            ", temp=[" + tempMin + ", " + tempMax + "]" +
+            ", lluvia=[" + lluviaMin + ", " + lluviaMax + "]" +
+            ", humedad=[" + humedadMin + ", " + humedadMax + "]" +
+            ", diasCosecha=[" + diasCosechaMin + ", " + diasCosechaMax + "]" +
+            ", activo=" + activo +
+            '}';
+    }
 }

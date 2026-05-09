@@ -95,4 +95,17 @@ public class Usuario {
                                fechaCreacion, municipioId, telefono, ultimoLogin);
         }
     }
+
+    @Override
+    public String toString() {
+        return "Usuario{" +
+            "id=" + id +
+            ", nombre='" + nombre + '\'' +
+            ", email='" + email + '\'' +
+            ", rol='" + rol + '\'' +
+            ", municipioId=" + municipioId +
+            ", activo=" + activo +
+            ", ultimoLogin=" + ultimoLogin +
+            '}';
+    }
 }

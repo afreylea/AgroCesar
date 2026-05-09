@@ -162,4 +162,27 @@ public class CultivoAgricultor {
                     activo, fechaCreacion, fechaActualizacion);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CultivoAgricultor{" +
+            "id=" + id +
+            ", usuarioId=" + usuarioId +
+            ", catalogoId=" + catalogoId +
+            ", municipioId=" + municipioId +
+            ", hectareas=" + hectareas +
+            ", fechaSiembra=" + fechaSiembra +
+            ", overrides={" +
+                "tempMin=" + tempMinOverride +
+                ", tempMax=" + tempMaxOverride +
+                ", lluviaMin=" + lluviaMinOverride +
+                ", lluviaMax=" + lluviaMaxOverride +
+                ", humedadMin=" + humedadMinOverride +
+                ", humedadMax=" + humedadMaxOverride +
+            "}" +
+            ", latitudCultivo=" + latitudCultivo +
+            ", longitudCultivo=" + longitudCultivo +
+            ", activo=" + activo +
+            '}';
+    }
 }

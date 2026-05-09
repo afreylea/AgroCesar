@@ -58,7 +58,7 @@ public class Alerta {
     public Integer getLeida()                        { return leida; }
     public LocalDateTime getFechaLectura()           { return fechaLectura; }
 
-    public boolean isRead()                          { return Integer.valueOf(1).equals(this.leida); }
+    public boolean isLeida()                          { return Integer.valueOf(1).equals(this.leida); }
 
     // Setters
     public void setId(Long id)                                          { this.id = id; }
@@ -106,5 +106,20 @@ public class Alerta {
                     descripcion, fechaDiaPronostico, fechaGeneracion,
                     valorDetectado, valorUmbral, leida, fechaLectura);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Alerta{" +
+            "id=" + id +
+            ", cultivoAgricultorId=" + cultivoAgricultorId +
+            ", tipoAlerta='" + tipoAlerta + '\'' +
+            ", severidad='" + severidad + '\'' +
+            ", fechaDiaPronostico=" + fechaDiaPronostico +
+            ", valorDetectado=" + valorDetectado +
+            ", valorUmbral=" + valorUmbral +
+            ", leida=" + leida +
+            ", fechaGeneracion=" + fechaGeneracion +
+            '}';
     }
 }

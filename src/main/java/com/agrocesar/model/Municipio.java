@@ -70,4 +70,16 @@ public class Municipio {
                                  longitud, activo, fechaCreacion );
         }
     }
+
+    @Override
+    public String toString() {
+        return "Municipio{" +
+            "id=" + id +
+            ", nombre='" + nombre + '\'' +
+            ", departamento='" + departamento + '\'' +
+            ", latitud=" + latitud +
+            ", longitud=" + longitud +
+            ", activo=" + activo +
+            '}';
+    }
 }

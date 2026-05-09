@@ -54,7 +54,6 @@ COMMIT;
 -- Admin del sistema
 INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    '1111'
     'Administrador del Sistema',
     'admin@agrocesar.com',
     '$2b$12$OA6RhTTL8o7vBdwxnq.5gOvv3CtibBsT0zVgVMdb74ezX6qkNLium',
@@ -68,7 +67,6 @@ VALUES (
 -- Tiene cultivos en DOS municipios distintos para probar pronósticos diferenciados
 INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    '2222'
     'Juan Pérez',
     'agricultor@cesar.com',
     '$2b$12$RRONJqWoDFJ4ue4n8WDgx.PMwpNC06rrGsV9llcWxOLWRMUaRwLfy',
@@ -81,7 +79,6 @@ VALUES (
 -- Agricultor 2 — INACTIVO para probar que findByEmailAndActivo la rechaza
 INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    '3333'
     'María González',
     'agricultora@astrea.com',
     '$2b$12$27JdeEySOhco5jpWARAasukAaUDsdIb7jXIjpm3kfwlaTAXr3YMlW',

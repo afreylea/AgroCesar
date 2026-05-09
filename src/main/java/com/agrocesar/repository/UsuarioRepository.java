@@ -67,9 +67,9 @@ public interface UsuarioRepository {
     List<Usuario> findByRol(@Bind("rol") String rol);
 
     @SqlUpdate("""
-        INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
+        INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
                               MUNICIPIO_ID, TELEFONO)
-        VALUES (:id, :nombre, :email, :passwordHash, :rol, 
+        VALUES (:nombre, :email, :passwordHash, :rol, 
                 :municipioId, :telefono)
         """)
     void insert(@BindBean Usuario usuario);

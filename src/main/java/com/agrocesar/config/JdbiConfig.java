@@ -11,10 +11,10 @@ import javax.sql.DataSource;
 
 @Configuration
 @Profile("!nobd") 
-@ConditionalOnMissingBean
 public class JdbiConfig {
 
     @Bean
+    @ConditionalOnMissingBean(Jdbi.class)
     public Jdbi jdbi(DataSource dataSource) {
         Jdbi jdbi = Jdbi.create(dataSource);
         jdbi.installPlugin(new SqlObjectPlugin());

@@ -25,28 +25,17 @@ public class Usuario {
     public Usuario(Long id, String nombre, String email, String passwordHash,
                    String rol, Integer activo, LocalDateTime fechaCreacion,
                    Long municipioId, String telefono, LocalDateTime ultimoLogin) {
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.rol = rol;
-        this.activo = activo;
-        this.fechaCreacion = fechaCreacion;
-        this.municipioId = municipioId;
-        this.telefono = telefono;
-        this.ultimoLogin = ultimoLogin;
-    }
 
-    // Constructor para REGISTRO — solo los campos que el usuario ingresa
-    public Usuario(String nombre, String email, String passwordHash, 
-                String rol, Long municipioId, String telefono) {
-        this.nombre = nombre;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.rol = rol;
-        this.municipioId = municipioId;
-        this.telefono = telefono;
-        // activo, fechaCreacion, ultimoLogin -> los asigna Oracle, no Java
+        this.id            = id;
+        this.nombre        = nombre;
+        this.email         = email;
+        this.passwordHash  = passwordHash;
+        this.rol           = rol;
+        this.activo        = activo;
+        this.fechaCreacion = fechaCreacion;
+        this.municipioId   = municipioId;
+        this.telefono      = telefono;
+        this.ultimoLogin   = ultimoLogin;
     }
 
     // Getters
@@ -62,15 +51,15 @@ public class Usuario {
     public LocalDateTime getUltimoLogin()  { return ultimoLogin; }
 
     // Setters
-    public void setId(Long id)                          { this.id = id; }
-    public void setNombre(String nombre)                { this.nombre = nombre; }
-    public void setEmail(String email)                  { this.email = email; }
-    public void setPasswordHash(String passwordHash)    { this.passwordHash = passwordHash; }
-    public void setRol(String rol)                      { this.rol = rol; }
-    public void setActivo(Integer activo)               { this.activo = activo; }
-    public void setFechaCreacion(LocalDateTime f)       { this.fechaCreacion = f; }
-    public void setMunicipioId(Long municipioId)        { this.municipioId = municipioId; }
-    public void setTelefono(String telefono)            { this.telefono = telefono; }
+    public void setId(Long id)                           { this.id = id; }
+    public void setNombre(String nombre)                 { this.nombre = nombre; }
+    public void setEmail(String email)                   { this.email = email; }
+    public void setPasswordHash(String passwordHash)     { this.passwordHash = passwordHash; }
+    public void setRol(String rol)                       { this.rol = rol; }
+    public void setActivo(Integer activo)                { this.activo = activo; }
+    public void setFechaCreacion(LocalDateTime f)        { this.fechaCreacion = f; }
+    public void setMunicipioId(Long municipioId)         { this.municipioId = municipioId; }
+    public void setTelefono(String telefono)             { this.telefono = telefono; }
     public void setUltimoLogin(LocalDateTime ultimoLogin){ this.ultimoLogin = ultimoLogin; }
 
     // Builder estático (reemplaza @Builder de Lombok)

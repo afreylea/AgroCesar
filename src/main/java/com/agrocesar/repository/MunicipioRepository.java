@@ -11,7 +11,7 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import java.util.List;
 import java.util.Optional;
 
-@RegisterBeanMapper(Municipio.class)
+@RegisterBeanMapper(MunicipioMapper.class)
 public interface MunicipioRepository {
 
     @SqlQuery("SELECT id, nombre, departamento, latitud, longitud, activo " +

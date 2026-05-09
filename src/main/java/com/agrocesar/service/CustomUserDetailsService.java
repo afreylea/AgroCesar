@@ -26,8 +26,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmailAndActivo(email)
             .orElseThrow(() -> new UsernameNotFoundException(
                 "Usuario no encontrado o inactivo: " + email));
-        
-        usuarioRepository.actualizarUltimoLogin(email);
 
         //Transforma a formato Spring Security
         return new User(

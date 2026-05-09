@@ -29,8 +29,11 @@ public class UsuarioService {
         if (nombre == null || nombre.isBlank())
             throw new IllegalArgumentException("El nombre es obligatorio.");
 
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("El correo es obligatorio.");
+
         if (!esEmailValido(email)) 
-            throw new IllegalArgumentException("Formato de emal invalido");
+            throw new IllegalArgumentException("Formato de email invalido");
 
         if(!esTelefonoValido(telefono))
             throw new IllegalArgumentException("Formato de numero de telefono invalido");
@@ -66,9 +69,6 @@ public class UsuarioService {
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
-
-        if (email == null || email.isBlank())
-            throw new IllegalArgumentException("El correo es obligatorio.");
 
         return pattern.matcher(email.trim().toLowerCase()).matches();
     }

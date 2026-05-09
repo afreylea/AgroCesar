@@ -32,7 +32,7 @@ public class CultivoCatalogoMapper implements RowMapper<CultivoCatalogo> {
             .diasCosechaMin(rs.getInt("DIAS_COSECHA_MIN"))
             .diasCosechaMax(rs.getInt("DIAS_COSECHA_MAX"))
             .activo(rs.getInt("ACTIVO"))
-            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDateTime() : null)
+            .fechaCreacion(fechaCreacion.toLocalDateTime())
 
             // NULLABLE
             .descripcion(rs.getString("DESCRIPCION"))

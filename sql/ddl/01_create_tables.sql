@@ -57,7 +57,7 @@ CREATE TABLE MUNICIPIOS (
   ID             NUMBER(10)    NOT NULL,
   NOMBRE         VARCHAR2(100) NOT NULL,
   DEPARTAMENTO   VARCHAR2(100) DEFAULT 'Cesar' NOT NULL,
-  LATITUD        NUMBER(9,6)   NOT NULL,
+  LATITUD        NUMBER(8,6)   NOT NULL,
   LONGITUD       NUMBER(9,6)   NOT NULL,
   ACTIVO         NUMBER(1)     DEFAULT 1 NOT NULL,
   FECHA_CREACION DATE          DEFAULT SYSDATE NOT NULL,
@@ -195,8 +195,8 @@ CREATE TABLE CULTIVOS_AGRICULTOR (
   HUMEDAD_MAX_OVERRIDE NUMBER(5,2),
 
   -- Coordenadas personalizadas para más presición
-  LATITUD_CULTIVO    NUMBER(10, 6),
-  LONGITUD_CULTIVO   NUMBER(10, 6),
+  LATITUD_CULTIVO    NUMBER(8, 6),
+  LONGITUD_CULTIVO   NUMBER(9, 6),
 
   -- Tipo de suelo de la parcela. NULL = no informado todavía.
   -- Reservado para el motor de recomendaciones en versiones futuras.

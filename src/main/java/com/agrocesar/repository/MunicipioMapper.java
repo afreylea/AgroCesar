@@ -24,7 +24,7 @@ public class MunicipioMapper implements RowMapper<Municipio> {
             .latitud(rs.getDouble("LATITUD"))
             .longitud(rs.getDouble("LONGITUD"))
             .activo(rs.getInt("ACTIVO"))
-            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDate() : null)
+            .fechaCreacion(fechaCreacion.toLocalDate())
 
             .build();
     }

@@ -25,7 +25,7 @@ public class UsuarioMapper implements RowMapper<Usuario> {
             .passwordHash(rs.getString("PASSWORD_HASH"))
             .rol(rs.getString("ROL"))
             .activo(rs.getInt("ACTIVO"))
-            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDateTime() : null)
+            .fechaCreacion(fechaCreacion.toLocalDateTime())
 
             // NULLABLE
             .municipioId(rs.getObject("MUNICIPIO_ID", Long.class))

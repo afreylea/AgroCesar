@@ -28,9 +28,9 @@ public class CultivoAgricultorMapper implements RowMapper<CultivoAgricultor> {
             .catalogoId(rs.getLong("CATALOGO_ID"))
             .municipioId(rs.getLong("MUNICIPIO_ID"))
             .hectareas(rs.getDouble("HECTAREAS"))
-            .fechaSiembra(fechaSiembra != null ? fechaSiembra.toLocalDate() : null)
+            .fechaSiembra(fechaSiembra.toLocalDate())
             .activo(rs.getInt("ACTIVO"))
-            .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDateTime() : null)
+            .fechaCreacion(fechaCreacion.toLocalDateTime())
 
             // NULLABLE — overrides de umbrales; NULL = heredar del catálogo
             .tempMinOverride(rs.getObject("TEMP_MIN_OVERRIDE", Double.class))

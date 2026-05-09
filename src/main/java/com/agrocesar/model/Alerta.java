@@ -58,6 +58,8 @@ public class Alerta {
     public Integer getLeida()                        { return leida; }
     public LocalDateTime getFechaLectura()           { return fechaLectura; }
 
+    public boolean isRead()                          { return Integer.valueOf(1).equals(this.leida); }
+
     // Setters
     public void setId(Long id)                                          { this.id = id; }
     public void setCultivoAgricultorId(Long cultivoAgricultorId)        { this.cultivoAgricultorId = cultivoAgricultorId; }

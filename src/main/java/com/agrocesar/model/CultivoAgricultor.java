@@ -88,6 +88,8 @@ public class CultivoAgricultor {
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
 
+    public boolean isActivo()                        { return Integer.valueOf(1).equals(this.activo); }
+
     // Setters
     public void setId(Long id)                                      { this.id = id; }
     public void setUsuarioId(Long usuarioId)                        { this.usuarioId = usuarioId; }

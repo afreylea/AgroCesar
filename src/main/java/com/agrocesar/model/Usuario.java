@@ -50,6 +50,8 @@ public class Usuario {
     public String getTelefono()            { return telefono; }
     public LocalDateTime getUltimoLogin()  { return ultimoLogin; }
 
+    public boolean isActivo()              { return Integer.valueOf(1).equals(this.activo); }
+
     // Setters
     public void setId(Long id)                           { this.id = id; }
     public void setNombre(String nombre)                 { this.nombre = nombre; }

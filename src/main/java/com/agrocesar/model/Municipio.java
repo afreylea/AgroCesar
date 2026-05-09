@@ -1,7 +1,6 @@
 package com.agrocesar.model;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class Municipio {
 
@@ -34,7 +33,9 @@ public class Municipio {
     public Double getLatitud ()              { return latitud; }
     public Double getLongitud ()             { return longitud; }
     public Integer getActivo ()              { return activo; }
-    public LocalDate getFechaCreacion () { return fechaCreacion; }
+    public LocalDate getFechaCreacion ()     { return fechaCreacion; }
+
+    public boolean isActivo()                { return Integer.valueOf(1).equals(this.activo); }
 
     public void setId (Long id)                                {this.id = id; }
     public void setNombre (String nombre)                      { this.nombre = nombre; }

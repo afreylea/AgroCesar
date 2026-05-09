@@ -14,54 +14,54 @@ import java.util.Optional;
 public interface UsuarioRepository {
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
-               MUNICIPIO_ID, TELEFONO, ACTIVO, 
+        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
-        FROM USUARIOS 
+        FROM USUARIOS
         WHERE EMAIL = :email AND ACTIVO = 1
         """)
     Optional<Usuario> findByEmailAndActivo(@Bind("email") String email);
 
     @SqlUpdate("""
-            UPDATE USUARIOS SET ULTIMO_LOGIN = SYSDATE
-            WHERE EMAIL = :email AND ACTIVO = 1
-            """)
+        UPDATE USUARIOS SET ULTIMO_LOGIN = SYSDATE
+        WHERE EMAIL = :email AND ACTIVO = 1
+        """)
     void actualizarUltimoLogin(@Bind("email") String email);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
-                MUNICIPIO_ID, TELEFONO, ACTIVO, 
-                FECHA_CREACION, ULTIMO_LOGIN
-        FROM USUARIOS 
+        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
         WHERE ID = :id
         """)
     Optional<Usuario> findById(@Bind("id") Long id);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
-                MUNICIPIO_ID, TELEFONO, ACTIVO, 
-                FECHA_CREACION, ULTIMO_LOGIN
-        FROM USUARIOS 
+        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
         WHERE EMAIL = :email
         """)
     Optional<Usuario> findByEmail(@Bind("email") String email);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
-                MUNICIPIO_ID, TELEFONO, ACTIVO, 
-                FECHA_CREACION, ULTIMO_LOGIN
-        FROM USUARIOS 
-        WHERE ACTIVO = 1 
+        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ACTIVO = 1
         ORDER BY NOMBRE
         """)
     List<Usuario> findAllActivos();
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
-                MUNICIPIO_ID, TELEFONO, ACTIVO, 
-                FECHA_CREACION, ULTIMO_LOGIN
-        FROM USUARIOS 
-        WHERE ROL = :rol AND ACTIVO = 1 
+        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ROL = :rol AND ACTIVO = 1
         ORDER BY NOMBRE
         """)
     List<Usuario> findByRol(@Bind("rol") String rol);
@@ -75,12 +75,15 @@ public interface UsuarioRepository {
     void insert(@BindBean Usuario usuario);
 
     @SqlUpdate("""
-        UPDATE USUARIOS SET NOMBRE = :nombre, EMAIL = :email, 
-                            MUNICIPIO_ID = :municipioId 
+        UPDATE USUARIOS SET NOMBRE = :nombre, EMAIL = :email,
+                            MUNICIPIO_ID = :municipioId
         WHERE ID = :id
         """)
     int update(@BindBean Usuario usuario);
 
     @SqlUpdate("UPDATE USUARIOS SET ACTIVO = 0 WHERE ID = :id")
     int desactivar(@Bind("id") Long id);
+
+    @SqlUpdate("UPDATE USUARIOS SET ACTIVO = 1 WHERE ID = :id")
+    int activar(@Bind("id") Long id);
 }

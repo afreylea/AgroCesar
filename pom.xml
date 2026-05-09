@@ -3,13 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <!-- ── Parent: Spring Boot 4.0.x para Java 25 ────── -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.0</version>  
     <relativePath/>
   </parent>
 
@@ -52,6 +53,7 @@
   <!-- ── Dependencias ────────────────────────────────── -->
   <dependencies>
 
+
     <!-- == SPRING WEB + TOMCAT EMBEBIDO == -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -66,9 +68,8 @@
 
     <!-- sec:authorize y #authentication en vistas Thymeleaf -->
     <dependency>
-      <groupId>org.thymeleaf.extras</groupId>
-      <artifactId>thymeleaf-extras-springsecurity6</artifactId>
-      <version>3.1.3.RELEASE</version>
+     <groupId>org.thymeleaf.extras</groupId>
+    <artifactId>thymeleaf-extras-springsecurity6</artifactId>
     </dependency>
 
     <!-- == SPRING SECURITY == -->
@@ -127,6 +128,13 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+
+  <!-- Jakarta EE API — requerido por Spring Boot 4.0 -->
+<dependency>
+    <groupId>jakarta.annotation</groupId>
+    <artifactId>jakarta.annotation-api</artifactId>
+</dependency>
 
   </dependencies>
 

@@ -28,8 +28,8 @@ public interface MunicipioRepository {
     @SqlQuery("SELECT SEQ_MUNICIPIOS.NEXTVAL FROM DUAL")
     Long nextId();
 
-    @SqlUpdate("INSERT INTO municipios (nombre, departamento, latitud, longitud) " +
-            "VALUES (:nombre, :departamento, :latitud, :longitud)")
+    @SqlUpdate("INSERT INTO municipios (ID, nombre, departamento, latitud, longitud) " +
+           "VALUES (:id, :nombre, :departamento, :latitud, :longitud)")
     void insert(@BindBean Municipio municipio);
 
     @SqlUpdate("UPDATE municipios SET activo = 0 WHERE id = :id")

@@ -52,7 +52,7 @@ COMMIT;
 -- ============================================================
 
 -- Admin del sistema
-INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
     'Administrador del Sistema',
     'admin@agrocesar.com',
@@ -65,7 +65,7 @@ VALUES (
 
 -- Agricultor 1 — residente en Valledupar
 -- Tiene cultivos en DOS municipios distintos para probar pronósticos diferenciados
-INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
     'Juan Pérez',
     'agricultor@cesar.com',
@@ -77,7 +77,7 @@ VALUES (
 );
 
 -- Agricultor 2 — INACTIVO para probar que findByEmailAndActivo la rechaza
-INSERT INTO USUARIOS (ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
     'María González',
     'agricultora@astrea.com',

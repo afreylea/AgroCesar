@@ -43,6 +43,7 @@ public class ForecastResponse {
         @JsonProperty("weathercode")
         private List<Integer> weatherCode;
 
+
         public List<String> getTime() { return time; }
         public List<Double> getTemperatureMax() { return temperatureMax; }
         public List<Double> getTemperatureMin() { return temperatureMin; }

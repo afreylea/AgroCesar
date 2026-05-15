@@ -32,6 +32,7 @@ public class AlertaMapper implements RowMapper<Alerta> {
             .fechaGeneracion(fechaGeneracion.toLocalDateTime())
             .valorDetectado(rs.getDouble("VALOR_DETECTADO"))
             .valorUmbral(rs.getDouble("VALOR_UMBRAL"))
+            .recomendacion(rs.getString("RECOMENDACION"))
             .leida(rs.getInt("LEIDA"))
 
             // NULLABLE — Oracle lo registra con trigger TRG_ALERTAS_FECHA_LECTURA

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public class Usuario {
 
-    // NOT NULL (DDL garantiza)
     private Long id;
     private String nombre;
     private String email;
@@ -18,10 +17,8 @@ public class Usuario {
     private String telefono;
     private LocalDateTime ultimoLogin;
 
-    // Constructor vacío (necesario para JDBI builder y Spring)
     public Usuario() {}
 
-    // Constructor completo
     public Usuario(Long id, String nombre, String email, String passwordHash,
                    String rol, Integer activo, LocalDateTime fechaCreacion,
                    Long municipioId, String telefono, LocalDateTime ultimoLogin) {
@@ -64,7 +61,6 @@ public class Usuario {
     public void setTelefono(String telefono)             { this.telefono = telefono; }
     public void setUltimoLogin(LocalDateTime ultimoLogin){ this.ultimoLogin = ultimoLogin; }
 
-    // Builder estático (reemplaza @Builder de Lombok)
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {

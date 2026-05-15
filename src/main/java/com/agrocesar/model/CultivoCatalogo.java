@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public class CultivoCatalogo {
 
-    // NOT NULL (DDL garantiza)
     private Long id;
     private String nombre;
     private String categoria;           // 'TRANSITORIO' | 'PERMANENTE'
@@ -20,15 +19,12 @@ public class CultivoCatalogo {
     private Integer activo;
     private LocalDateTime fechaCreacion;
 
-    // Nullable
     private String descripcion;
     private String fuenteDatos;
     private LocalDateTime fechaActualizacion;
 
-    // Constructor vacío (necesario para JDBI y Spring)
     public CultivoCatalogo() {}
 
-    // Constructor completo (para mapeo JDBI desde ResultSet)
     public CultivoCatalogo(Long id, String nombre, String descripcion, String categoria,
                            Double tempMin, Double tempMax,
                            Double lluviaMin, Double lluviaMax,
@@ -96,7 +92,6 @@ public class CultivoCatalogo {
     public void setFechaCreacion(LocalDateTime fechaCreacion)       { this.fechaCreacion = fechaCreacion; }
     public void setFechaActualizacion(LocalDateTime f)              { this.fechaActualizacion = f; }
 
-    // Builder estático (reemplaza @Builder de Lombok)
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {

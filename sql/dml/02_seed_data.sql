@@ -143,7 +143,7 @@ INSERT INTO CULTIVOS_CATALOGO (
     'Palma de aceite',
     'Elaeis guineensis. Cultivo permanente insignia del Cesar. Cosecha continua todo el año.',
     'PERMANENTE', 22, 38, 4, 150, 65, 90,
-    'Franco', 365, 730, 'Fedepalma/FAO', 1
+    'Franco', 9125, 9125, 'Fedepalma/FAO', 1
 );
 
 COMMIT;

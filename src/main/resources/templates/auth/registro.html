@@ -38,11 +38,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contrasena</label>
-                    <input type="password" required x-model="confirmacion"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
-                    <label x-show="confirmacion.length > 0 && contrasena !== confirmacion"
-                        class="text-red-500 text-xs mt-1">Las contrasenas no coinciden
+                    <label x-show="confirmacion.length > 0 && contrasena !== confirmacion" style="display:none"
+                        class="text-red-500 text-xs mt-1">
+                        Las contrasenas no coinciden
                     </label>
                 </div>
 

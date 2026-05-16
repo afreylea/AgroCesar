@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-    th:fragment="base(titulo, contenido)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="base(titulo, contenido)">
 
 <head>
     <meta charset="UTF-8">
@@ -21,24 +20,36 @@
         }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js para los ojos de contraseña -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
 
 <body class="min-h-screen flex flex-col bg-gray-100">
 
     <!-- HEADER -->
-    <header class="bg-green-900 text-amber-100 px-6 py-4">
-        <span class="font-bold text-xl tracking-wide">Agrocesar</span>
-        <p class="text-xs text-green-300">Monitoreo de Cultivos</p>
+    <header class="bg-green-900 text-amber-100 px-6 py-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex items-center gap-5">
+            <!-- Logo grande -->
+            <img th:src="@{~/images/logo-agrocesar.png}" 
+                 alt="Logo Agrocesar" 
+                 class="h-20 w-auto object-contain drop-shadow-lg">
+            <!-- Título -->
+            <div class="leading-tight">
+                <h1 class="text-2xl font-bold tracking-wide">Agrocesar</h1>
+                <p class="text-sm text-green-300 font-light">Monitoreo de Cultivos</p>
+            </div>
+        </div>
     </header>
 
     <!-- CONTENIDO -->
     <main class="flex-1 flex items-center justify-center p-6" th:insert="${contenido}">
-</main>
+    </main>
 
     <!-- FOOTER -->
     <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
-        Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy; | Cesar, Colombia
+        Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climáticas &copy; | Cesar, Colombia
     </footer>
 
 </body>
+
 </html>

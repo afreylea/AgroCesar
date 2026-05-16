@@ -35,6 +35,9 @@
 
     <!-- JDBI: versión centralizada para los 3 artefactos -->
     <jdbi.version>3.47.0</jdbi.version>
+
+    <!-- Twilio: versión 10 está optimizada para versiones modernas de Java-->
+    <twilio.version>10.6.1</twilio.version>
   </properties>
 
   <!-- ── BOM de JDBI ────────────────────────────────── -->
@@ -120,6 +123,14 @@
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc11</artifactId>
       <scope>runtime</scope>
+    </dependency>
+
+    <!-- == TWILIO SDK — envío de SMS == -->
+    <dependency>
+      <groupId>com.twilio.sdk</groupId>
+      <artifactId>twilio</artifactId>
+      <version>${twilio.version}</version>
+      <scope>compile</scope>
     </dependency>
 
     <!-- == TESTING == -->

@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
+
+import com.agrocesar.repository.CultivoAgricultorRepository;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
 import com.agrocesar.model.Municipio;
@@ -42,5 +44,10 @@ public class JdbiConfig {
     @Bean
     public MunicipioRepository municipioRepository (Jdbi jdbi){
         return jdbi.onDemand(MunicipioRepository.class);
+    }
+
+    @Bean
+    public CultivoAgricultorRepository cultivoAgricultorRepository(Jdbi jdbi){
+        return jdbi.onDemand(CultivoAgricultorRepository.class);
     }
 }

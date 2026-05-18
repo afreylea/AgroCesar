@@ -27,11 +27,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 //Recursos estáticos y públicos
-                .requestMatchers(
-                    "/", "/login", "/registro",
-                    "/css/**", "/js/**", "/images/**",
-                    "/error", "/access-denied"
-                ).permitAll()
+                    .requestMatchers(
+                            "/", "/login", "/registro",
+                            "/css/**", "/js/**", "/images/**",
+                            "/error", "/access-denied",
+                            "/api/clima/**"
+                    ).permitAll()
                 
                 //Agricultor
                 .requestMatchers(

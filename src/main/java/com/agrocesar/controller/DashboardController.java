@@ -1,38 +1,47 @@
 package com.agrocesar.controller;
 
 import com.agrocesar.dto.DailyForecast;
+import com.agrocesar.model.CultivoAgricultor;
 import com.agrocesar.model.Municipio;
+import com.agrocesar.model.Usuario;
+import com.agrocesar.service.CultivoAgricultorService;
+import com.agrocesar.service.UsuarioService;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.service.WeatherService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/pronostico")
+@Controller 
 public class DashboardController {
 
     private final WeatherService weatherService;
     private final MunicipioRepository municipioRepository;
+    private final UsuarioService usuarioService;
+    private final CultivoAgricultorService cultivoService;
 
     public DashboardController(WeatherService weatherService,
-                               MunicipioRepository municipioRepository) {
+            MunicipioRepository municipioRepository,
+            UsuarioService usuarioService,
+            CultivoAgricultorService cultivoService) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
+        this.usuarioService = usuarioService;
+        this.cultivoService = cultivoService;
     }
 
     /**
-     * Endpoint interno: retorna pronóstico 7 días para un municipio.
-     * Usado por Dev 3 en el dashboard y por AlertaScheduler.
-     *
-     * GET /api/pronostico/{municipioId}
+     * Endpoint API REST para pronóstico (usado por scheduler y AJAX)
      */
-    @GetMapping("/{municipioId}")
-    public ResponseEntity<List<DailyForecast>> getPronostico(
-            @PathVariable Long municipioId) {
-
+    @GetMapping("/api/pronostico/{municipioId}")
+    @ResponseBody
+    public ResponseEntity<List<DailyForecast>> getPronostico(@PathVariable Long municipioId) {
         Optional<Municipio> municipio = municipioRepository.findById(municipioId);
 
         if (municipio.isEmpty()) {
@@ -41,13 +50,34 @@ public class DashboardController {
 
         List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
                 municipio.get().getLatitud(),
-                municipio.get().getLongitud()
-        );
+                municipio.get().getLongitud());
 
-        if (pronostico.isEmpty()) {
-            return ResponseEntity.noContent().build();
+        return pronostico.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(pronostico);
+    }
+
+    /**
+     * Vista dashboard para agricultor
+     */
+    @GetMapping("/dashboard")
+    public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
+        List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
+
+        if (!cultivos.isEmpty()) {
+            Optional<Municipio> municipio = municipioRepository.findById(cultivos.get(0).getMunicipioId());
+            if (municipio.isPresent()) {
+                List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
+                        municipio.get().getLatitud(),
+                        municipio.get().getLongitud());
+                model.addAttribute("pronostico", pronostico);
+                model.addAttribute("municipio", municipio.get().getNombre());
+            }
         }
 
-        return ResponseEntity.ok(pronostico);
+        model.addAttribute("cultivos", cultivos);
+        model.addAttribute("usuario", usuario);
+        return "dashboard";
     }
 }

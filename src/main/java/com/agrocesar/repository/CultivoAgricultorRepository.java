@@ -55,14 +55,12 @@ public interface CultivoAgricultorRepository {
              """)
     List<CultivoAgricultor> findByMunicipioId(@Bind("municipioId") Long municipioId);
 
-    @SqlQuery("SELECT * FROM CULTIVOS_AGRICULTOR WHERE ID = :id AND ACTIVO = 1")
+    @SqlQuery("SELECT * FROM CULTIVOS_AGRICULTOR WHERE ID = :id")
     Optional<CultivoAgricultor> findById(@Bind("id") Long id);
 
     @SqlUpdate("""
         UPDATE CULTIVOS_AGRICULTOR SET
-        MUNICIPIO_ID         = :municipioId,
         HECTAREAS            = :hectareas,
-        FECHA_SIEMBRA        = :fechaSiembra,
         TEMP_MIN_OVERRIDE    = :tempMinOverride,
         TEMP_MAX_OVERRIDE    = :tempMaxOverride,
         LLUVIA_MIN_OVERRIDE  = :lluviaMinOverride,

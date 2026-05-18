@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
-<head th:replace="~{layout :: base('Dashboard - Agrocesar', ~{::main})}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Dashboard - Agrocesar', ~{::main})}">
 
 <body>
     <main>
@@ -12,16 +10,13 @@
         <div th:if="${pronostico != null}" class="mb-8">
             <h3 class="text-lg font-semibold text-gray-700 mb-3" th:text="'Pronóstico en ' + ${municipio}"></h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <!-- th:each itera los días del pronóstico (DailyForecast) -->
                 <div th:each="dia : ${pronostico}" class="bg-white rounded-xl shadow p-4 text-center">
-                    <!-- Corregido: fecha es String, usamos substring -->
-                    <p class="text-sm text-gray-500 mb-1" 
-                       th:text="${#strings.substring(dia.fecha, 8, 10)} + '/' + ${#strings.substring(dia.fecha, 5, 7)}"></p>
+                    <p class="text-sm text-gray-500 mb-1"
+                        th:text="${#strings.substring(dia.fecha, 8, 10)} + '/' + ${#strings.substring(dia.fecha, 5, 7)}">
+                    </p>
                     <p class="text-2xl font-bold text-green-800" th:text="${dia.tempMax} + '°C'"></p>
                     <p class="text-xs text-gray-400" th:text="'Min: ' + ${dia.tempMin} + '°C'"></p>
-                    <!-- Corregido: lluviaMm en vez de lluvia -->
                     <p class="text-xs text-blue-500 mt-1" th:text="'Lluvia: ' + ${dia.lluviaMm} + ' mm'"></p>
-                    <!-- Corregido: humedadMax en vez de humedad -->
                     <p class="text-xs text-teal-500" th:text="'Humedad: ' + ${dia.humedadMax} + '%'"></p>
                 </div>
             </div>

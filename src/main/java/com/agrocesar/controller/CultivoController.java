@@ -1,5 +1,8 @@
 package com.agrocesar.controller;
 
+import java.util.List;
+
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.agrocesar.model.CultivoAgricultor;
+import com.agrocesar.model.CultivoResumen;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.MunicipioRepository;
@@ -40,7 +44,20 @@ public class CultivoController {
     @GetMapping
     public String lista(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
-        model.addAttribute("cultivos", cultivoService.listarPorUsuario(usuario.getId()));
+        List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
+
+        List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
+            String nombreCultivo = catalogoRepository.findById(c.getCatalogoId())
+                    .map(cat -> cat.getNombre()).orElse("Sin nombre");
+            String categoria = catalogoRepository.findById(c.getCatalogoId())
+                    .map(cat -> cat.getCategoria()).orElse("");
+            String municipio = municipioRepository.findById(c.getMunicipioId())
+                    .map(mun -> mun.getNombre()).orElse("Sin municipio");
+            return new CultivoResumen(c.getId(), nombreCultivo, categoria,
+                    municipio, c.getHectareas(), c.getFechaSiembra());
+        }).toList();
+
+        model.addAttribute("cultivos", cultivosView);
         return "cultivos/lista";
     }
 

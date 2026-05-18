@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
-<head th:replace="layout :: base('Nuevo Cultivo - Agrocesar', ~{::main})"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Nuevo Cultivo - Agrocesar', ~{::main})}">
 
 <body>
     <main>
@@ -15,7 +13,6 @@
                 class="bg-white rounded-xl shadow p-6 space-y-4">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <!-- Selector de tipo de cultivo desde el catálogo -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cultivo</label>
                     <select th:field="*{catalogoId}" required
@@ -25,7 +22,6 @@
                     </select>
                 </div>
 
-                <!-- Selector de municipio -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Municipio</label>
                     <select th:field="*{municipioId}" required
@@ -35,14 +31,12 @@
                     </select>
                 </div>
 
-                <!-- Hectáreas -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Hectáreas</label>
                     <input type="number" th:field="*{hectareas}" step="0.1" min="0.1" required
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
                 </div>
 
-                <!-- Fecha de siembra -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Siembra</label>
                     <input type="date" th:field="*{fechaSiembra}" required

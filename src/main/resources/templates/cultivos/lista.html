@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
-<head th:replace="layout :: base('Mis Cultivos - Agrocesar', ~{::main})"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Mis Cultivos - Agrocesar', ~{::main})}">
 
 <body>
     <main>
@@ -13,12 +11,10 @@
             </a>
         </div>
 
-        <!-- Mensaje de éxito / error (flash attributes del Controller) -->
         <div th:if="${exito}" class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4 text-sm" th:text="${exito}">
         </div>
         <div th:if="${error}" class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm" th:text="${error}"></div>
 
-        <!-- Estado vacío: visible solo si la lista está vacía -->
         <div th:if="${#lists.isEmpty(cultivos)}" class="text-center text-gray-500 py-12">
             <p class="text-lg">Aún no tienes cultivos registrados.</p>
             <a th:href="@{/cultivos/nuevo}" class="text-green-700 hover:underline mt-2 block">
@@ -26,7 +22,6 @@
             </a>
         </div>
 
-        <!-- Tabla de cultivos — visible solo si hay datos -->
         <div th:if="${not #lists.isEmpty(cultivos)}">
             <table class="w-full text-sm text-left text-gray-700 border border-gray-200 rounded-lg">
                 <thead class="bg-green-900 text-white">
@@ -40,10 +35,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- th:each itera la lista de cultivos del modelo -->
                     <tr th:each="c : ${cultivos}" class="border-t hover:bg-gray-50">
                         <td class="px-4 py-3" th:text="${c.nombreCultivo}"></td>
-                        <!-- Badge de categoría con color diferenciado -->
                         <td class="px-4 py-3">
                             <span th:if="${c.categoria == 'TRANSITORIO'}"
                                 class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
@@ -58,7 +51,6 @@
                         <td class="px-4 py-3" th:text="${c.hectareas}"></td>
                         <td class="px-4 py-3" th:text="${#temporals.format(c.fechaSiembra, 'dd/MM/yyyy')}"></td>
                         <td class="px-4 py-3">
-                            <!-- Eliminar: usa POST con token CSRF — Alpine controla el modal -->
                             <div x-data="{ confirmar: false }">
                                 <button @click="confirmar = true"
                                     class="text-red-600 hover:underline text-sm">Eliminar</button>

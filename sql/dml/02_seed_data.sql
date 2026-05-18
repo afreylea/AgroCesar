@@ -133,7 +133,6 @@ INSERT INTO CULTIVOS_CATALOGO (
     'Franco-arenoso', 180, 240, 'AGROSAVIA/ICA', 1
 );
 
--- DIAS_COSECHA_MAX = 730 (2 años) conforme al plan v3.0
 INSERT INTO CULTIVOS_CATALOGO (
     NOMBRE, DESCRIPCION, CATEGORIA,
     TEMP_MIN, TEMP_MAX, LLUVIA_MIN, LLUVIA_MAX,
@@ -143,7 +142,7 @@ INSERT INTO CULTIVOS_CATALOGO (
     'Palma de aceite',
     'Elaeis guineensis. Cultivo permanente insignia del Cesar. Cosecha continua todo el año.',
     'PERMANENTE', 22, 38, 4, 150, 65, 90,
-    'Franco', 365, 730, 'Fedepalma/FAO', 1
+    'Franco', 9125, 9125, 'Fedepalma/FAO', 1
 );
 
 COMMIT;

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.CultivoAgricultorRepository;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
@@ -49,5 +50,10 @@ public class JdbiConfig {
     @Bean
     public CultivoAgricultorRepository cultivoAgricultorRepository(Jdbi jdbi){
         return jdbi.onDemand(CultivoAgricultorRepository.class);
+    }
+
+    @Bean
+    public CatalogoRepository catalogoRepository(Jdbi jdbi){
+        return jdbi.onDemand(CatalogoRepository.class);
     }
 }

@@ -1,13 +1,16 @@
 package com.agrocesar.config;
 
+import com.agrocesar.service.CustomUserDetailsService;
 import com.agrocesar.service.UsuarioService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -15,68 +18,68 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CustomUserDetailsService customUserDetailsService;
     private final UsuarioService usuarioService;
+    private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(UsuarioService usuarioService) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                          UsuarioService usuarioService,
+                          PasswordEncoder passwordEncoder) {
+        this.customUserDetailsService = customUserDetailsService;
         this.usuarioService = usuarioService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authz -> authz
-                //Recursos estáticos y públicos
                 .requestMatchers(
                     "/", "/login", "/registro",
                     "/css/**", "/js/**", "/images/**",
                     "/error", "/access-denied"
                 ).permitAll()
-                
-                //Agricultor
-                .requestMatchers(
-                    "/dashboard", "/cultivos/**", "/alertas/**"
-                ).hasRole("AGRICULTOR")
-                
-                //Admin
-                .requestMatchers("/admin", "/admin/", "/admin/**").hasRole("ADMIN")
-                
-                //Todo lo demás requiere login
+                .requestMatchers("/dashboard", "/cultivos/**", "/alertas/**")
+                    .hasRole("AGRICULTOR")
+                .requestMatchers("/admin", "/admin/", "/admin/**")
+                    .hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             
-            //Form Login
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler((request, response, authentication) -> {
-                    String email = authentication.getName();
-
-                    usuarioService.actualizarUltimoLogin(email);
-
+                    usuarioService.actualizarUltimoLogin(authentication.getName());
                     boolean isAdmin = authentication.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                    
                     response.sendRedirect(isAdmin ? "/admin/dashboard" : "/dashboard");
                 })
                 .failureUrl("/login?error")
                 .permitAll()
             )
-            
-            //Logout
+
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            
-            //Session Management
+
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(1)  // 1 dispositivo por usuario
+                .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
             )
-            
-            //Access Denied
+
             .exceptionHandling(ex -> ex
                 .accessDeniedPage("/access-denied")
             );
@@ -90,7 +93,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    @Bean 
+    @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
     }

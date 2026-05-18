@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -65,6 +66,15 @@ public class UsuarioService {
         usuarioRepository.insert(nuevo);
     }
 
+    public Optional<Usuario> findByEmail(String email) {
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("El correo es obligatorio.");
+
+        if (!formatoEmailValido(email))
+            throw new IllegalArgumentException("Formato de email inválido.");
+
+        return usuarioRepository.findByEmail(email);
+    }
 
     public void actualizarUltimoLogin (String email) {
         usuarioRepository.actualizarUltimoLogin(email);

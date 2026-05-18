@@ -1,9 +1,11 @@
 package com.agrocesar.controller;
 
 import com.agrocesar.dto.DailyForecast;
+import com.agrocesar.dto.RankingCultivoDTO;
 import com.agrocesar.model.Municipio;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.service.WeatherService;
+import com.agrocesar.service.CultivoAgricultorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +18,14 @@ public class DashboardController {
 
     private final WeatherService weatherService;
     private final MunicipioRepository municipioRepository;
+    private final CultivoAgricultorService cultivoService;
 
     public DashboardController(WeatherService weatherService,
-                               MunicipioRepository municipioRepository) {
+                               MunicipioRepository municipioRepository,
+                               CultivoAgricultorService cultivoService) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
+        this.cultivoService = cultivoService;
     }
 
     /**
@@ -49,5 +54,11 @@ public class DashboardController {
         }
 
         return ResponseEntity.ok(pronostico);
+    }
+
+    @GetMapping("/dashboard/ranking-cultivos")
+    @ResponseBody
+    public List<RankingCultivoDTO> rankingCultivos() {
+        return cultivoService.obtenerRanking();
     }
 }

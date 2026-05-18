@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
+import com.agrocesar.repository.CatalogoRepository;
+import com.agrocesar.repository.CultivoAgricultorRepository;
 import com.agrocesar.model.Municipio;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 
@@ -43,5 +45,15 @@ public class JdbiConfig {
     @Bean
     public MunicipioRepository municipioRepository (Jdbi jdbi){
         return jdbi.onDemand(MunicipioRepository.class);
+    }
+
+    @Bean
+    public CultivoAgricultorRepository cultivoAgricultorRepository (Jdbi jdbi){
+        return jdbi.onDemand(CultivoAgricultorRepository.class);
+    }
+
+    @Bean
+    public CatalogoRepository catalogoRepository (Jdbi jdbi){
+        return jdbi.onDemand(CatalogoRepository.class);
     }
 }

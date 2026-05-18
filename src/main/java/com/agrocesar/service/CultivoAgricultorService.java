@@ -214,7 +214,7 @@ public class CultivoAgricultorService {
         } catch (IllegalArgumentException e) {
             throw e;                         
         } catch (Exception e) {
-            throw new RuntimeException("Error al actualizar el cultivo: " + e.getMessage(), e);
+            throw new RuntimeException("Error al eliminar el cultivo: " + e.getMessage(), e);
         }
     }
 

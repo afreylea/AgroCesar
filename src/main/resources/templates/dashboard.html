@@ -122,9 +122,17 @@
                             <img th:if="${c.nombreCultivo == 'Arroz'}" 
                                  src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg" 
                                  class="w-full h-full object-cover" alt="Arroz">
-                            <img th:if="${c.nombreCultivo != 'Maíz' && c.nombreCultivo != 'Arroz'}" 
-                                 src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=300&h=300&fit=crop" 
-                                 class="w-full h-full object-cover" alt="Cultivo">
+                             <img th:if="${c.nombreCultivo == 'Yuca'}"
+                             src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
+                             class="w-full h-full object-cover" alt="Yuca">
+                             <img th:if="${c.nombreCultivo == 'Palma de aceite'}"
+                             src ="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg"
+                             class="w-full h-full object-cover" alt="Palma de aceite">
+
+                             <img th:if="${c.nombreCultivo != 'Maíz' && c.nombreCultivo != 'Arroz' && c.nombreCultivo != 'Yuca' && c.nombreCultivo != 'Palma de aceite'}"
+                             src="https://media.istockphoto.com/id/1415203156/es/vector/p%C3%A1gina-de-error-icono-vectorial-de-p%C3%A1gina-no-encontrada-en-el-dise%C3%B1o-de-estilo-de-l%C3%ADnea.jpg?s=612x612&w=0&k=20&c=nss_aWPtTb0hpc4oiGfFs_PGfihrNwVX06wxkWVkBfQ="
+                             class="w-full h-full object-cover" alt="Cultivo">
+                            
                         </div>
                         
                         <!-- Info del cultivo -->

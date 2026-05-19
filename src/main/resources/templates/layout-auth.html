@@ -24,16 +24,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
 
-<body class="min-h-screen flex flex-col bg-gray-100">
+<body class="min-h-screen flex flex-col relative">
+    <!-- Fondo global -->
+    <div class="absolute inset-0 z-0">
+        <img th:src="@{/images/fondo-agrocesar.png}" alt="Fondo" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black opacity-30"></div>
+    </div>
 
     <!-- HEADER -->
-    <header class="bg-green-900 text-amber-100 px-6 py-4 shadow-md">
+    <header class="relative z-10 bg-green-900 bg-opacity-80 text-amber-100 px-6 py-4 shadow-md">
         <div class="max-w-7xl mx-auto flex items-center gap-5">
-            <!-- Logo grande -->
-            <img th:src="@{~/images/logo-agrocesar.png}" 
-                 alt="Logo Agrocesar" 
-                 class="h-20 w-auto object-contain drop-shadow-lg">
-            <!-- Título -->
+            <img th:src="@{/images/logo-agrocesar.png}" alt="Logo Agrocesar"
+                class="h-20 w-auto object-contain drop-shadow-lg">
             <div class="leading-tight">
                 <h1 class="text-2xl font-bold tracking-wide">Agrocesar</h1>
                 <p class="text-sm text-green-300 font-light">Monitoreo de Cultivos</p>
@@ -42,11 +44,11 @@
     </header>
 
     <!-- CONTENIDO -->
-    <main class="flex-1 flex items-center justify-center p-6" th:insert="${contenido}">
+    <main class="relative z-10 flex-1 flex items-center justify-center p-6" th:insert="${contenido}">
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
+    <footer class="relative z-10 bg-green-900 bg-opacity-80 text-amber-200 text-center py-3 text-sm">
         Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climáticas &copy; | Cesar, Colombia
     </footer>
 

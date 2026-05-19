@@ -1,44 +1,197 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Dashboard - Agrocesar', ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Dashboard - Agrocesar', ~{::.dashboard-wrapper})}">
 
 <body>
-    <main>
-        <!-- Saludo personalizado -->
-        <h2 class="text-2xl font-bold text-green-900 mb-2" th:text="'Bienvenido, ' + ${usuario.nombre}"></h2>
-
-        <!-- Pronóstico climático — visible solo si hay datos -->
-        <div th:if="${pronostico != null}" class="mb-8">
-            <h3 class="text-lg font-semibold text-gray-700 mb-3" th:text="'Pronóstico en ' + ${municipio}"></h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div th:each="dia : ${pronostico}" class="bg-white rounded-xl shadow p-4 text-center">
-                    <p class="text-sm text-gray-500 mb-1"
-                        th:text="${#strings.substring(dia.fecha, 8, 10)} + '/' + ${#strings.substring(dia.fecha, 5, 7)}">
-                    </p>
-                    <p class="text-2xl font-bold text-green-800" th:text="${dia.tempMax} + '°C'"></p>
-                    <p class="text-xs text-gray-400" th:text="'Min: ' + ${dia.tempMin} + '°C'"></p>
-                    <p class="text-xs text-blue-500 mt-1" th:text="'Lluvia: ' + ${dia.lluviaMm} + ' mm'"></p>
-                    <p class="text-xs text-teal-500" th:text="'Humedad: ' + ${dia.humedadMax} + '%'"></p>
+    <th:block class="dashboard-wrapper">
+        
+        <!-- Hero Section con imagen de fondo y clima actual -->
+        <div class="relative rounded-2xl overflow-hidden mb-8 h-64 bg-cover bg-center" 
+             style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200');">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/40"></div>
+            
+            <div class="relative z-10 p-8 flex justify-between items-start h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-2" th:text="'¡Bienvenido, ' + ${usuario.nombre} + '!'"></h2>
+                    <p class="text-green-100 mb-4">Monitorea tus cultivos, clima y alertas agrícolas en tiempo real.</p>
+                    <div class="flex items-center gap-2 text-green-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span th:text="${municipio} + ', Cesar - Colombia'">Valledupar, Cesar - Colombia</span>
+                    </div>
+                </div>
+                
+                <!-- Widget clima actual -->
+                <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}" 
+                     class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-white text-center min-w-[140px]">
+                    <div class="text-4xl mb-1">⛅</div>
+                    <div class="text-4xl font-bold" th:text="${pronostico[0].tempMax} + '°C'">34°C</div>
+                    <div class="text-sm font-medium mt-1">Clima actual</div>
+                    <div class="text-xs text-green-100">Parcialmente nublado</div>
                 </div>
             </div>
         </div>
 
-        <!-- Resumen de cultivos del agricultor -->
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">Mis Cultivos</h3>
-        <div th:if="${#lists.isEmpty(cultivos)}" class="text-gray-500 text-sm">
-            No tienes cultivos registrados aún.
-            <a th:href="@{/cultivos/nuevo}" class="text-green-700 hover:underline ml-1">Registra uno</a>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" th:if="${not #lists.isEmpty(cultivos)}">
-            <div th:each="c : ${cultivos}" class="bg-white rounded-xl shadow p-4">
-                <p class="font-bold text-green-900" th:text="${c.nombreCultivo}"></p>
-                <p class="text-sm text-gray-500" th:text="${c.municipio}"></p>
-                <span th:if="${c.categoria == 'TRANSITORIO'}"
-                    class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">TRANSITORIO</span>
-                <span th:if="${c.categoria == 'PERMANENTE'}"
-                    class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded">PERMANENTE</span>
+        <!-- Pronóstico climático -->
+        <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}" class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-green-900">Pronóstico Climático</h3>
+                    <p class="text-sm text-gray-500">Predicción de los próximos días</p>
+                </div>
+                <a href="#" class="flex items-center gap-2 text-green-700 border border-green-700 rounded-lg px-4 py-2 text-sm hover:bg-green-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                    Ver reporte completo
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <div th:each="dia, iterStat : ${pronostico}" 
+                     class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition">
+                    <!-- Borde superior de color -->
+                    <div th:class="'h-1 rounded-full mb-3 ' + 
+                        (${iterStat.index % 7 == 0} ? 'bg-yellow-400' : 
+                         (${iterStat.index % 7 == 1} ? 'bg-orange-400' : 
+                         (${iterStat.index % 7 == 2} ? 'bg-blue-400' : 
+                         (${iterStat.index % 7 == 3} ? 'bg-purple-400' : 
+                         (${iterStat.index % 7 == 4} ? 'bg-sky-400' : 
+                         (${iterStat.index % 7 == 5} ? 'bg-green-400' : 'bg-yellow-300'))))))">
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 mb-2 font-medium"
+                       th:text="${#strings.substring(dia.fecha, 8, 10)} + '/' + ${#strings.substring(dia.fecha, 5, 7)}">
+                        18/05
+                    </p>
+                    
+                    <!-- Icono del clima -->
+                    <div class="text-3xl mb-2">
+                        <span th:if="${dia.lluviaMm > 15}">⛈️</span>
+                        <span th:if="${dia.lluviaMm > 5 && dia.lluviaMm <= 15}">🌧️</span>
+                        <span th:if="${dia.lluviaMm > 0 && dia.lluviaMm <= 5}">🌦️</span>
+                        <span th:if="${dia.lluviaMm == 0 && dia.tempMax > 35}">🌡️</span>
+                        <span th:if="${dia.lluviaMm == 0 && dia.tempMax <= 35}">☀️</span>
+                    </div>
+                    
+                    <p class="text-xl font-bold text-green-900" th:text="${dia.tempMax} + '°C'">35.7°C</p>
+                    <p class="text-xs text-gray-400 mb-2" th:text="'Min: ' + ${dia.tempMin} + '°C'">Min: 25.0°C</p>
+                    
+                    <div class="space-y-1">
+                        <p class="text-xs text-blue-500 flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"/>
+                            </svg>
+                            <span th:text="'Lluvia: ' + ${dia.lluviaMm} + ' mm'">Lluvia: 0.0 mm</span>
+                        </p>
+                        <p class="text-xs text-teal-500 flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                            </svg>
+                            <span th:text="'Humedad: ' + ${dia.humedadMax} + '%'">Humedad: 79%</span>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-    </main>
+
+        <!-- Mis Cultivos -->
+        <div class="mb-8">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-green-900">Mis Cultivos</h3>
+                <p class="text-sm text-gray-500">Estado actual de tus cultivos</p>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(cultivos)}" class="text-gray-500 text-sm bg-white rounded-xl p-6 text-center border border-dashed border-gray-300">
+                <div class="text-4xl mb-2">🌱</div>
+                <p>No tienes cultivos registrados aún.</p>
+                <a th:href="@{/cultivos/nuevo}" class="text-green-700 hover:underline font-medium">Registra uno</a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" th:if="${not #lists.isEmpty(cultivos)}">
+                <div th:each="c : ${cultivos}" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                    <div class="flex">
+                        <!-- Imagen del cultivo -->
+                        <div class="w-1/3 bg-gray-100 relative min-h-[200px]">
+                            <img th:if="${c.nombreCultivo == 'Maíz'}" 
+                                 src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=300&h=300&fit=crop" 
+                                 class="w-full h-full object-cover" alt="Maíz">
+                            <img th:if="${c.nombreCultivo == 'Arroz'}" 
+                                 src="https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=300&h=300&fit=crop" 
+                                 class="w-full h-full object-cover" alt="Arroz">
+                            <img th:if="${c.nombreCultivo != 'Maíz' && c.nombreCultivo != 'Arroz'}" 
+                                 src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=300&h=300&fit=crop" 
+                                 class="w-full h-full object-cover" alt="Cultivo">
+                        </div>
+                        
+                        <!-- Info del cultivo -->
+                        <div class="w-2/3 p-4">
+                            <h4 class="font-bold text-green-900 text-lg" th:text="${c.nombreCultivo}">Maíz</h4>
+                            <div class="flex items-center gap-1 text-sm text-gray-500 mb-2">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                <span th:text="${c.municipio}">Valledupar</span>
+                            </div>
+                            
+                            <span th:if="${c.categoria == 'TRANSITORIO'}"
+                                  class="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-md font-medium mb-3 inline-block">TRANSITORIO</span>
+                            <span th:if="${c.categoria == 'PERMANENTE'}"
+                                  class="bg-amber-50 text-amber-700 text-xs px-2 py-1 rounded-md font-medium mb-3 inline-block">PERMANENTE</span>
+                            
+                            <!-- Métricas -->
+                            <div class="grid grid-cols-3 gap-2 mt-2">
+                                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                                    <div class="text-xs text-gray-500 mb-1">Estado</div>
+                                    <div class="text-xs font-semibold text-green-600 flex items-center justify-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Saludable
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                                    <div class="text-xs text-gray-500 mb-1">Humedad</div>
+                                    <div class="text-xs font-semibold text-blue-600 flex items-center justify-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a5 5 0 100-10 5 5 0 000 10z"/>
+                                        </svg>
+                                        79%
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                                    <div class="text-xs text-gray-500 mb-1">Riesgo</div>
+                                    <div class="text-xs font-semibold text-green-600 flex items-center justify-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Bajo
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón ver detalles -->
+                            <a th:href="@{'/cultivos/' + ${c.id}}" 
+                               class="mt-3 w-full bg-green-800 hover:bg-green-900 text-white text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Ver detalles del cultivo
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </th:block>
 </body>
 
 </html>

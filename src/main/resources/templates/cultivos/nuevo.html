@@ -1,58 +1,170 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Nuevo Cultivo - Agrocesar', ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Registrar Cultivo - Agrocesar', ~{::main})}">
 
 <body>
     <main>
-        <div class="max-w-2xl mx-auto">
-            <h2 class="text-2xl font-bold text-green-900 mb-6">Registrar Cultivo</h2>
+        <!-- Header con flecha de regreso y decoración -->
+        <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/cultivos}"
+                    class="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h2 class="text-3xl font-bold text-green-900">Registrar Cultivo</h2>
+                    <p class="text-gray-500 mt-1">Añade un nuevo cultivo para comenzar a monitorearlo.</p>
+                </div>
+            </div>
+            <!-- Decoración de planta (esquina superior derecha) -->
+            <div class="hidden lg:block relative w-48 h-24">
+                <svg class="absolute right-0 top-0 w-full h-full" viewBox="0 0 200 100" fill="none">
+                    <circle cx="170" cy="20" r="15" fill="#FCD34D" />
+                    <path d="M80 80 Q100 50 120 80 T160 80" fill="#D1FAE5" opacity="0.6" />
+                    <path d="M100 80 Q130 40 160 80 T200 80" fill="#A7F3D0" opacity="0.5" />
+                    <ellipse cx="140" cy="85" rx="25" ry="8" fill="#92400E" />
+                    <path d="M140 85 Q140 60 130 50" stroke="#16A34A" stroke-width="3" fill="none" />
+                    <path d="M140 85 Q140 55 150 45" stroke="#16A34A" stroke-width="3" fill="none" />
+                    <ellipse cx="130" cy="50" rx="8" ry="12" fill="#22C55E" transform="rotate(-30 130 50)" />
+                    <ellipse cx="150" cy="45" rx="8" ry="12" fill="#22C55E" transform="rotate(30 150 45)" />
+                    <ellipse cx="140" cy="35" rx="6" ry="10" fill="#4ADE80" transform="rotate(0 140 35)" />
+                </svg>
+            </div>
+        </div>
 
-            <div th:if="${error}" class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm" th:text="${error}">
+        <!-- Mensaje de error -->
+        <div th:if="${error}"
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${error}"></span>
+        </div>
+
+        <!-- Formulario -->
+        <form th:action="@{/cultivos/nuevo}" th:object="${cultivo}" method="post"
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <!-- Fila 1: Tipo de Cultivo + Municipio -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Tipo de Cultivo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Cultivo</label>
+                    <div class="relative">
+                        <div
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                            </svg>
+                        </div>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <select th:field="*{catalogoId}" required
+                            class="w-full pl-16 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 cursor-pointer hover:border-gray-300 transition">
+                            <option value="">Selecciona un cultivo</option>
+                            <option th:each="c : ${catalogo}" th:value="${c.id}" th:text="${c.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Municipio -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Municipio</label>
+                    <div class="relative">
+                        <div
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <select th:field="*{municipioId}" required
+                            class="w-full pl-16 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 cursor-pointer hover:border-gray-300 transition">
+                            <option value="">Selecciona un municipio</option>
+                            <option th:each="m : ${municipios}" th:value="${m.id}" th:text="${m.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            <form th:action="@{/cultivos/nuevo}" th:object="${cultivo}" method="post"
-                class="bg-white rounded-xl shadow p-6 space-y-4">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cultivo</label>
-                    <select th:field="*{catalogoId}" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
-                        <option value="">Selecciona un cultivo</option>
-                        <option th:each="c : ${catalogo}" th:value="${c.id}" th:text="${c.nombre}"></option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Municipio</label>
-                    <select th:field="*{municipioId}" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
-                        <option value="">Selecciona un municipio</option>
-                        <option th:each="m : ${municipios}" th:value="${m.id}" th:text="${m.nombre}"></option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Hectáreas</label>
+            <!-- Hectáreas -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Hectáreas</label>
+                <div class="relative">
+                    <div
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </div>
                     <input type="number" th:field="*{hectareas}" step="0.1" min="0.1" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
+                        placeholder="Ingresa el número de hectáreas"
+                        class="w-full pl-16 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-sm">
+                        ha
+                    </div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Siembra</label>
-                    <input type="date" th:field="*{fechaSiembra}" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <!-- Fecha de Siembra -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha de Siembra</label>
+                <div class="relative">
+                    <div
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <input type="date" th:field="*{fechaSiembra}" required placeholder="dd/mm/aaaa"
+                        class="w-full pl-16 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 hover:border-gray-300 transition">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
                 </div>
+            </div>
 
-                <div class="flex gap-3 justify-end pt-2">
-                    <a th:href="@{/cultivos}"
-                        class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700">Cancelar</a>
-                    <button type="submit"
-                        class="px-4 py-2 rounded-lg bg-green-700 text-white hover:bg-green-600 font-semibold">
-                        Registrar
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- Botones -->
+            <div class="flex gap-3 justify-end pt-4">
+                <a th:href="@{/cultivos}"
+                    class="px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium flex items-center gap-2 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium flex items-center gap-2 transition shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Registrar Cultivo
+                </button>
+            </div>
+        </form>
     </main>
 </body>
 

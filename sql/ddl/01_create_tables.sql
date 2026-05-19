@@ -350,6 +350,7 @@ CREATE OR REPLACE VIEW V_ALERTAS_ACTIVAS AS
 SELECT
   a.ID                     AS ALERTA_ID,
   u.NOMBRE                 AS AGRICULTOR,
+  ca.TELEFONO,
   cc.NOMBRE                AS CULTIVO,
   cc.CATEGORIA,
   m.NOMBRE                 AS MUNICIPIO,

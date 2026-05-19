@@ -7,6 +7,7 @@ public class CultivoConUmbralesDTO {
     private Long    id;
     private Long    usuarioId;
     private String  agricultor;
+    private String  telefono;
     private String  cultivo;
     private String  categoria;
     private Long    municipioId;
@@ -28,6 +29,7 @@ public class CultivoConUmbralesDTO {
             Long    id,
             Long    usuarioId,
             String  agricultor,
+            String  telefono,
             String  cultivo,
             String  categoria,
             Long    municipioId,
@@ -48,6 +50,7 @@ public class CultivoConUmbralesDTO {
         this.id                 = id;
         this.usuarioId          = usuarioId;
         this.agricultor         = agricultor;
+        this.telefono           = telefono;
         this.cultivo            = cultivo;
         this.categoria          = categoria;
         this.municipioId        = municipioId;
@@ -73,6 +76,7 @@ public class CultivoConUmbralesDTO {
     public Long      getId()                 { return id; }
     public Long      getUsuarioId()          { return usuarioId; }
     public String    getAgricultor()         { return agricultor; }
+    public String    getTelefono()           { return telefono; }
     public String    getCultivo()            { return cultivo; }
     public String    getCategoria()          { return categoria; }
     public Long      getMunicipioId()        { return municipioId; }

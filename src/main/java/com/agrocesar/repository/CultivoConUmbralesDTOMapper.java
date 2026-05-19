@@ -14,6 +14,7 @@ public class CultivoConUmbralesDTOMapper implements RowMapper<CultivoConUmbrales
             rs.getLong("ID"),
             rs.getLong("USUARIO_ID"),
             rs.getString("AGRICULTOR"),
+            rs.getString("TELEFONO"),
             rs.getString("CULTIVO"),
             rs.getString("CATEGORIA"),
             rs.getLong("MUNICIPIO_ID"),

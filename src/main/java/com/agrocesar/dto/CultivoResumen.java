@@ -10,8 +10,8 @@ public class CultivoResumen {
     private Double hectareas;
     private LocalDate fechaSiembra;
     private Long municipioId;
-    private double latitud;
-    private double longitud;
+    private Double latitud;
+    private Double longitud;
 
     public CultivoResumen(Long id, String nombreCultivo, String categoria,
                           String municipio, Double hectareas, LocalDate fechaSiembra, Long municipioId, double latitud, double longitud) {

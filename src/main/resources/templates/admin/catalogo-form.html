@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Catálogo - Admin Agrocesar', ~{::main})}">
+
+<body>
+    <main class="h-full">
+        <!-- Hero -->
+        <div class="relative rounded-3xl overflow-hidden mb-6 h-24 bg-cover bg-center"
+            style="background-image: url('https://www.ganacampo.com/fotosnoticias/mac_el_658_de_la_tierra_apta_para_sembrar_en_colombia_no_se_aprovecha_1539726970.jpg');">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/40 rounded-3xl"></div>
+            <div class="relative z-10 p-8 flex items-center h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-1"
+                        th:text="${accion == 'editar'} ? 'Editar Cultivo' : 'Registrar Cultivo'"></h2>
+                    <p class="text-green-100"
+                        th:text="${accion == 'editar'} ? 'Modifica los datos del cultivo del catálogo.' : 'Añade un nuevo cultivo al catálogo.'"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div th:if="${error}"
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span th:text="${error}"></span>
+        </div>
+
+        <!-- Card formulario -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <!-- Banner -->
+            <div class="bg-gradient-to-r from-green-800 to-green-600 px-8 py-5 flex items-center gap-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white font-semibold text-lg">Información del Cultivo</p>
+                    <p class="text-green-200 text-sm">Completa todos los campos requeridos</p>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <form th:object="${catalogo}" method="post"
+                  th:action="${accion == 'editar'} ? @{/admin/catalogo/{id}/editar(id=${catalogo.id})} : @{/admin/catalogo/nuevo}"
+                  class="p-8 space-y-6">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <!-- Fila 1: Nombre + Categoría -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Nombre <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/>
+                                </svg>
+                            </div>
+                            <input type="text" th:field="*{nombre}" required placeholder="Ej: Arroz"
+                                class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Categoría <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                </svg>
+                            </div>
+                            <select th:field="*{categoria}" required
+                                class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 hover:border-gray-300 transition cursor-pointer">
+                                <option value="">Selecciona categoría</option>
+                                <option value="TRANSITORIO">TRANSITORIO</option>
+                                <option value="PERMANENTE">PERMANENTE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                    <textarea th:field="*{descripcion}" rows="2" placeholder="Descripción breve del cultivo..."
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition resize-none"></textarea>
+                </div>
+
+                <!-- Sección umbrales -->
+                <div class="border border-gray-100 rounded-2xl p-5 space-y-5">
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Umbrales Climáticos</p>
+
+                    <!-- Temperatura -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Temp. Mínima (°C) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{tempMin}" step="0.1" required placeholder="Ej: 15.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Temp. Máxima (°C) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{tempMax}" step="0.1" required placeholder="Ej: 38.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lluvia -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Lluvia Mínima (mm) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{lluviaMin}" step="0.1" required placeholder="Ej: 5.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Lluvia Máxima (mm) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{lluviaMax}" step="0.1" required placeholder="Ej: 120.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Humedad -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Humedad Mínima (%) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{humedadMin}" step="0.1" required placeholder="Ej: 60.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Humedad Máxima (%) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                    </svg>
+                                </div>
+                                <input type="number" th:field="*{humedadMax}" step="0.1" required placeholder="Ej: 95.0"
+                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Días de cosecha + Tipo suelo -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Días Cosecha Mín.</label>
+                        <input type="number" th:field="*{diasCosechaMin}" min="1" placeholder="Ej: 90"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Días Cosecha Máx.</label>
+                        <input type="number" th:field="*{diasCosechaMax}" min="1" placeholder="Ej: 120"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Suelo</label>
+                        <input type="text" th:field="*{tipoSuelo}" placeholder="Ej: Franco arcilloso"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                    </div>
+                </div>
+
+                <!-- Fuente de datos -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Fuente de Datos</label>
+                    <input type="text" th:field="*{fuenteDatos}" placeholder="Ej: ICA, FAO..."
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-3 justify-end pt-2 border-t border-gray-100">
+                    <a th:href="@{/admin/catalogo}"
+                        class="px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium flex items-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                        class="px-6 py-3 rounded-xl bg-green-700 hover:bg-green-800 text-white font-semibold flex items-center gap-2 transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span th:text="${accion == 'editar'} ? 'Guardar Cambios' : 'Registrar Cultivo'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

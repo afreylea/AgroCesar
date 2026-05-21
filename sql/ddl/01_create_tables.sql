@@ -2,7 +2,6 @@
 --  AGROCESAR — Sistema de Monitoreo de Cultivos
 --  Script DDL: 01_create_tables.sql
 --  Motor: Oracle XE 18c / 21c
---  Versión: 3.3
 -- ============================================================
  
  
@@ -52,7 +51,7 @@ CREATE SEQUENCE SEQ_ALERTAS             START WITH 1 INCREMENT BY 1 NOCACHE NOCY
 CREATE TABLE MUNICIPIOS (
   ID             NUMBER(10)    NOT NULL,
   NOMBRE         VARCHAR2(100) NOT NULL,
-  DEPARTAMENTO   VARCHAR2(100) DEFAULT 'Cesar' NOT NULL,
+  DEPARTAMENTO   VARCHAR2(50)  DEFAULT 'Cesar' NOT NULL,
   LATITUD        NUMBER(8,6)   NOT NULL,
   LONGITUD       NUMBER(9,6)   NOT NULL,
   ACTIVO         NUMBER(1)     DEFAULT 1 NOT NULL,
@@ -83,7 +82,8 @@ CREATE INDEX IDX_MUNICIPIOS_ACTIVO ON MUNICIPIOS(ACTIVO);
 -- ============================================================
 CREATE TABLE USUARIOS (
   ID             NUMBER(10)    NOT NULL,
-  NOMBRE         VARCHAR2(150) NOT NULL,
+  NOMBRE         VARCHAR2(50)  NOT NULL,
+  APELLIDO       VARCHAR2(50)  NOT NULL,
   EMAIL          VARCHAR2(255) NOT NULL,
   PASSWORD_HASH  VARCHAR2(255) NOT NULL,
   ROL            VARCHAR2(20)  NOT NULL,
@@ -95,6 +95,9 @@ CREATE TABLE USUARIOS (
  
   CONSTRAINT PK_USUARIOS           PRIMARY KEY (ID),
   CONSTRAINT UQ_USUARIOS_EMAIL     UNIQUE (EMAIL),
+  CONSTRAINT CK_USUARIOS_EMAIL CHECK (
+  REGEXP_LIKE(EMAIL, '^[a-zA-Z0-9_+&*-]+(\.[a-zA-Z0-9_+&*-]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$')
+  ),
   CONSTRAINT CK_USUARIOS_ROL       CHECK (ROL IN ('AGRICULTOR', 'ADMIN')),
   CONSTRAINT CK_USUARIOS_ACTIVO    CHECK (ACTIVO IN (0, 1)),
   CONSTRAINT CK_USUARIOS_TELEFONO  CHECK (TELEFONO IS NULL OR REGEXP_LIKE(TELEFONO, '^\+?(57)?[0-9]{10}$')),
@@ -279,6 +282,18 @@ BEGIN
   END IF;
 END;
 /
+
+CREATE OR REPLACE TRIGGER TRG_CATALOGO_DESACTIVAR_CASCADE
+  AFTER UPDATE OF ACTIVO ON CULTIVOS_CATALOGO
+  FOR EACH ROW
+  WHEN (NEW.ACTIVO = 0 AND OLD.ACTIVO = 1)
+BEGIN
+  UPDATE CULTIVOS_AGRICULTOR
+  SET    ACTIVO = 0
+  WHERE  CATALOGO_ID = :NEW.ID
+  AND    ACTIVO = 1;
+END;
+/
  
 CREATE INDEX IDX_CULTAGR_USUARIO   ON CULTIVOS_AGRICULTOR(USUARIO_ID);
 CREATE INDEX IDX_CULTAGR_MUNICIPIO ON CULTIVOS_AGRICULTOR(MUNICIPIO_ID);
@@ -349,11 +364,11 @@ CREATE INDEX IDX_ALERTAS_FECHA_PRON ON ALERTAS(FECHA_DIA_PRONOSTICO);
 -- ============================================================
 CREATE OR REPLACE VIEW V_ALERTAS_ACTIVAS AS
 SELECT
-  a.ID                     AS ALERTA_ID,
-  u.NOMBRE                 AS AGRICULTOR,
-  cc.NOMBRE                AS CULTIVO,
+  a.ID                          AS ALERTA_ID,
+  u.NOMBRE || ' ' || u.APELLIDO AS AGRICULTOR,  
+  cc.NOMBRE                     AS CULTIVO,
   cc.CATEGORIA,
-  m.NOMBRE                 AS MUNICIPIO,
+  m.NOMBRE                      AS MUNICIPIO,
   a.TIPO_ALERTA,
   a.SEVERIDAD,
   a.DESCRIPCION,
@@ -380,8 +395,8 @@ CREATE OR REPLACE VIEW V_CULTIVOS_CON_UMBRALES AS
 SELECT
   ca.ID,
   ca.USUARIO_ID,
-  u.NOMBRE                                        AS AGRICULTOR,
-  ca.TELEFONO,
+  u.NOMBRE || ' ' || u.APELLIDO                   AS AGRICULTOR,    
+  u.TELEFONO,
   cc.NOMBRE                                       AS CULTIVO,
   cc.CATEGORIA,
   m.ID                                            AS MUNICIPIO_ID,
@@ -415,4 +430,3 @@ WHERE u.ACTIVO  = 1
 -- ============================================================
 --  FIN DEL SCRIPT
 -- ============================================================
-

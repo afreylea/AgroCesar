@@ -2,7 +2,6 @@
 --  AGROCESAR — Sistema de Monitoreo de Cultivos
 --  Script DML: 02_seed_data.sql
 --  Motor: Oracle XE 18c / 21c
---  Versión: 1.0
 --
 --  Ejecutar DESPUÉS de 01_create_tables.sql.
 --
@@ -52,9 +51,10 @@ COMMIT;
 -- ============================================================
 
 -- Admin del sistema
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Administrador del Sistema',
+    'Administrador',
+    'Del Sistema',
     'admin@agrocesar.com',
     '$2b$12$OA6RhTTL8o7vBdwxnq.5gOvv3CtibBsT0zVgVMdb74ezX6qkNLium',
     'ADMIN',
@@ -65,9 +65,10 @@ VALUES (
 
 -- Agricultor 1 — residente en Valledupar
 -- Tiene cultivos en DOS municipios distintos para probar pronósticos diferenciados
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Juan Pérez',
+    'Juan',
+    'Pérez',
     'agricultor@cesar.com',
     '$2b$12$RRONJqWoDFJ4ue4n8WDgx.PMwpNC06rrGsV9llcWxOLWRMUaRwLfy',
     'AGRICULTOR',
@@ -77,9 +78,10 @@ VALUES (
 );
 
 -- Agricultor 2 — INACTIVO para probar que findByEmailAndActivo la rechaza
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'María González',
+    'María',
+    'González',
     'agricultora@astrea.com',
     '$2b$12$27JdeEySOhco5jpWARAasukAaUDsdIb7jXIjpm3kfwlaTAXr3YMlW',
     'AGRICULTOR',
@@ -446,7 +448,7 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
     (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz'),
+    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz amarillo duro'),
     (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
     5.5, SYSDATE - 45, 1
 );
@@ -458,7 +460,7 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
     (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz'),
+    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz secano mecanizado'),
     (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Agustín Codazzi'),
     3.0, SYSDATE - 20, 1
 );

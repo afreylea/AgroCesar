@@ -6,6 +6,7 @@ public class Usuario {
 
     private Long id;
     private String nombre;
+    private String apellido;
     private String email;
     private String passwordHash;
     private String rol;
@@ -19,12 +20,13 @@ public class Usuario {
 
     public Usuario() {}
 
-    public Usuario(Long id, String nombre, String email, String passwordHash,
+    public Usuario(Long id, String nombre, String apellido, String email, String passwordHash,
                    String rol, Integer activo, LocalDateTime fechaCreacion,
                    Long municipioId, String telefono, LocalDateTime ultimoLogin) {
 
         this.id            = id;
         this.nombre        = nombre;
+        this.apellido      = apellido;
         this.email         = email;
         this.passwordHash  = passwordHash;
         this.rol           = rol;
@@ -38,6 +40,7 @@ public class Usuario {
     // Getters
     public Long getId()                    { return id; }
     public String getNombre()              { return nombre; }
+    public String getApellido()            { return apellido; }
     public String getEmail()               { return email; }
     public String getPasswordHash()        { return passwordHash; }
     public String getRol()                 { return rol; }
@@ -52,6 +55,7 @@ public class Usuario {
     // Setters
     public void setId(Long id)                           { this.id = id; }
     public void setNombre(String nombre)                 { this.nombre = nombre; }
+    public void setApellido(String apellido)             { this.apellido = apellido; }
     public void setEmail(String email)                   { this.email = email; }
     public void setPasswordHash(String passwordHash)     { this.passwordHash = passwordHash; }
     public void setRol(String rol)                       { this.rol = rol; }
@@ -66,6 +70,7 @@ public class Usuario {
     public static class Builder {
         private Long id;
         private String nombre;
+        private String apellido;
         private String email;
         private String passwordHash;
         private String rol;
@@ -77,6 +82,7 @@ public class Usuario {
 
         public Builder id(Long id)                          { this.id = id; return this; }
         public Builder nombre(String nombre)                { this.nombre = nombre; return this; }
+        public Builder apellido(String apellido)            { this.apellido = apellido; return this; }
         public Builder email(String email)                  { this.email = email; return this; }
         public Builder passwordHash(String passwordHash)    { this.passwordHash = passwordHash; return this; }
         public Builder rol(String rol)                      { this.rol = rol; return this; }
@@ -87,7 +93,7 @@ public class Usuario {
         public Builder ultimoLogin(LocalDateTime ultimoLogin){ this.ultimoLogin = ultimoLogin; return this; }
 
         public Usuario build() {
-            return new Usuario(id, nombre, email, passwordHash, rol, activo,
+            return new Usuario(id, nombre, apellido, email, passwordHash, rol, activo,
                                fechaCreacion, municipioId, telefono, ultimoLogin);
         }
     }
@@ -97,6 +103,7 @@ public class Usuario {
         return "Usuario{" +
             "id=" + id +
             ", nombre='" + nombre + '\'' +
+            ", apellido='" + apellido + '\'' +
             ", email='" + email + '\'' +
             ", rol='" + rol + '\'' +
             ", municipioId=" + municipioId +

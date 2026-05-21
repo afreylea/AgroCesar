@@ -23,11 +23,14 @@ public class UsuarioService {
         this.municipioRepository = municipioRepository;
     }
 
-    public void registrar(String nombre, String email, 
+    public void registrar(String nombre, String apellido, String email, 
                           String passwordPlano, Long municipioId, String telefono) {
 
         if (nombre == null || nombre.isBlank())
             throw new IllegalArgumentException("El nombre es obligatorio.");
+
+        if (apellido == null || apellido.isBlank())
+            throw new IllegalArgumentException("El apellido es obligatorio.");
 
         if (email == null || email.isBlank())
             throw new IllegalArgumentException("El correo es obligatorio.");
@@ -55,6 +58,7 @@ public class UsuarioService {
 
         Usuario nuevo = Usuario.builder()
             .nombre(nombre.trim())
+            .apellido(apellido.trim())
             .email(email.trim().toLowerCase())
             .passwordHash(passwordEncoder.encode(passwordPlano))
             .rol("AGRICULTOR")

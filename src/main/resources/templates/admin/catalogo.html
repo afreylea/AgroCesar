@@ -3,24 +3,26 @@
 
 <body>
     <main>
-        <!-- Header -->
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-green-900">Catálogo de Cultivos</h2>
-            <p class="text-gray-500 text-sm mt-1">
-                Gestiona y monitorea la información de tus cultivos
-                <span class="text-green-600 font-medium">en tiempo real</span>
-            </p>
-        </div>
+        <!-- Hero con margen en todos los lados -->
+        <div class="relative rounded-3xl overflow-hidden mb-8 h-32 bg-cover bg-center ml-2 mt-2"
+            style="background-image: url('https://www.ganacampo.com/fotosnoticias/mac_el_658_de_la_tierra_apta_para_sembrar_en_colombia_no_se_aprovecha_1539726970.jpg');">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/40 rounded-3xl"></div>
 
-        <!-- Botón Nuevo -->
-        <div class="flex justify-end mb-6">
-            <a th:href="@{/admin/catalogo/nuevo}"
-                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg shadow-green-600/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Nuevo Cultivo
-            </a>
+            <div class="relative z-10 p-6 flex justify-between items-start h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-1">Catalogo de Cultivos</h2>
+                    <p class="text-green-100">Gestiona y monitorea la información de tus cultivos</p>
+                </div>
+
+                <!-- Botón Nuevo Cultivo -->
+                <a th:href="@{/cultivos/nuevo}"
+                    class="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium border border-white/30">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nuevo Cultivo
+                </a>
+            </div>
         </div>
 
         <!-- Mensajes flash -->
@@ -94,16 +96,16 @@
                 <div class="relative h-44 overflow-hidden">
                     <!-- Imagen por nombre de cultivo -->
                     <img th:if="${c.nombre == 'Arroz'}"
-                                 src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg" 
+                        src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg"
                         loading="lazy" alt="Arroz" class="w-full h-full object-cover">
                     <img th:if="${c.nombre == 'Maíz'}"
-                                 src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=300&h=300&fit=crop" 
+                        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=300&h=300&fit=crop"
                         loading="lazy" alt="Maíz" class="w-full h-full object-cover">
                     <img th:if="${c.nombre == 'Palma de aceite'}"
-                             src ="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg"
-                        loading="lazy" alt="Palma de aceite" class="w-full h-full object-cover">
+                        src="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg" loading="lazy" alt="Palma de aceite"
+                        class="w-full h-full object-cover">
                     <img th:if="${c.nombre == 'Yuca'}"
-                             src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
+                        src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
                         loading="lazy" alt="Yuca" class="w-full h-full object-cover">
                     <!-- Fallback si no hay imagen específica -->
                     <div th:if="${c.nombre != 'Arroz' and c.nombre != 'Maíz' and c.nombre != 'Palma de aceite' and c.nombre != 'Yuca'}"

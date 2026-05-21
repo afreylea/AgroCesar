@@ -40,9 +40,12 @@
            x-data="{ abierto: true }">
 
         <!-- Logo y nombre del sistema -->
-        <div class="px-6 py-5 border-b border-green-700">
-            <span class="font-bold text-xl tracking-wide">Agrocesar</span>
-            <p class="text-xs text-green-300 mt-1">Monitoreo de Cultivos</p>
+        <div class="px-6 py-5 border-b border-green-700 flex items-center gap-3">
+            <img th:src="@{/images/logo-agrocesar.png}" alt="Logo Agrocesar" class="w-10 h-10 object-contain">
+            <div>
+                <span class="font-bold text-xl tracking-wide">Agrocesar</span>
+                <p class="text-xs text-green-300 mt-0.5">Monitoreo de Cultivos</p>
+            </div>
         </div>
 
         <!-- Menu AGRICULTOR -->
@@ -152,8 +155,9 @@
         </main>
 
         <!-- Footer -->
-        <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
-            Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy; | Cesar, Colombia
+        <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm flex items-center justify-center gap-2">
+            <img th:src="@{/images/logo-agrocesar.png}" alt="Logo Agrocesar" class="w-5 h-5 object-contain opacity-80">
+            <span>Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climaticas &copy; | Cesar, Colombia</span>
         </footer>
 
     </div>

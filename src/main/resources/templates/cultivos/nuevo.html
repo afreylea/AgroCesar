@@ -2,20 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Registrar Cultivo - Agrocesar', ~{::main})}">
 
 <body>
-    <main class ="h-full">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-                <a th:href="@{/cultivos}"
-                    class="w-9 h-9 rounded-full bg-white shadow border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition text-gray-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
-                <div>
-                    <h2 class="text-2xl font-bold text-green-900">Registrar Cultivo</h2>
-                    <p class="text-gray-500 text-sm">Añade un nuevo cultivo para comenzar a monitorearlo.</p>
+    <main class="h-full">
+        <!-- Hero -->
+        <div class="relative rounded-3xl overflow-hidden mb-2 h-24 bg-cover bg-center ml-2 mt-2"
+            style="background-image: url('https://www.ganacampo.com/fotosnoticias/mac_el_658_de_la_tierra_apta_para_sembrar_en_colombia_no_se_aprovecha_1539726970.jpg');">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/40 rounded-3xl"></div>
+
+            <div class="relative z-10 p-8 flex items-center h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-2">Registrar Cultivo</h2>
+                    <p class="text-green-100">Añade un nuevo cultivo para comenzar a monitorearlo.</p>
                 </div>
             </div>
         </div>

@@ -60,27 +60,41 @@ public class DashboardController {
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
         List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
-
-        if (!cultivos.isEmpty()) {
-            Optional<Municipio> municipio = municipioRepository.findById(cultivos.get(0).getMunicipioId());
-            if (municipio.isPresent()) {
-                List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                        municipio.get().getLatitud(),
-                        municipio.get().getLongitud());
-                model.addAttribute("pronostico", pronostico);
-                model.addAttribute("municipio", municipio.get().getNombre());
-            }
-        }
-
         List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
             var cat = catalogoRepository.findById(c.getCatalogoId());
             String nombreCultivo = cat.map(x -> x.getNombre()).orElse("Sin nombre");
             String categoria = cat.map(x -> x.getCategoria()).orElse("");
-            String municipioNombre = municipioRepository.findById(c.getMunicipioId())
-                    .map(m -> m.getNombre()).orElse("Sin municipio");
+
+            // Busca municipio una sola vez y extrae todo lo necesario
+            Optional<Municipio> mun = municipioRepository.findById(c.getMunicipioId());
+            String municipioNombre = mun.map(Municipio::getNombre).orElse("Sin municipio");
+
+            // Prioriza coordenadas del cultivo si existen, si no usa las del municipio
+            Double lat = c.getLatitudCultivo() != null ? c.getLatitudCultivo()
+                    : mun.map(Municipio::getLatitud).orElse(null);
+            Double lng = c.getLongitudCultivo() != null ? c.getLongitudCultivo()
+                    : mun.map(Municipio::getLongitud).orElse(null);
+
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipioNombre, c.getHectareas(), c.getFechaSiembra(), c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo());
+                    municipioNombre, c.getHectareas(), c.getFechaSiembra(),
+                    c.getMunicipioId(), lat, lng);
         }).toList();
+
+        // Pronóstico inicial: primer cultivo con municipio válido
+        if (!cultivosView.isEmpty()) {
+            CultivoResumen primero = cultivosView.get(0);
+            if (primero.getMunicipioId() != null) {
+                Optional<Municipio> mun = municipioRepository.findById(primero.getMunicipioId());
+                mun.ifPresent(m -> {
+                    List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
+                            m.getLatitud(), m.getLongitud());
+                    model.addAttribute("pronostico", pronostico);
+                    model.addAttribute("municipio", m.getNombre());
+                    model.addAttribute("latInicial", m.getLatitud());
+                    model.addAttribute("lngInicial", m.getLongitud());
+                });
+            }
+        }
 
         model.addAttribute("cultivos", cultivosView);
         model.addAttribute("usuario", usuario);

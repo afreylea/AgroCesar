@@ -1,64 +1,266 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Catálogo - Admin Agrocesar', ~{::main})}">
 
-<head></head>
-
 <body>
     <main>
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-green-900">Catálogo de Cultivos</h2>
-            <button @click="$dispatch('open-modal')"
-                class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-600">
-                + Nuevo Cultivo
-            </button>
+        <!-- Hero con margen en todos los lados -->
+        <div class="relative rounded-3xl overflow-hidden mb-8 h-32 bg-cover bg-center ml-2 mt-2"
+            style="background-image: url('https://www.ganacampo.com/fotosnoticias/mac_el_658_de_la_tierra_apta_para_sembrar_en_colombia_no_se_aprovecha_1539726970.jpg');">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/40 rounded-3xl"></div>
+
+            <div class="relative z-10 p-6 flex justify-between items-start h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-1">Catalogo de Cultivos</h2>
+                    <p class="text-green-100">Gestiona y monitorea la información de tus cultivos</p>
+                </div>
+
+                <!-- Botón Nuevo Cultivo -->
+                <a th:href="@{/admin/catalogo/nuevo}"
+                    class="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium border border-white/30">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nuevo Cultivo
+                </a>
+            </div>
         </div>
 
-        <div th:if="${exito}" class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4 text-sm" th:text="${exito}">
-        </div>
-        <div th:if="${error}" class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm" th:text="${error}"></div>
+        <!-- Mensajes flash -->
+        <div th:if="${exito}"
+            class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6 text-sm"
+            th:text="${exito}"></div>
+        <div th:if="${error}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm"
+            th:text="${error}"></div>
 
-        <table class="w-full text-sm text-left text-gray-700 border border-gray-200 rounded-lg">
-            <thead class="bg-green-900 text-white">
-                <tr>
-                    <th class="px-4 py-3">Nombre</th>
-                    <th class="px-4 py-3">Categoría</th>
-                    <th class="px-4 py-3">Temp Min/Max</th>
-                    <th class="px-4 py-3">Lluvia Min/Max</th>
-                    <th class="px-4 py-3">Humedad Min/Max</th>
-                    <th class="px-4 py-3">Estado</th>
-                    <th class="px-4 py-3">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="c : ${catalogo}" class="border-t hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium" th:text="${c.nombre}"></td>
-                    <td class="px-4 py-3">
-                        <span th:if="${c.categoria == 'TRANSITORIO'}"
-                            class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">TRANSITORIO</span>
-                        <span th:if="${c.categoria == 'PERMANENTE'}"
-                            class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded">PERMANENTE</span>
-                    </td>
-                    <td class="px-4 py-3" th:text="${c.tempMin} + '°C / ' + ${c.tempMax} + '°C'"></td>
-                    <td class="px-4 py-3" th:text="${c.lluviaMin} + ' / ' + ${c.lluviaMax} + ' mm'"></td>
-                    <td class="px-4 py-3" th:text="${c.humedadMin} + '% / ' + ${c.humedadMax} + '%'"></td>
-                    <td class="px-4 py-3">
-                        <span th:if="${c.activo == 1}"
-                            class="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded">Activo</span>
-                        <span th:if="${c.activo == 0}"
-                            class="bg-gray-100 text-gray-600 text-xs px-2.5 py-0.5 rounded">Inactivo</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <a th:href="@{/admin/catalogo/{id}/editar(id=${c.id})}"
-                            class="text-green-700 hover:underline text-sm mr-3">Editar</a>
-                        <form th:action="@{/admin/catalogo/{id}/desactivar(id=${c.id})}" method="post"
-                            style="display:inline">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <button type="submit" class="text-red-600 hover:underline text-sm">Desactivar</button>
-                        </form>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${totalCultivos}">0</p>
+                    <p class="text-xs text-green-600 font-medium">Registrados</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-0.5">Temp. Promedio</p>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${tempPromedio}"></p>
+                    <p class="text-xs text-blue-500">Ambiente</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-0.5">Humedad Promedio</p>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${humedadPromedio}"></p>
+                    <p class="text-xs text-purple-500">Ambiente</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-0.5">Lluvia Promedio</p>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${lluviaPromedio}"></p>
+                    <p class="text-xs text-sky-500">En 24h</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid de Tarjetas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div th:each="c : ${catalogos}" x-data="{ confirmar: false }"
+                class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+
+                <!-- Imagen superior con badge categoría y estado -->
+                <div class="relative h-44 overflow-hidden">
+                    <!-- Imagen por nombre de cultivo -->
+                    <img th:if="${c.nombre == 'Arroz'}"
+                        src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg"
+                        loading="lazy" alt="Arroz" class="w-full h-full object-cover">
+                    <img th:if="${c.nombre == 'Maíz'}"
+                        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=300&h=300&fit=crop"
+                        loading="lazy" alt="Maíz" class="w-full h-full object-cover">
+                    <img th:if="${c.nombre == 'Palma de aceite'}"
+                        src="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg" loading="lazy" alt="Palma de aceite"
+                        class="w-full h-full object-cover">
+                    <img th:if="${c.nombre == 'Yuca'}"
+                        src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
+                        loading="lazy" alt="Yuca" class="w-full h-full object-cover">
+                    <!-- Fallback si no hay imagen específica -->
+                    <div th:if="${c.nombre != 'Arroz' and c.nombre != 'Maíz' and c.nombre != 'Palma de aceite' and c.nombre != 'Yuca'}"
+                        class="w-full h-full bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center">
+                        <svg class="w-16 h-16 text-white opacity-60" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+
+                    <!-- Overlay degradado -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+
+                    <!-- Badge categoría (esquina superior izquierda) -->
+                    <span th:if="${c.categoria == 'TRANSITORIO'}"
+                        class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-blue-500/90 text-white text-xs font-medium backdrop-blur-sm">
+                        TRANSITORIO
+                    </span>
+                    <span th:if="${c.categoria == 'PERMANENTE'}"
+                        class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-amber-500/90 text-white text-xs font-medium backdrop-blur-sm">
+                        PERMANENTE
+                    </span>
+
+                    <!-- Badge estado (esquina superior derecha) -->
+                    <span th:if="${c.activo == 1}"
+                        class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/90 text-white text-xs font-medium backdrop-blur-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        Activo
+                    </span>
+                    <span th:if="${c.activo == 0}"
+                        class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-500/90 text-white text-xs font-medium backdrop-blur-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        Inactivo
+                    </span>
+                </div>
+
+                <!-- Contenido -->
+                <div class="p-4 flex flex-col flex-1">
+                    <!-- Nombre y descripción -->
+                    <h3 class="font-bold text-gray-800 text-lg leading-tight" th:text="${c.nombre}"></h3>
+                    <p class="text-xs text-gray-400 mt-1 mb-3 line-clamp-2" th:text="${c.descripcion} ?: ''"></p>
+
+                    <!-- Métricas deslizables -->
+                    <div
+                        class="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent -mx-1 px-1">
+                        <!-- Temperatura -->
+                        <div
+                            class="flex-shrink-0 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-center min-w-[90px]">
+                            <svg class="w-4 h-4 text-orange-400 mx-auto mb-1" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <p class="text-xs font-semibold text-orange-700 whitespace-nowrap"
+                                th:text="${c.tempMin} + '°C'"></p>
+                            <p class="text-xs font-semibold text-orange-700 whitespace-nowrap"
+                                th:text="${c.tempMax} + '°C'"></p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Temperatura: Min/Max</p>
+                        </div>
+                        <!-- Lluvia -->
+                        <div
+                            class="flex-shrink-0 bg-sky-50 border border-sky-100 rounded-xl px-3 py-2 text-center min-w-[90px]">
+                            <svg class="w-4 h-4 text-sky-400 mx-auto mb-1" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                            </svg>
+                            <p class="text-xs font-semibold text-sky-700 whitespace-nowrap"
+                                th:text="${c.lluviaMin} + ' mm'"></p>
+                            <p class="text-xs font-semibold text-sky-700 whitespace-nowrap"
+                                th:text="${c.lluviaMax} + ' mm'"></p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Lluvia:Min/Max</p>
+                        </div>
+                        <!-- Humedad -->
+                        <div
+                            class="flex-shrink-0 bg-purple-50 border border-purple-100 rounded-xl px-3 py-2 text-center min-w-[90px]">
+                            <svg class="w-4 h-4 text-purple-400 mx-auto mb-1" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                            <p class="text-xs font-semibold text-purple-700 whitespace-nowrap"
+                                th:text="${c.humedadMin} + '%'"></p>
+                            <p class="text-xs font-semibold text-purple-700 whitespace-nowrap"
+                                th:text="${c.humedadMax} + '%'"></p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Humedad: Min/Max</p>
+                        </div>
+                        <!-- Cosecha -->
+                        <div
+                            class="flex-shrink-0 bg-green-50 border border-green-100 rounded-xl px-3 py-2 text-center min-w-[90px]">
+                            <svg class="w-4 h-4 text-green-500 mx-auto mb-1" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p class="text-xs font-semibold text-green-700 whitespace-nowrap"
+                                th:text="${c.diasCosechaMin} + ' d'"></p>
+                            <p class="text-xs font-semibold text-green-700 whitespace-nowrap"
+                                th:text="${c.diasCosechaMax} + ' d'"></p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Dias de Cosecha</p>
+                        </div>
+                    </div>
+
+                    <!-- Spacer -->
+                    <div class="flex-1"></div>
+
+                    <!-- Acciones -->
+                    <div class="flex justify-between items-center border-t border-gray-100 mt-4 pt-4">
+                        <div class="flex gap-2">
+                            <a th:href="@{/admin/catalogo/editar/{id}(id=${c.id})}"
+                                class="p-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
+                                title="Editar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                            <button @click="confirmar = true"
+                                class="p-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
+                                title="Eliminar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal confirmación -->
+                <div x-show="confirmar"
+                    class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4">
+                        <p class="text-gray-700 mb-4">
+                            ¿Quieres desactivar
+                            <span class="font-semibold" th:text="${c.nombre}"></span>?
+                        </p>
+                        <div class="flex gap-3 justify-end">
+                            <button @click="confirmar = false"
+                                class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm">
+                                Cancelar
+                            </button>
+                            <form th:action="@{/admin/catalogo/{id}/desactivar(id=${c.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit"
+                                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm">
+                                    Desactivar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </body>
 

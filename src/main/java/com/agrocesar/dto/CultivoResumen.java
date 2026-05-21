@@ -14,7 +14,8 @@ public class CultivoResumen {
     private Double longitud;
 
     public CultivoResumen(Long id, String nombreCultivo, String categoria,
-                          String municipio, Double hectareas, LocalDate fechaSiembra, Long municipioId, double latitud, double longitud) {
+            String municipio, Double hectareas, LocalDate fechaSiembra, Long municipioId, Double latitud,
+            Double longitud) {
         this.id = id;
         this.nombreCultivo = nombreCultivo;
         this.categoria = categoria;
@@ -26,13 +27,39 @@ public class CultivoResumen {
         this.longitud = longitud;
     }
 
-    public Long getId()               { return id; }
-    public String getNombreCultivo()  { return nombreCultivo; }
-    public String getCategoria()      { return categoria; }
-    public String getMunicipio()      { return municipio; }
-    public Double getHectareas()      { return hectareas; }
-    public LocalDate getFechaSiembra(){ return fechaSiembra; }
-    public Long getMunicipioId()      { return municipioId; }
-    public double getLatitud()        { return latitud; }
-    public double getLongitud()       { return longitud; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getNombreCultivo() {
+        return nombreCultivo;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public String getMunicipio() {
+        return municipio;
+    }
+
+    public Double getHectareas() {
+        return hectareas;
+    }
+
+    public LocalDate getFechaSiembra() {
+        return fechaSiembra;
+    }
+
+    public Long getMunicipioId() {
+        return municipioId;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
+    }
 }

@@ -131,6 +131,7 @@ CREATE TABLE CULTIVOS_CATALOGO (
   DIAS_COSECHA_MIN    NUMBER(5)     NOT NULL,
   DIAS_COSECHA_MAX    NUMBER(5)     NOT NULL,
   FUENTE_DATOS        VARCHAR2(100),
+  IMAGEN_URL          VARCHAR2(500),
   ACTIVO              NUMBER(1)     DEFAULT 1 NOT NULL,
   FECHA_CREACION      DATE          DEFAULT SYSDATE NOT NULL,
   FECHA_ACTUALIZACION DATE,
@@ -350,7 +351,6 @@ CREATE OR REPLACE VIEW V_ALERTAS_ACTIVAS AS
 SELECT
   a.ID                     AS ALERTA_ID,
   u.NOMBRE                 AS AGRICULTOR,
-  ca.TELEFONO,
   cc.NOMBRE                AS CULTIVO,
   cc.CATEGORIA,
   m.NOMBRE                 AS MUNICIPIO,
@@ -381,6 +381,7 @@ SELECT
   ca.ID,
   ca.USUARIO_ID,
   u.NOMBRE                                        AS AGRICULTOR,
+  ca.TELEFONO,
   cc.NOMBRE                                       AS CULTIVO,
   cc.CATEGORIA,
   m.ID                                            AS MUNICIPIO_ID,

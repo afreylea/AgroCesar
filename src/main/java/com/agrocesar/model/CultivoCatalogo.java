@@ -21,6 +21,7 @@ public class CultivoCatalogo {
 
     private String descripcion;
     private String fuenteDatos;
+    private String imagenUrl;
     private LocalDateTime fechaActualizacion;
 
     public CultivoCatalogo() {}
@@ -30,7 +31,7 @@ public class CultivoCatalogo {
                            Double lluviaMin, Double lluviaMax,
                            Double humedadMin, Double humedadMax,
                            String tipoSuelo, Integer diasCosechaMin, Integer diasCosechaMax,
-                           String fuenteDatos, Integer activo,
+                           String fuenteDatos, String imagenUrl, Integer activo,
                            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion) {
 
         this.id                  = id;
@@ -47,6 +48,7 @@ public class CultivoCatalogo {
         this.diasCosechaMin      = diasCosechaMin;
         this.diasCosechaMax      = diasCosechaMax;
         this.fuenteDatos         = fuenteDatos;
+        this.imagenUrl           = imagenUrl;
         this.activo              = activo;
         this.fechaCreacion       = fechaCreacion;
         this.fechaActualizacion  = fechaActualizacion;
@@ -67,6 +69,7 @@ public class CultivoCatalogo {
     public Integer getDiasCosechaMin()               { return diasCosechaMin; }
     public Integer getDiasCosechaMax()               { return diasCosechaMax; }
     public String getFuenteDatos()                   { return fuenteDatos; }
+    public String getImagenUrl()                     { return imagenUrl; }
     public Integer getActivo()                       { return activo; }
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
@@ -88,6 +91,7 @@ public class CultivoCatalogo {
     public void setDiasCosechaMin(Integer diasCosechaMin)           { this.diasCosechaMin = diasCosechaMin; }
     public void setDiasCosechaMax(Integer diasCosechaMax)           { this.diasCosechaMax = diasCosechaMax; }
     public void setFuenteDatos(String fuenteDatos)                  { this.fuenteDatos = fuenteDatos; }
+    public void setImagenUrl(String imagenUrl)                      { this.imagenUrl = imagenUrl; }
     public void setActivo(Integer activo)                           { this.activo = activo; }
     public void setFechaCreacion(LocalDateTime fechaCreacion)       { this.fechaCreacion = fechaCreacion; }
     public void setFechaActualizacion(LocalDateTime f)              { this.fechaActualizacion = f; }
@@ -109,6 +113,7 @@ public class CultivoCatalogo {
         private Integer diasCosechaMin;
         private Integer diasCosechaMax;
         private String fuenteDatos;
+        private String imagenUrl;
         private Integer activo;
         private LocalDateTime fechaCreacion;
         private LocalDateTime fechaActualizacion;
@@ -127,6 +132,7 @@ public class CultivoCatalogo {
         public Builder diasCosechaMin(Integer diasCosechaMin)       { this.diasCosechaMin = diasCosechaMin; return this; }
         public Builder diasCosechaMax(Integer diasCosechaMax)       { this.diasCosechaMax = diasCosechaMax; return this; }
         public Builder fuenteDatos(String fuenteDatos)              { this.fuenteDatos = fuenteDatos; return this; }
+        public Builder imagenUrl(String imagenUrl)                  { this.imagenUrl = imagenUrl; return this; }
         public Builder activo(Integer activo)                       { this.activo = activo; return this; }
         public Builder fechaCreacion(LocalDateTime f)               { this.fechaCreacion = f; return this; }
         public Builder fechaActualizacion(LocalDateTime f)          { this.fechaActualizacion = f; return this; }
@@ -134,7 +140,7 @@ public class CultivoCatalogo {
         public CultivoCatalogo build() {
             return new CultivoCatalogo(id, nombre, descripcion, categoria,
                     tempMin, tempMax, lluviaMin, lluviaMax, humedadMin, humedadMax,
-                    tipoSuelo, diasCosechaMin, diasCosechaMax, fuenteDatos,
+                    tipoSuelo, diasCosechaMin, diasCosechaMax, fuenteDatos, imagenUrl,
                     activo, fechaCreacion, fechaActualizacion);
         }
     }

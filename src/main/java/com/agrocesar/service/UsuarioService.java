@@ -79,4 +79,9 @@ public class UsuarioService {
     private boolean formatoTelefonoValido(String telefono) {
         return Pattern.compile("^\\+?(57)?[0-9]{10}$").matcher(telefono.trim()).matches();
     }
+
+    //Busca un usuario por email - usado por el controller de cultivos para obtener el di del autenticado
+    public Usuario buscarPorEmail(String email){
+        return usuarioRepository.findByEmail(email).orElseThrow(()-> new IllegalArgumentException("Usuario no encontrado: "+email));
+    }
 }

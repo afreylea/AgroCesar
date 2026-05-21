@@ -15,7 +15,7 @@
                 </div>
 
                 <!-- Botón Nuevo Cultivo -->
-                <a th:href="@{/admin/catalogo/Nuevo}"
+                <a th:href="@{/admin/catalogo/nuevo}"
                     class="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium border border-white/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -216,7 +216,7 @@
                     <!-- Acciones -->
                     <div class="flex justify-between items-center border-t border-gray-100 mt-4 pt-4">
                         <div class="flex gap-2">
-                            <a th:href="@{/admin/catalogo/{id}/editar(id=${c.id})}"
+                            <a th:href="@{/admin/catalogo/editar/{id}(id=${c.id})}"
                                 class="p-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
                                 title="Editar">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

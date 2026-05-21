@@ -1,8 +1,8 @@
 package com.agrocesar.controller;
 
+import com.agrocesar.dto.CultivoResumen;
 import com.agrocesar.dto.DailyForecast;
 import com.agrocesar.model.CultivoAgricultor;
-import com.agrocesar.model.CultivoResumen;
 import com.agrocesar.model.Municipio;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.CatalogoRepository;
@@ -79,7 +79,7 @@ public class DashboardController {
             String municipioNombre = municipioRepository.findById(c.getMunicipioId())
                     .map(m -> m.getNombre()).orElse("Sin municipio");
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipioNombre, c.getHectareas(), c.getFechaSiembra());
+                    municipioNombre, c.getHectareas(), c.getFechaSiembra(), c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo());
         }).toList();
 
         model.addAttribute("cultivos", cultivosView);

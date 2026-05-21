@@ -1,4 +1,4 @@
-package com.agrocesar.model;
+package com.agrocesar.dto;
 
 import java.time.LocalDate;
 
@@ -9,15 +9,21 @@ public class CultivoResumen {
     private String municipio;
     private Double hectareas;
     private LocalDate fechaSiembra;
+    private Long municipioId;
+    private double latitud;
+    private double longitud;
 
     public CultivoResumen(Long id, String nombreCultivo, String categoria,
-                          String municipio, Double hectareas, LocalDate fechaSiembra) {
+                          String municipio, Double hectareas, LocalDate fechaSiembra, Long municipioId, double latitud, double longitud) {
         this.id = id;
         this.nombreCultivo = nombreCultivo;
         this.categoria = categoria;
         this.municipio = municipio;
         this.hectareas = hectareas;
         this.fechaSiembra = fechaSiembra;
+        this.municipioId = municipioId;
+        this.latitud = latitud;
+        this.longitud = longitud;
     }
 
     public Long getId()               { return id; }
@@ -26,4 +32,7 @@ public class CultivoResumen {
     public String getMunicipio()      { return municipio; }
     public Double getHectareas()      { return hectareas; }
     public LocalDate getFechaSiembra(){ return fechaSiembra; }
+    public Long getMunicipioId()      { return municipioId; }
+    public double getLatitud()        { return latitud; }
+    public double getLongitud()       { return longitud; }
 }

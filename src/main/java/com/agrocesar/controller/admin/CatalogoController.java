@@ -183,26 +183,4 @@ public class CatalogoController {
         return "redirect:/admin/catalogo";
     }
 
-    @PostMapping("/nuevo")
-    public String registrar(@ModelAttribute CultivoCatalogo catalogo,
-            RedirectAttributes redirectAttributes) {
-        catalogoService.crear(catalogo);
-        redirectAttributes.addFlashAttribute("mensaje", "Cultivo registrado correctamente.");
-        redirectAttributes.addFlashAttribute("tipo", "success");
-        return "redirect:/admin/catalogo";
-    }
-
-    @PostMapping("/{id}/editar")
-    public String actualizar(@PathVariable Long id, @ModelAttribute CultivoCatalogo catalogo,
-            RedirectAttributes redirectAttributes) {
-        boolean actualizado = catalogoService.actualizar(catalogo);
-        if (actualizado) {
-            redirectAttributes.addFlashAttribute("mensaje", "Cultivo actualizado correctamente.");
-            redirectAttributes.addFlashAttribute("tipo", "success");
-        } else {
-            redirectAttributes.addFlashAttribute("mensaje", "No se encontró el cultivo a actualizar.");
-            redirectAttributes.addFlashAttribute("tipo", "error");
-        }
-        return "redirect:/admin/catalogo";
-    }
 }

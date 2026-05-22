@@ -151,7 +151,12 @@
 
   </dependencies>
 
-
+  <!--Dependencias de la API de Twilio-->
+  <dependency>
+    <groupId>com.twilio.sdk</groupId>
+    <artifactId>twilio</artifactId>
+    <version>10.1.5</version>
+</dependency>
 
   <!-- ── Plugin de build ─────────────────────────────── -->
   <build>

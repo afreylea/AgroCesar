@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public class CultivoCatalogo {
 
-    // NOT NULL (DDL garantiza)
     private Long id;
     private String nombre;
     private String categoria;           // 'TRANSITORIO' | 'PERMANENTE'
@@ -20,21 +19,19 @@ public class CultivoCatalogo {
     private Integer activo;
     private LocalDateTime fechaCreacion;
 
-    // Nullable
     private String descripcion;
     private String fuenteDatos;
+    private String imagenUrl;
     private LocalDateTime fechaActualizacion;
 
-    // Constructor vacío (necesario para JDBI y Spring)
     public CultivoCatalogo() {}
 
-    // Constructor completo (para mapeo JDBI desde ResultSet)
     public CultivoCatalogo(Long id, String nombre, String descripcion, String categoria,
                            Double tempMin, Double tempMax,
                            Double lluviaMin, Double lluviaMax,
                            Double humedadMin, Double humedadMax,
                            String tipoSuelo, Integer diasCosechaMin, Integer diasCosechaMax,
-                           String fuenteDatos, Integer activo,
+                           String fuenteDatos, String imagenUrl, Integer activo,
                            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion) {
 
         this.id                  = id;
@@ -51,6 +48,7 @@ public class CultivoCatalogo {
         this.diasCosechaMin      = diasCosechaMin;
         this.diasCosechaMax      = diasCosechaMax;
         this.fuenteDatos         = fuenteDatos;
+        this.imagenUrl           = imagenUrl;
         this.activo              = activo;
         this.fechaCreacion       = fechaCreacion;
         this.fechaActualizacion  = fechaActualizacion;
@@ -71,6 +69,7 @@ public class CultivoCatalogo {
     public Integer getDiasCosechaMin()               { return diasCosechaMin; }
     public Integer getDiasCosechaMax()               { return diasCosechaMax; }
     public String getFuenteDatos()                   { return fuenteDatos; }
+    public String getImagenUrl()                     { return imagenUrl; }
     public Integer getActivo()                       { return activo; }
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
@@ -92,11 +91,11 @@ public class CultivoCatalogo {
     public void setDiasCosechaMin(Integer diasCosechaMin)           { this.diasCosechaMin = diasCosechaMin; }
     public void setDiasCosechaMax(Integer diasCosechaMax)           { this.diasCosechaMax = diasCosechaMax; }
     public void setFuenteDatos(String fuenteDatos)                  { this.fuenteDatos = fuenteDatos; }
+    public void setImagenUrl(String imagenUrl)                      { this.imagenUrl = imagenUrl; }
     public void setActivo(Integer activo)                           { this.activo = activo; }
     public void setFechaCreacion(LocalDateTime fechaCreacion)       { this.fechaCreacion = fechaCreacion; }
     public void setFechaActualizacion(LocalDateTime f)              { this.fechaActualizacion = f; }
 
-    // Builder estático (reemplaza @Builder de Lombok)
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -114,6 +113,7 @@ public class CultivoCatalogo {
         private Integer diasCosechaMin;
         private Integer diasCosechaMax;
         private String fuenteDatos;
+        private String imagenUrl;
         private Integer activo;
         private LocalDateTime fechaCreacion;
         private LocalDateTime fechaActualizacion;
@@ -132,6 +132,7 @@ public class CultivoCatalogo {
         public Builder diasCosechaMin(Integer diasCosechaMin)       { this.diasCosechaMin = diasCosechaMin; return this; }
         public Builder diasCosechaMax(Integer diasCosechaMax)       { this.diasCosechaMax = diasCosechaMax; return this; }
         public Builder fuenteDatos(String fuenteDatos)              { this.fuenteDatos = fuenteDatos; return this; }
+        public Builder imagenUrl(String imagenUrl)                  { this.imagenUrl = imagenUrl; return this; }
         public Builder activo(Integer activo)                       { this.activo = activo; return this; }
         public Builder fechaCreacion(LocalDateTime f)               { this.fechaCreacion = f; return this; }
         public Builder fechaActualizacion(LocalDateTime f)          { this.fechaActualizacion = f; return this; }
@@ -139,7 +140,7 @@ public class CultivoCatalogo {
         public CultivoCatalogo build() {
             return new CultivoCatalogo(id, nombre, descripcion, categoria,
                     tempMin, tempMax, lluviaMin, lluviaMax, humedadMin, humedadMax,
-                    tipoSuelo, diasCosechaMin, diasCosechaMax, fuenteDatos,
+                    tipoSuelo, diasCosechaMin, diasCosechaMax, fuenteDatos, imagenUrl,
                     activo, fechaCreacion, fechaActualizacion);
         }
     }

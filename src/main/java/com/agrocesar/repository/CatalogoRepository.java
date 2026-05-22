@@ -16,21 +16,21 @@ public interface CatalogoRepository {
     @SqlQuery("SELECT ID, NOMBRE, DESCRIPCION, CATEGORIA, TEMP_MIN, TEMP_MAX, " +
             "LLUVIA_MIN, LLUVIA_MAX, HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO, " +
             "DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO, " +
-            "FECHA_CREACION, FECHA_ACTUALIZACION " +
+            "IMAGEN_URL, FECHA_CREACION, FECHA_ACTUALIZACION " +
             "FROM CULTIVOS_CATALOGO WHERE ID = :id")
     Optional<CultivoCatalogo> findById(@Bind("id") Long id);
 
     @SqlQuery("SELECT ID, NOMBRE, DESCRIPCION, CATEGORIA, TEMP_MIN, TEMP_MAX, " +
             "LLUVIA_MIN, LLUVIA_MAX, HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO, " +
             "DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO, " +
-            "FECHA_CREACION, FECHA_ACTUALIZACION " +
+            "IMAGEN_URL, FECHA_CREACION, FECHA_ACTUALIZACION " +
             "FROM CULTIVOS_CATALOGO WHERE ACTIVO = 1 ORDER BY NOMBRE")
     List<CultivoCatalogo> findAllActivos();
 
     @SqlQuery("SELECT ID, NOMBRE, DESCRIPCION, CATEGORIA, TEMP_MIN, TEMP_MAX, " +
             "LLUVIA_MIN, LLUVIA_MAX, HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO, " +
             "DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO, " +
-            "FECHA_CREACION, FECHA_ACTUALIZACION " +
+            "IMAGEN_URL, FECHA_CREACION, FECHA_ACTUALIZACION " +
             "FROM CULTIVOS_CATALOGO ORDER BY NOMBRE")
     List<CultivoCatalogo> findAll();
 
@@ -40,10 +40,10 @@ public interface CatalogoRepository {
     @SqlUpdate("INSERT INTO CULTIVOS_CATALOGO " +
             "(ID, NOMBRE, DESCRIPCION, CATEGORIA, TEMP_MIN, TEMP_MAX, " +
             "LLUVIA_MIN, LLUVIA_MAX, HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO, " +
-            "DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS) " +
+            "DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, IMAGEN_URL) " +
             "VALUES (:id, :nombre, :descripcion, :categoria, :tempMin, :tempMax, " +
             ":lluviaMin, :lluviaMax, :humedadMin, :humedadMax, :tipoSuelo, " +
-            ":diasCosechaMin, :diasCosechaMax, :fuenteDatos)")
+            ":diasCosechaMin, :diasCosechaMax, :fuenteDatos, :imagenUrl)")
     void insert(@BindBean CultivoCatalogo catalogo);
 
     @SqlUpdate("UPDATE CULTIVOS_CATALOGO SET " +
@@ -53,7 +53,7 @@ public interface CatalogoRepository {
             "HUMEDAD_MIN = :humedadMin, HUMEDAD_MAX = :humedadMax, " +
             "TIPO_SUELO = :tipoSuelo, DIAS_COSECHA_MIN = :diasCosechaMin, " +
             "DIAS_COSECHA_MAX = :diasCosechaMax, FUENTE_DATOS = :fuenteDatos, " +
-            "FECHA_ACTUALIZACION = SYSDATE " +
+            "IMAGEN_URL = :imagenUrl " +
             "WHERE ID = :id")
     int update(@BindBean CultivoCatalogo catalogo);
 

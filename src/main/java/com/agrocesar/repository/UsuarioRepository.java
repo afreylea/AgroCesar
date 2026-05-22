@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface UsuarioRepository {
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
                MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
         FROM USUARIOS
@@ -29,7 +29,7 @@ public interface UsuarioRepository {
     void actualizarUltimoLogin(@Bind("email") String email);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
                MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
         FROM USUARIOS
@@ -38,7 +38,7 @@ public interface UsuarioRepository {
     Optional<Usuario> findById(@Bind("id") Long id);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
                MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
         FROM USUARIOS
@@ -47,7 +47,7 @@ public interface UsuarioRepository {
     Optional<Usuario> findByEmail(@Bind("email") String email);
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
                MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
         FROM USUARIOS
@@ -57,7 +57,7 @@ public interface UsuarioRepository {
     List<Usuario> findAllActivos();
 
     @SqlQuery("""
-        SELECT ID, NOMBRE, EMAIL, PASSWORD_HASH, ROL,
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
                MUNICIPIO_ID, TELEFONO, ACTIVO,
                FECHA_CREACION, ULTIMO_LOGIN
         FROM USUARIOS
@@ -67,16 +67,16 @@ public interface UsuarioRepository {
     List<Usuario> findByRol(@Bind("rol") String rol);
 
     @SqlUpdate("""
-        INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, 
+        INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, 
                               MUNICIPIO_ID, TELEFONO)
-        VALUES (:nombre, :email, :passwordHash, :rol, 
+        VALUES (:nombre, :apellido, :email, :passwordHash, :rol, 
                 :municipioId, :telefono)
         """)
     void insert(@BindBean Usuario usuario);
 
     @SqlUpdate("""
-        UPDATE USUARIOS SET NOMBRE = :nombre, EMAIL = :email,
-                            MUNICIPIO_ID = :municipioId
+        UPDATE USUARIOS SET NOMBRE = :nombre, APELLIDO = :apellido, EMAIL = :email,
+                            MUNICIPIO_ID = :municipioId, TELEFONO = :telefono
         WHERE ID = :id
         """)
     int update(@BindBean Usuario usuario);

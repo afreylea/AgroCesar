@@ -21,6 +21,7 @@ public class UsuarioMapper implements RowMapper<Usuario> {
             // NOT NULL garantizado por DDL
             .id(rs.getLong("ID"))
             .nombre(rs.getString("NOMBRE"))
+            .apellido(rs.getString("APELLIDO"))
             .email(rs.getString("EMAIL"))
             .passwordHash(rs.getString("PASSWORD_HASH"))
             .rol(rs.getString("ROL"))

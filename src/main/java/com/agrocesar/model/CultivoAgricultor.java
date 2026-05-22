@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 public class CultivoAgricultor {
 
-    // NOT NULL (DDL garantiza)
     private Long id;
     private Long usuarioId;
     private Long catalogoId;
@@ -32,13 +31,10 @@ public class CultivoAgricultor {
     // Nullable — tipo de suelo de la parcela (informativo, para versiones futuras)
     private String tipoSuelo;
 
-    // Nullable — Oracle actualiza mediante trigger TRG_CULTAGR_FECHA_ACT
     private LocalDateTime fechaActualizacion;
 
-    // Constructor vacío (necesario para JDBI y Spring)
     public CultivoAgricultor() {}
 
-    // Constructor completo (para mapeo JDBI desde ResultSet)
     public CultivoAgricultor(Long id, Long usuarioId, Long catalogoId, Long municipioId,
                              Double hectareas, LocalDate fechaSiembra, String tipoSuelo,
                              Double tempMinOverride, Double tempMaxOverride,
@@ -88,7 +84,7 @@ public class CultivoAgricultor {
     public LocalDateTime getFechaCreacion()          { return fechaCreacion; }
     public LocalDateTime getFechaActualizacion()     { return fechaActualizacion; }
 
-    public boolean isActivo()                        { return Integer.valueOf(1).equals(this.activo); }
+    
 
     // Setters
     public void setId(Long id)                                      { this.id = id; }
@@ -110,7 +106,6 @@ public class CultivoAgricultor {
     public void setFechaCreacion(LocalDateTime fechaCreacion)       { this.fechaCreacion = fechaCreacion; }
     public void setFechaActualizacion(LocalDateTime f)              { this.fechaActualizacion = f; }
 
-    // Builder estático (reemplaza @Builder de Lombok)
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {

@@ -37,6 +37,7 @@ public class CultivoCatalogoMapper implements RowMapper<CultivoCatalogo> {
             // NULLABLE
             .descripcion(rs.getString("DESCRIPCION"))
             .fuenteDatos(rs.getString("FUENTE_DATOS"))
+            .imagenUrl(rs.getString("IMAGEN_URL"))
             .fechaActualizacion(fechaActualizacion != null ? fechaActualizacion.toLocalDateTime() : null)
 
             .build();

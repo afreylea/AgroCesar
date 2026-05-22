@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 public class Alerta {
 
-    // NOT NULL (DDL garantiza)
     private Long id;
     private Long cultivoAgricultorId;
     private String tipoAlerta;      // 'TEMPERATURA_ALTA' | 'TEMPERATURA_BAJA' |
@@ -17,20 +16,17 @@ public class Alerta {
     private LocalDateTime fechaGeneracion;
     private Double valorDetectado;          // Valor real del pronóstico (ej: 92.5 mm)
     private Double valorUmbral;             // Umbral efectivo aplicado (ej: 80 mm)
+    private String recomendacion;
     private Integer leida;                  // 0 = no leída | 1 = leída
 
-    // Nullable — Oracle lo registra automáticamente mediante trigger
-    // TRG_ALERTAS_FECHA_LECTURA cuando LEIDA cambia de 0 a 1
     private LocalDateTime fechaLectura;
 
-    // Constructor vacío (necesario para JDBI y Spring)
     public Alerta() {}
 
-    // Constructor completo (para mapeo JDBI desde ResultSet)
     public Alerta(Long id, Long cultivoAgricultorId, String tipoAlerta, String severidad,
                   String descripcion, LocalDate fechaDiaPronostico,
                   LocalDateTime fechaGeneracion, Double valorDetectado, Double valorUmbral,
-                  Integer leida, LocalDateTime fechaLectura) {
+                  String recomendacion, Integer leida, LocalDateTime fechaLectura) {
 
         this.id                  = id;
         this.cultivoAgricultorId = cultivoAgricultorId;
@@ -41,6 +37,7 @@ public class Alerta {
         this.fechaGeneracion     = fechaGeneracion;
         this.valorDetectado      = valorDetectado;
         this.valorUmbral         = valorUmbral;
+        this.recomendacion       = recomendacion;
         this.leida               = leida;
         this.fechaLectura        = fechaLectura;
     }
@@ -55,6 +52,7 @@ public class Alerta {
     public LocalDateTime getFechaGeneracion()        { return fechaGeneracion; }
     public Double getValorDetectado()                { return valorDetectado; }
     public Double getValorUmbral()                   { return valorUmbral; }
+    public String getRecomendacion()                 { return recomendacion; }
     public Integer getLeida()                        { return leida; }
     public LocalDateTime getFechaLectura()           { return fechaLectura; }
 
@@ -70,6 +68,7 @@ public class Alerta {
     public void setFechaGeneracion(LocalDateTime fechaGeneracion)       { this.fechaGeneracion = fechaGeneracion; }
     public void setValorDetectado(Double valorDetectado)                { this.valorDetectado = valorDetectado; }
     public void setValorUmbral(Double valorUmbral)                      { this.valorUmbral = valorUmbral; }
+    public void setRecomendacion(String recomendacion)                  { this.recomendacion = recomendacion; }
     public void setLeida(Integer leida)                                 { this.leida = leida; }
     public void setFechaLectura(LocalDateTime fechaLectura)             { this.fechaLectura = fechaLectura; }
 
@@ -86,6 +85,7 @@ public class Alerta {
         private LocalDateTime fechaGeneracion;
         private Double valorDetectado;
         private Double valorUmbral;
+        private String recomendacion;
         private Integer leida;
         private LocalDateTime fechaLectura;
 
@@ -98,13 +98,14 @@ public class Alerta {
         public Builder fechaGeneracion(LocalDateTime fechaGeneracion)       { this.fechaGeneracion = fechaGeneracion; return this; }
         public Builder valorDetectado(Double valorDetectado)                { this.valorDetectado = valorDetectado; return this; }
         public Builder valorUmbral(Double valorUmbral)                      { this.valorUmbral = valorUmbral; return this; }
+        public Builder recomendacion(String recomendacion)                  { this.recomendacion = recomendacion; return this; }
         public Builder leida(Integer leida)                                 { this.leida = leida; return this; }
         public Builder fechaLectura(LocalDateTime fechaLectura)             { this.fechaLectura = fechaLectura; return this; }
 
         public Alerta build() {
             return new Alerta(id, cultivoAgricultorId, tipoAlerta, severidad,
                     descripcion, fechaDiaPronostico, fechaGeneracion,
-                    valorDetectado, valorUmbral, leida, fechaLectura);
+                    valorDetectado, valorUmbral, recomendacion, leida, fechaLectura);
         }
     }
 

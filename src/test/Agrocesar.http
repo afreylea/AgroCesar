@@ -1,0 +1,11 @@
+### Pronóstico por municipio (ID = 1)
+GET http://localhost:8080/api/clima/pronostico/1
+Accept: application/json
+
+### Pronóstico municipio inexistente (debe retornar 404)
+GET http://localhost:8080/api/clima/pronostico/999
+Accept: application/json
+
+### Listar catálogo (requiere estar logueado como ADMIN)
+GET http://localhost:8080/admin/catalogo
+Accept: application/json

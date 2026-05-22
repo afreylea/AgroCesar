@@ -2,7 +2,6 @@
 --  AGROCESAR — Sistema de Monitoreo de Cultivos
 --  Script DML: 02_seed_data.sql
 --  Motor: Oracle XE 18c / 21c
---  Versión: 1.0
 --
 --  Ejecutar DESPUÉS de 01_create_tables.sql.
 --
@@ -52,9 +51,10 @@ COMMIT;
 -- ============================================================
 
 -- Admin del sistema
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Administrador del Sistema',
+    'Administrador',
+    'Del Sistema',
     'admin@agrocesar.com',
     '$2b$12$OA6RhTTL8o7vBdwxnq.5gOvv3CtibBsT0zVgVMdb74ezX6qkNLium',
     'ADMIN',
@@ -65,9 +65,10 @@ VALUES (
 
 -- Agricultor 1 — residente en Valledupar
 -- Tiene cultivos en DOS municipios distintos para probar pronósticos diferenciados
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Juan Pérez',
+    'Juan',
+    'Pérez',
     'agricultor@cesar.com',
     '$2b$12$RRONJqWoDFJ4ue4n8WDgx.PMwpNC06rrGsV9llcWxOLWRMUaRwLfy',
     'AGRICULTOR',
@@ -77,9 +78,10 @@ VALUES (
 );
 
 -- Agricultor 2 — INACTIVO para probar que findByEmailAndActivo la rechaza
-INSERT INTO USUARIOS (NOMBRE, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
+INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'María González',
+    'María',
+    'González',
     'agricultora@astrea.com',
     '$2b$12$27JdeEySOhco5jpWARAasukAaUDsdIb7jXIjpm3kfwlaTAXr3YMlW',
     'AGRICULTOR',
@@ -97,54 +99,337 @@ COMMIT;
 --     Fuente: Plan de desarrollo Agrocesar v3.0
 -- ============================================================
 
-INSERT INTO CULTIVOS_CATALOGO (
+INSERT ALL
+  INTO CULTIVOS_CATALOGO (
     NOMBRE, DESCRIPCION, CATEGORIA,
-    TEMP_MIN, TEMP_MAX, LLUVIA_MIN, LLUVIA_MAX,
-    HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO,
-    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO
-) VALUES (
-    'Maíz',
-    'Maíz amarillo duro para grano seco. Cultivo transitorio principal del Cesar.',
-    'TRANSITORIO', 10, 35, 2, 80, 50, 90,
-    'Franco-arcilloso', 90, 120, 'IDEAM/FAO', 1
-);
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Maíz amarillo duro',
+    'Cultivo transitorio orientado a grano seco, muy usado en el Caribe colombiano.',
+    'TRANSITORIO',
+    18, 34,
+    400, 1200,
+    50, 85,
+    'Franco-arcilloso',
+    95, 120,
+    'IDEAM/AGROSAVIA',
+    NULL,
+    1
+  )
 
-INSERT INTO CULTIVOS_CATALOGO (
+  INTO CULTIVOS_CATALOGO (
     NOMBRE, DESCRIPCION, CATEGORIA,
-    TEMP_MIN, TEMP_MAX, LLUVIA_MIN, LLUVIA_MAX,
-    HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO,
-    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO
-) VALUES (
-    'Arroz',
-    'Arroz de temporal. Sensible a sequía prolongada y exceso de lluvia en cosecha.',
-    'TRANSITORIO', 15, 38, 5, 120, 60, 95,
-    'Arcilloso', 120, 150, 'FEDEARROZ/IDEAM', 1
-);
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Maíz blanco',
+    'Maíz para consumo humano y mercados locales, adecuado para clima cálido.',
+    'TRANSITORIO',
+    18, 34,
+    400, 1200,
+    50, 85,
+    'Franco',
+    95, 125,
+    'IDEAM/AGROSAVIA',
+    NULL,
+    1
+  )
 
-INSERT INTO CULTIVOS_CATALOGO (
+  INTO CULTIVOS_CATALOGO (
     NOMBRE, DESCRIPCION, CATEGORIA,
-    TEMP_MIN, TEMP_MAX, LLUVIA_MIN, LLUVIA_MAX,
-    HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO,
-    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO
-) VALUES (
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Maíz doble propósito',
+    'Material para grano y forraje, útil en sistemas mixtos de producción.',
+    'TRANSITORIO',
+    18, 35,
+    450, 1300,
+    50, 88,
+    'Franco-arcilloso',
+    110, 130,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Arroz secano mecanizado',
+    'Cultivo transitorio sensible a la variación hídrica durante el llenado de grano.',
+    'TRANSITORIO',
+    22, 38,
+    900, 1800,
+    60, 95,
+    'Arcilloso',
+    120, 150,
+    'IDEAM/Fedearroz',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Sorgo',
+    'Cereal tolerante a calor y periodos de menor disponibilidad hídrica.',
+    'TRANSITORIO',
+    20, 38,
+    300, 900,
+    45, 80,
+    'Franco-arenoso',
+    100, 130,
+    'IDEAM/AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
     'Yuca',
-    'Manihot esculenta. Tolerante a sequía moderada pero sensible al exceso de humedad.',
-    'TRANSITORIO', 18, 40, 3, 100, 55, 85,
-    'Franco-arenoso', 180, 240, 'AGROSAVIA/ICA', 1
-);
+    'Raíz tropical tolerante a sequía moderada y muy adaptable al Caribe.',
+    'TRANSITORIO',
+    18, 40,
+    500, 1800,
+    55, 90,
+    'Franco-arenoso',
+    180, 300,
+    'IDEAM/AGROSAVIA',
+    NULL,
+    1
+  )
 
--- DIAS_COSECHA_MAX = 730 (2 años) conforme al plan v3.0
-INSERT INTO CULTIVOS_CATALOGO (
+  INTO CULTIVOS_CATALOGO (
     NOMBRE, DESCRIPCION, CATEGORIA,
-    TEMP_MIN, TEMP_MAX, LLUVIA_MIN, LLUVIA_MAX,
-    HUMEDAD_MIN, HUMEDAD_MAX, TIPO_SUELO,
-    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX, FUENTE_DATOS, ACTIVO
-) VALUES (
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Ají',
+    'Hortaliza de clima cálido con buen comportamiento en zonas bien drenadas.',
+    'TRANSITORIO',
+    18, 32,
+    600, 1400,
+    60, 90,
+    'Franco',
+    90, 150,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Ahuyama',
+    'Cucurbitácea de clima cálido, adaptada a ambientes tropicales.',
+    'TRANSITORIO',
+    18, 35,
+    500, 1400,
+    55, 90,
+    'Franco',
+    90, 130,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Melón',
+    'Fruto de alto valor en climas cálidos y suelos ligeros.',
+    'TRANSITORIO',
+    20, 35,
+    350, 1000,
+    50, 80,
+    'Franco-arenoso',
+    70, 100,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Sandía',
+    'Cultivo frutal de ciclo corto, común en zonas cálidas del Caribe.',
+    'TRANSITORIO',
+    20, 36,
+    350, 1000,
+    50, 80,
+    'Franco-arenoso',
+    75, 110,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Ñame',
+    'Tuberoso tradicional del Caribe colombiano, asociado a climas cálidos.',
+    'TRANSITORIO',
+    22, 34,
+    800, 1800,
+    60, 90,
+    'Franco-limoso',
+    180, 270,
+    'ICA/Caribe',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Fríjol caupí',
+    'Leguminosa tolerante al calor y a condiciones relativamente secas.',
+    'TRANSITORIO',
+    20, 35,
+    400, 1000,
+    45, 80,
+    'Franco',
+    60, 90,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Soya',
+    'Leguminosa de ciclo medio, viable con manejo agronómico adecuado en clima cálido.',
+    'TRANSITORIO',
+    20, 34,
+    500, 1200,
+    50, 85,
+    'Franco-arcilloso',
+    95, 140,
+    'AGROSAVIA',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
     'Palma de aceite',
-    'Elaeis guineensis. Cultivo permanente insignia del Cesar. Cosecha continua todo el año.',
-    'PERMANENTE', 22, 38, 4, 150, 65, 90,
-    'Franco', 365, 730, 'Fedepalma/FAO', 1
-);
+    'Cultivo permanente relevante en zonas cálidas del Cesar.',
+    'PERMANENTE',
+    24, 32,
+    1800, 3500,
+    70, 95,
+    'Franco',
+    3650, 3650,
+    'ICA/Fedepalma',
+    NULL,
+    1
+  )
+
+  INTO CULTIVOS_CATALOGO (
+    NOMBRE, DESCRIPCION, CATEGORIA,
+    TEMP_MIN, TEMP_MAX,
+    LLUVIA_MIN, LLUVIA_MAX,
+    HUMEDAD_MIN, HUMEDAD_MAX,
+    TIPO_SUELO,
+    DIAS_COSECHA_MIN, DIAS_COSECHA_MAX,
+    FUENTE_DATOS, IMAGEN_URL, ACTIVO
+  ) VALUES (
+    'Mango',
+    'Frutal permanente bien adaptado a condiciones cálidas y secas intermedias.',
+    'PERMANENTE',
+    20, 34,
+    700, 1600,
+    50, 85,
+    'Franco-arenoso',
+    365, 730,
+    'ICA/AGROSAVIA',
+    NULL,
+    1
+  )
+SELECT 1 FROM DUAL;
 
 COMMIT;
 
@@ -163,7 +448,7 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
     (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz'),
+    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz amarillo duro'),
     (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
     5.5, SYSDATE - 45, 1
 );
@@ -175,7 +460,7 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
     (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz'),
+    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz secano mecanizado'),
     (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Agustín Codazzi'),
     3.0, SYSDATE - 20, 1
 );

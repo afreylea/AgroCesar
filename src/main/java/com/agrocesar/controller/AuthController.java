@@ -35,6 +35,7 @@ public class AuthController {
     @PostMapping("/registro")
     public String registrar(
             @RequestParam String nombre,
+            @RequestParam String apellido,
             @RequestParam String email,
             @RequestParam String password,
             @RequestParam(required = false) Long municipioId,
@@ -43,7 +44,7 @@ public class AuthController {
             RedirectAttributes redirectAttrs) {
 
         try {
-            usuarioService.registrar(nombre, email, password, municipioId, telefono);
+            usuarioService.registrar(nombre, apellido, email, password, municipioId, telefono);
             redirectAttrs.addFlashAttribute("registroExitoso",
                     "Cuenta creada. Ya puedes iniciar sesión.");
             return "redirect:/login";

@@ -20,36 +20,90 @@
         }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js para los ojos de contraseña -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .stat-pill {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+    </style>
 </head>
 
-<body class="min-h-screen flex flex-col bg-gray-100">
+<body class="min-h-screen flex flex-col">
+
+    <!-- Fondo fijo -->
+    <div class="fixed inset-0 z-0">
+        <img th:src="@{/images/fondo-agrocesar.png}" alt="Fondo"
+             class="w-full h-full object-cover brightness-75">
+        <div class="absolute inset-0"
+             style="background:linear-gradient(135deg,rgba(2,26,12,0.85) 0%,rgba(5,46,22,0.65) 50%,rgba(2,26,12,0.75) 100%);"></div>
+    </div>
+
+    <!-- Elementos decorativos -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10"
+             style="background:radial-gradient(circle,#4ade80,transparent);"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-10"
+             style="background:radial-gradient(circle,#16a34a,transparent);"></div>
+    </div>
 
     <!-- HEADER -->
-    <header class="bg-green-900 text-amber-100 px-6 py-4 shadow-md">
-        <div class="max-w-7xl mx-auto flex items-center gap-5">
-            <!-- Logo grande -->
-            <img th:src="@{~/images/logo-agrocesar.png}" 
-                 alt="Logo Agrocesar" 
-                 class="h-20 w-auto object-contain drop-shadow-lg">
-            <!-- Título -->
-            <div class="leading-tight">
-                <h1 class="text-2xl font-bold tracking-wide">Agrocesar</h1>
-                <p class="text-sm text-green-300 font-light">Monitoreo de Cultivos</p>
+    <header class="relative z-10 px-8 py-5 flex-shrink-0">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center"
+                     style="background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2);">
+                    <img th:src="@{/images/logo-agrocesar.png}" alt="Logo" class="w-9 h-9 object-contain">
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-white tracking-wide leading-tight">Agrocesar</h1>
+                    <p class="text-xs text-green-300 font-medium">Monitoreo de Cultivos</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-3">
+                <div class="stat-pill flex items-center gap-2 px-3 py-1.5 rounded-full">
+                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-xs text-white/80 font-medium">Sistema activo</span>
+                </div>
+                <div class="stat-pill flex items-center gap-2 px-3 py-1.5 rounded-full">
+                    <span class="text-sm">🌡️</span>
+                    <span class="text-xs text-white/80 font-medium">Cesar, Colombia</span>
+                </div>
+                <div class="stat-pill flex items-center gap-2 px-3 py-1.5 rounded-full">
+                    <span class="text-sm">🌾</span>
+                    <span class="text-xs text-white/80 font-medium">Cultivos monitoreados</span>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- CONTENIDO -->
-    <main class="flex-1 flex items-center justify-center p-6" th:insert="${contenido}">
-    </main>
+    <main class="relative z-10 flex-1 overflow-y-auto flex items-start justify-center pt-16 pb-8 px-6"
+      th:insert="${contenido}">
+</main>
 
     <!-- FOOTER -->
-    <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm">
-        Agrocesar - Sistema de Monitoreo de Cultivos y Alertas Climáticas &copy; | Cesar, Colombia
+    <footer class="relative z-10 px-6 py-4 flex-shrink-0">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2 text-white/50 text-xs">
+                <img th:src="@{/images/logo-agrocesar.png}" alt="Logo" class="w-4 h-4 object-contain opacity-50">
+                <span>Agrocesar © 2026 · Cesar, Colombia</span>
+            </div>
+            <div class="hidden md:flex items-center gap-4 text-white/30 text-xs">
+                <span>Sistema de Monitoreo de Cultivos</span>
+                <span>·</span>
+                <span>Alertas Climáticas en Tiempo Real</span>
+            </div>
+        </div>
     </footer>
 
 </body>
-
 </html>

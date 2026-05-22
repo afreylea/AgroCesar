@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.agrocesar.dto.CultivoResumen;
 import com.agrocesar.model.CultivoAgricultor;
+import com.agrocesar.model.CultivoCatalogo;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.MunicipioRepository;
@@ -47,10 +48,9 @@ public class CultivoController {
         List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
 
         List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
-            String nombreCultivo = catalogoRepository.findById(c.getCatalogoId())
-                    .map(cat -> cat.getNombre()).orElse("Sin nombre");
-            String categoria = catalogoRepository.findById(c.getCatalogoId())
-                    .map(cat -> cat.getCategoria()).orElse("");
+            var cat = catalogoRepository.findById(c.getCatalogoId());
+            String nombreCultivo = cat.map(CultivoCatalogo::getNombre).orElse("Sin nombre");
+            String categoria = cat.map(CultivoCatalogo::getCategoria).orElse("");
             String municipio = municipioRepository.findById(c.getMunicipioId())
                     .map(mun -> mun.getNombre()).orElse("Sin municipio");
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,

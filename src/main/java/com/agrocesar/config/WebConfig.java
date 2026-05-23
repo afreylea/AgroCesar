@@ -1,4 +1,4 @@
-package main.java.com.agrocesar.config;
+package com.agrocesar.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

@@ -54,6 +54,13 @@ public interface AlertaRepository {
 
     @SqlQuery("""
         SELECT * FROM V_ALERTAS
+        WHERE USUARIO_ID = :usuarioId AND LEIDA = 0
+        ORDER BY FECHA_GENERACION DESC
+        """)
+    List<AlertaVistaDTO> findNoLeidasByUsuarioId(@Bind("usuarioId") Long usuarioId);
+    
+    @SqlQuery("""
+        SELECT * FROM V_ALERTAS
         WHERE MUNICIPIO_ID = :municipioId
         ORDER BY FECHA_GENERACION DESC
         """)
@@ -75,10 +82,26 @@ public interface AlertaRepository {
 
     @SqlQuery("""
         SELECT * FROM V_ALERTAS
+        WHERE USUARIO_ID = :usuarioId AND CULTIVO_AGRICULTOR_ID = :cultivoId
+        ORDER BY FECHA_GENERACION DESC
+        """)
+    List<AlertaVistaDTO> findByUsuarioIdAndCultivoId(@Bind("usuarioId") Long usuarioId,
+                                                     @Bind("cultivoId") Long cultivoId);
+
+    @SqlQuery("""
+        SELECT * FROM V_ALERTAS
         WHERE TIPO_ALERTA = :tipoAlerta
         ORDER BY FECHA_GENERACION DESC
         """)
     List<AlertaVistaDTO> findByTipo(@Bind("tipoAlerta") String tipoAlerta);
+
+    @SqlQuery("""
+        SELECT * FROM V_ALERTAS
+        WHERE USUARIO_ID = :usuarioId AND TIPO_ALERTA = :tipoAlerta
+        ORDER BY FECHA_GENERACION DESC
+        """)
+    List<AlertaVistaDTO> findByUsuarioIdAndTipo(@Bind("usuarioId") Long usuarioId,
+                                                @Bind("tipoAlerta") String tipoAlerta);
 
     @SqlQuery("""
         SELECT * FROM V_ALERTAS
@@ -89,10 +112,11 @@ public interface AlertaRepository {
 
     @SqlQuery("""
         SELECT * FROM V_ALERTAS
-        WHERE USUARIO_ID = :usuarioId AND LEIDA = 0
+        WHERE USUARIO_ID = :usuarioId AND SEVERIDAD = :severidad
         ORDER BY FECHA_GENERACION DESC
         """)
-    List<AlertaVistaDTO> findNoLeidasByUsuarioId(@Bind("usuarioId") Long usuarioId);
+    List<AlertaVistaDTO> findByUsuarioIdAndSeveridad(@Bind("usuarioId") Long usuarioId,
+                                                    @Bind("severidad") String severidad);
 
     @SqlQuery("""
         SELECT * FROM V_ALERTAS

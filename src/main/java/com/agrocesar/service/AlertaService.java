@@ -37,6 +37,10 @@ public class AlertaService {
         return alertaRepository.findByUsuarioId(usuarioId);
     }
 
+    public List<AlertaVistaDTO> findNoLeidasByUsuarioId(Long usuarioId) {
+        return alertaRepository.findNoLeidasByUsuarioId(usuarioId);
+    }
+
     public List<AlertaVistaDTO> findByMunicipioId(Long municipioId) {
         return alertaRepository.findByMunicipioId(municipioId);
     }
@@ -49,16 +53,24 @@ public class AlertaService {
         return alertaRepository.findByCultivoId(cultivoId);
     }
 
+    public List<AlertaVistaDTO> findByUsuarioIdAndCultivoId(Long usuarioId, Long cultivoId) {
+        return alertaRepository.findByUsuarioIdAndCultivoId(usuarioId, cultivoId);
+    }
+
     public List<AlertaVistaDTO> findByTipo(String tipoAlerta) {
         return alertaRepository.findByTipo(tipoAlerta);
+    }
+
+    public List<AlertaVistaDTO> findByUsuarioIdAndTipo(Long usuarioId, String tipoAlerta) {
+        return alertaRepository.findByUsuarioIdAndTipo(usuarioId, tipoAlerta);
     }
 
     public List<AlertaVistaDTO> findBySeveridad(String severidad) {
         return alertaRepository.findBySeveridad(severidad);
     }
 
-    public List<AlertaVistaDTO> findNoLeidasByUsuarioId(Long usuarioId) {
-        return alertaRepository.findNoLeidasByUsuarioId(usuarioId);
+    public List<AlertaVistaDTO> findByUsuarioIdAndSeveridad(Long usuarioId, String severidad) {
+        return alertaRepository.findByUsuarioIdAndSeveridad(usuarioId, severidad);
     }
 
     public List<AlertaVistaDTO> findAll() {

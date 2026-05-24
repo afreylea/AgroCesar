@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.agrocesar.dto.RankingCultivoDTO;
+import com.agrocesar.repository.CultivoConUmbralesRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,17 +30,20 @@ public class DashboardController {
     private final UsuarioService usuarioService;
     private final CultivoAgricultorService cultivoService;
     private final CatalogoRepository catalogoRepository;
+    private final CultivoConUmbralesRepository cultivoConUmbralesRepository;
 
     public DashboardController(WeatherService weatherService,
-            MunicipioRepository municipioRepository,
-            UsuarioService usuarioService,
-            CultivoAgricultorService cultivoService,
-            CatalogoRepository catalogoRepository) {
+                               MunicipioRepository municipioRepository,
+                               UsuarioService usuarioService,
+                               CultivoAgricultorService cultivoService,
+                               CatalogoRepository catalogoRepository,
+                               CultivoConUmbralesRepository cultivoConUmbralesRepository) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
         this.usuarioService = usuarioService;
         this.cultivoService = cultivoService;
         this.catalogoRepository = catalogoRepository;
+        this.cultivoConUmbralesRepository = cultivoConUmbralesRepository;
     }
 
     @GetMapping("/api/pronostico/{municipioId}")
@@ -99,5 +104,14 @@ public class DashboardController {
         model.addAttribute("cultivos", cultivosView);
         model.addAttribute("usuario", usuario);
         return "dashboard";
+    }
+
+    @GetMapping("/dashboard/ranking-cultivos")
+    @ResponseBody
+    public ResponseEntity<List<RankingCultivoDTO>> getRankingCultivos() {
+        List<RankingCultivoDTO> ranking = cultivoConUmbralesRepository.findRankingCultivos();
+        return ranking.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(ranking);
     }
 }

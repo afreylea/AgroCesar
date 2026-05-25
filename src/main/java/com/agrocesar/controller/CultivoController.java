@@ -2,7 +2,6 @@ package com.agrocesar.controller;
 
 import java.util.List;
 
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -51,10 +50,13 @@ public class CultivoController {
             var cat = catalogoRepository.findById(c.getCatalogoId());
             String nombreCultivo = cat.map(CultivoCatalogo::getNombre).orElse("Sin nombre");
             String categoria = cat.map(CultivoCatalogo::getCategoria).orElse("");
+            String imagenUrl = cat.map(CultivoCatalogo::getImagenUrl).orElse(null);
             String municipio = municipioRepository.findById(c.getMunicipioId())
                     .map(mun -> mun.getNombre()).orElse("Sin municipio");
+
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipio, c.getHectareas(), c.getFechaSiembra(), c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo(),null);
+                    municipio, c.getHectareas(), c.getFechaSiembra(),
+                    c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo(), imagenUrl);
         }).toList();
 
         model.addAttribute("cultivos", cultivosView);

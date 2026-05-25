@@ -277,20 +277,12 @@
                         :class="cultivoActivo === $el.dataset.nombre ? 'ring-2 ring-green-500 bg-green-50/50' : 'hover:shadow-md hover:-translate-y-0.5'"
                         class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer transition-all duration-200">
                         <div class="flex h-24">
+                            <!-- Imagen -->
                             <div class="w-24 relative overflow-hidden shrink-0">
-                                <img th:if="${c.nombreCultivo == 'Maíz'}"
-                                    src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=200&h=200&fit=crop"
-                                    class="w-full h-full object-cover" alt="Maíz">
-                                <img th:if="${c.nombreCultivo == 'Arroz'}"
-                                    src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg"
-                                    class="w-full h-full object-cover" alt="Arroz">
-                                <img th:if="${c.nombreCultivo == 'Yuca'}"
-                                    src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
-                                    class="w-full h-full object-cover" alt="Yuca">
-                                <img th:if="${c.nombreCultivo == 'Palma de aceite'}"
-                                    src="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg"
-                                    class="w-full h-full object-cover" alt="Palma">
-                                <div th:if="${c.nombreCultivo != 'Maíz' && c.nombreCultivo != 'Arroz' && c.nombreCultivo != 'Yuca' && c.nombreCultivo != 'Palma de aceite'}"
+                                <img th:if="${c.imagenUrl != null && !#strings.isEmpty(c.imagenUrl)}"
+                                    th:src="@{/imagenes/} + ${c.imagenUrl}" class="w-full h-full object-cover"
+                                    alt="Imagen cultivo">
+                                <div th:if="${c.imagenUrl == null || #strings.isEmpty(c.imagenUrl)}"
                                     class="w-full h-full bg-green-50 flex items-center justify-center">
                                     <svg class="w-8 h-8 text-green-300" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -304,6 +296,7 @@
                                         ✓</div>
                                 </div>
                             </div>
+                            <!-- Info -->
                             <div class="flex-1 p-3 flex flex-col justify-between">
                                 <div>
                                     <div class="flex items-center justify-between">

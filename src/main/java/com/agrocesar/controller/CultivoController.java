@@ -54,7 +54,7 @@ public class CultivoController {
             String municipio = municipioRepository.findById(c.getMunicipioId())
                     .map(mun -> mun.getNombre()).orElse("Sin municipio");
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipio, c.getHectareas(), c.getFechaSiembra(), c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo());
+                    municipio, c.getHectareas(), c.getFechaSiembra(), c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo(),null);
         }).toList();
 
         model.addAttribute("cultivos", cultivosView);

@@ -12,6 +12,7 @@
     mapa: null,
     marcador: null,
     radarLayer: null,
+    climaHoy:null,
 
     init() {
         const primero = document.querySelector('[data-cultivo]');
@@ -27,17 +28,23 @@
     },
 
     seleccionar(municipioId, nombre, municipio, lat, lng) {
-        this.cultivoActivo = nombre;
-        this.municipioActivo = municipio;
-        this.latActiva = parseFloat(lat);
-        this.lngActiva = parseFloat(lng);
-        this.cargando = true;
-        this.pronostico = [];
-        fetch('/api/pronostico/' + municipioId)
-            .then(r => r.json())
-            .then(data => { this.pronostico = data; this.cargando = false; this.actualizarMapa(this.latActiva, this.lngActiva, municipio); })
-            .catch(() => { this.cargando = false; });
-    },
+    this.cultivoActivo = nombre;
+    this.municipioActivo = municipio;
+    this.latActiva = parseFloat(lat);
+    this.lngActiva = parseFloat(lng);
+    this.cargando = true;
+    this.pronostico = [];
+    this.climaHoy = null;  // reset
+    fetch('/api/pronostico/' + municipioId)
+        .then(r => r.json())
+        .then(data => {
+            this.pronostico = data;
+            this.climaHoy = data[0];  // primer dia = hoy
+            this.cargando = false;
+            this.actualizarMapa(this.latActiva, this.lngActiva, municipio);
+        })
+        .catch(() => { this.cargando = false; });
+},
 
     actualizarMapa(lat, lng, nombre) {
         if (!this.mapa) {
@@ -87,26 +94,20 @@
                         <span x-text="municipioActivo ? municipioActivo + ', Cesar' : 'Cesar, Colombia'"></span>
                     </span>
                 </div>
-                <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}"
-                    class="text-white text-center border border-white/20 rounded-2xl p-4"
+                <div x-show="climaHoy" class="text-white text-center border border-white/20 rounded-2xl p-4"
                     style="background:rgba(255,255,255,0.12); backdrop-filter:blur(16px); min-width:150px;">
-                    <div class="text-4xl mb-1">
-                        <span th:if="${pronostico[0].lluviaMm > 15}">⛈️</span>
-                        <span th:if="${pronostico[0].lluviaMm > 5 && pronostico[0].lluviaMm <= 15}">🌧️</span>
-                        <span th:if="${pronostico[0].lluviaMm > 0 && pronostico[0].lluviaMm <= 5}">🌦️</span>
-                        <span th:if="${pronostico[0].lluviaMm == 0 && pronostico[0].tempMax > 35}">🌡️</span>
-                        <span th:if="${pronostico[0].lluviaMm == 0 && pronostico[0].tempMax <= 35}">☀️</span>
+                    <div class="text-4xl mb-1" x-text="climaHoy ? icono(climaHoy.lluviaMm, climaHoy.tempMax) : ''">
                     </div>
-                    <div class="text-4xl font-black" th:text="${pronostico[0].tempMax} + '°C'"></div>
+                    <div class="text-4xl font-black" x-text="climaHoy ? climaHoy.tempMax + '°C' : '--'"></div>
                     <div class="text-white/60 text-xs uppercase tracking-wide mt-1">Hoy</div>
                     <div class="mt-2 pt-2 border-t border-white/20 text-xs grid grid-cols-2 gap-1">
                         <div>
                             <div class="text-white/50">Lluvia</div>
-                            <div class="font-semibold" th:text="${pronostico[0].lluviaMm} + 'mm'"></div>
+                            <div class="font-semibold" x-text="climaHoy ? climaHoy.lluviaMm + ' mm' : '--'"></div>
                         </div>
                         <div>
                             <div class="text-white/50">Hum.</div>
-                            <div class="font-semibold" th:text="${pronostico[0].humedadMax} + '%'"></div>
+                            <div class="font-semibold" x-text="climaHoy ? climaHoy.humedadMax + '%' : '--'"></div>
                         </div>
                     </div>
                 </div>

@@ -13,6 +13,7 @@ import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.CultivoAgricultorRepository;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
+import com.agrocesar.repository.AlertaRepository;
 import com.agrocesar.model.Municipio;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 
@@ -55,5 +56,10 @@ public class JdbiConfig {
     @Bean
     public CatalogoRepository catalogoRepository(Jdbi jdbi){
         return jdbi.onDemand(CatalogoRepository.class);
+    }
+
+    @Bean 
+    public AlertaRepository alertaRepository(Jdbi jdbi) {
+        return jdbi.onDemand(AlertaRepository.class);
     }
 }

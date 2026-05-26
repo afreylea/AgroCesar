@@ -15,7 +15,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.agrocesar.dto.CultivoResumen;
 import com.agrocesar.model.CultivoAgricultor;
-import com.agrocesar.model.CultivoCatalogo;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.MunicipioRepository;
@@ -44,7 +43,6 @@ public class CultivoController {
     @GetMapping
     public String lista(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
-        List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
 
         List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
             var cat = catalogoRepository.findById(c.getCatalogoId());

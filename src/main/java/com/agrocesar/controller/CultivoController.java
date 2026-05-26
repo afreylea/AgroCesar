@@ -44,18 +44,7 @@ public class CultivoController {
     public String lista(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
 
-        List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
-            var cat = catalogoRepository.findById(c.getCatalogoId());
-            String nombreCultivo = cat.map(CultivoCatalogo::getNombre).orElse("Sin nombre");
-            String categoria = cat.map(CultivoCatalogo::getCategoria).orElse("");
-            String imagenUrl = cat.map(CultivoCatalogo::getImagenUrl).orElse(null);
-            String municipio = municipioRepository.findById(c.getMunicipioId())
-                    .map(mun -> mun.getNombre()).orElse("Sin municipio");
-
-            return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipio, c.getHectareas(), c.getFechaSiembra(),
-                    c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo(), imagenUrl);
-        }).toList();
+        List<CultivoResumen> cultivosView = cultivoService.listarResumenPorUsuario(usuario.getId());
 
         model.addAttribute("cultivos", cultivosView);
         return "cultivos/lista";

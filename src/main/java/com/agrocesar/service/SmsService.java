@@ -69,6 +69,8 @@ public class SmsService {
      * @param mensaje  texto del mensaje SMS a enviar
      */
     public void enviarSms(String telefono, String mensaje) {
+        telefono = normalizarTelefono(telefono);
+
         try {
             Message message = Message.creator(
                     new PhoneNumber(telefono),
@@ -78,5 +80,11 @@ public class SmsService {
         } catch (Exception e) {
             log.error("Error al enviar SMS a {}: {}", telefono, e.getMessage());
         }
+    }
+
+    private String normalizarTelefono(String telefono) {
+        if (telefono.startsWith("+")) return telefono;
+        if (telefono.startsWith("57")) return "+" + telefono;
+        return "+57" + telefono;
     }
 }

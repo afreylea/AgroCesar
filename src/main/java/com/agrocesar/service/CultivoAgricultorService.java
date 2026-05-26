@@ -40,15 +40,16 @@ public class CultivoAgricultorService {
     public List<CultivoResumen> listarResumenPorUsuario(Long usuarioId) {
         return listarPorUsuario(usuarioId).stream()
             .map(c -> {
-                String nombreCultivo = catalogoRepository.findById(c.getCatalogoId())
-                    .map(CultivoCatalogo::getNombre).orElse("Sin nombre");
-                String categoria = catalogoRepository.findById(c.getCatalogoId())
-                    .map(CultivoCatalogo::getCategoria).orElse("");
+                var cat = catalogoRepository.findById(c.getCatalogoId());
+                String nombreCultivo = cat.map(CultivoCatalogo::getNombre).orElse("Sin nombre");
+                String categoria = cat.map(CultivoCatalogo::getCategoria).orElse("");
+                String imagenUrl = cat.map(CultivoCatalogo::getImagenUrl).orElse(null);
                 String municipio = municipioRepository.findById(c.getMunicipioId())
-                    .map(Municipio::getNombre).orElse("Sin municipio");
+                        .map(mun -> mun.getNombre()).orElse("Sin municipio");
+    
                 return new CultivoResumen(c.getId(), nombreCultivo, categoria,
-                    municipio, c.getHectareas(), c.getFechaSiembra(),
-                    c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo());
+                        municipio, c.getHectareas(), c.getFechaSiembra(),
+                        c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo(), imagenUrl);
             }).toList();
     }
 

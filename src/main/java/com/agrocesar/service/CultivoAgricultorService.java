@@ -1,7 +1,12 @@
 package com.agrocesar.service;
 
+import com.agrocesar.dto.CultivoResumen;
 import com.agrocesar.model.CultivoAgricultor;
+import com.agrocesar.model.CultivoCatalogo;
+import com.agrocesar.model.Municipio;
 import com.agrocesar.repository.CultivoAgricultorRepository;
+import com.agrocesar.repository.CatalogoRepository;
+import com.agrocesar.repository.MunicipioRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -9,21 +14,42 @@ import java.util.Optional;
 @Service
 public class CultivoAgricultorService {
 
-    private final CultivoAgricultorRepository repository;
+    private final CultivoAgricultorRepository cultivoRepository;
+    private final CatalogoRepository catalogoRepository;
+    private final MunicipioRepository municipioRepository;
 
     // Inyección por constructor — práctica recomendada con Spring
-    public CultivoAgricultorService(CultivoAgricultorRepository repository) {
-        this.repository = repository;
+    public CultivoAgricultorService(CultivoAgricultorRepository cultivoRepository, 
+                                    CatalogoRepository catalogoRepository,
+                                    MunicipioRepository municipioRepository) {
+        this.cultivoRepository = cultivoRepository;
+        this.catalogoRepository = catalogoRepository;
+        this.municipioRepository = municipioRepository;
     }
 
     // Lista todos los cultivos activos del agricultor autenticado
     public List<CultivoAgricultor> listarPorUsuario(Long usuarioId) {
-        return repository.findByUsuarioId(usuarioId);
+        return cultivoRepository.findByUsuarioId(usuarioId);
     }
 
     // Busca un cultivo verificando que pertenece al usuario — evita acceso cruzado
     public Optional<CultivoAgricultor> buscarPorIdYUsuario(Long id, Long usuarioId) {
-        return repository.findByIdAndUsuarioId(id, usuarioId);
+        return cultivoRepository.findByIdAndUsuarioId(id, usuarioId);
+    }
+
+    public List<CultivoResumen> listarResumenPorUsuario(Long usuarioId) {
+        return listarPorUsuario(usuarioId).stream()
+            .map(c -> {
+                String nombreCultivo = catalogoRepository.findById(c.getCatalogoId())
+                    .map(CultivoCatalogo::getNombre).orElse("Sin nombre");
+                String categoria = catalogoRepository.findById(c.getCatalogoId())
+                    .map(CultivoCatalogo::getCategoria).orElse("");
+                String municipio = municipioRepository.findById(c.getMunicipioId())
+                    .map(Municipio::getNombre).orElse("Sin municipio");
+                return new CultivoResumen(c.getId(), nombreCultivo, categoria,
+                    municipio, c.getHectareas(), c.getFechaSiembra(),
+                    c.getMunicipioId(), c.getLatitudCultivo(), c.getLongitudCultivo());
+            }).toList();
     }
 
     // Registra un nuevo cultivo. La fecha de siembra no puede ser futura.
@@ -34,21 +60,21 @@ public class CultivoAgricultorService {
         if (cultivo.getFechaSiembra().isAfter(java.time.LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de siembra no puede ser futura.");
         }
-        return repository.insert(cultivo);
+        return cultivoRepository.insert(cultivo);
     }
 
     // Actualiza un cultivo. Verifica que pertenece al usuario antes de modificar.
     public void actualizar(CultivoAgricultor cultivo, Long usuarioId) {
-        Optional<CultivoAgricultor> existente = repository.findByIdAndUsuarioId(cultivo.getId(), usuarioId);
+        Optional<CultivoAgricultor> existente = cultivoRepository.findByIdAndUsuarioId(cultivo.getId(), usuarioId);
         if (existente.isEmpty()) {
             throw new IllegalArgumentException("Cultivo no encontrado o no pertenece al usuario.");
         }
-        repository.update(cultivo);
+        cultivoRepository.update(cultivo);
     }
 
     // Baja lógica del cultivo. Verifica propiedad antes de desactivar.
     public void eliminar(Long id, Long usuarioId) {
-        int filas = repository.deactivate(id, usuarioId);
+        int filas = cultivoRepository.deactivate(id, usuarioId);
         if (filas == 0) {
             throw new IllegalArgumentException("Cultivo no encontrado o no pertenece al usuario.");
         }

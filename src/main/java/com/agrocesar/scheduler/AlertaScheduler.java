@@ -1,18 +1,10 @@
 package com.agrocesar.scheduler;
 
-import com.agrocesar.model.Alerta;
-import com.agrocesar.model.Usuario;
-import com.agrocesar.service.AlertaService;
-import com.agrocesar.service.SmsService;
-import com.agrocesar.service.UsuarioService;
-
-import java.util.List;
-
+import com.agrocesar.service.MotorAlertaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AlternativeJdkIdGenerator;
 
 /**
  * @AlertaScheduler es un componente Spring que invoca automaticamente
@@ -26,16 +18,14 @@ import org.springframework.util.AlternativeJdkIdGenerator;
  */
 @Component
 public class AlertaScheduler {
+
     private static final Logger log = LoggerFactory.getLogger(AlertaScheduler.class);
 
-    private final AlertaService alertaService;
-    private final SmsService smsService;
-    private final UsuarioService usuarioService;
+    private final MotorAlertaService motorAlertaService;
 
-    public AlertaScheduler(AlertaService alertaService, SmsService smsService, UsuarioService usuarioService) {
-        this.alertaService = alertaService;
-        this.smsService = smsService;
-        this.usuarioService = usuarioService;
+    public AlertaScheduler(MotorAlertaService motorAlertaService) {
+        this.motorAlertaService = motorAlertaService;
+
     }
 
     /**
@@ -51,12 +41,23 @@ public class AlertaScheduler {
     @Scheduled(cron = " 0 0 11 * * *", zone = "America/Bogota")
     public void ejecutarManiana() {
         log.info("[Scheduler] Ejecucion matutina 6AM");
+        ejecutarCiclo();
     }
 
     @Scheduled(cron = " 0 0 23 * * *", zone = "America/Bogota")
     public void ejecutarTarde() {
         log.info("[Scheduler] Ejecucion vespertina 6PM");
+        ejecutarCiclo();
 
+    }
+
+    private void ejecutarCiclo() {
+        try {
+            motorAlertaService.ejecutarMotor();
+            log.info("[Scheduler] Ciclo de alertas ejecutado correctamente");
+        } catch (Exception e) {
+            log.error("[Scheduler] Error en el ciclo de alertas: {} ", e.getMessage());
+        }
     }
 
 }

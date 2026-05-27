@@ -38,13 +38,13 @@ public class AlertaScheduler {
      *       * = Cualquier mes
      *       * = Cualquier dia de la semana
      */
-    @Scheduled(cron = " 0 0 11 * * *", zone = "America/Bogota")
+    @Scheduled(cron = " 0 0 6 * * *", zone = "America/Bogota")
     public void ejecutarManiana() {
         log.info("[Scheduler] Ejecucion matutina 6AM");
         ejecutarCiclo();
     }
 
-    @Scheduled(cron = " 0 0 23 * * *", zone = "America/Bogota")
+    @Scheduled(cron = " 0 0 18 * * *", zone = "America/Bogota")
     public void ejecutarTarde() {
         log.info("[Scheduler] Ejecucion vespertina 6PM");
         ejecutarCiclo();

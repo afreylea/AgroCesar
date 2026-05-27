@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.agrocesar.repository.CatalogoRepository;
 import com.agrocesar.repository.CultivoAgricultorRepository;
+import com.agrocesar.repository.CultivoConUmbralesRepository;
 import com.agrocesar.repository.MunicipioRepository;
 import com.agrocesar.repository.UsuarioRepository;
 import com.agrocesar.repository.AlertaRepository;
@@ -61,5 +62,10 @@ public class JdbiConfig {
     @Bean 
     public AlertaRepository alertaRepository(Jdbi jdbi) {
         return jdbi.onDemand(AlertaRepository.class);
+    }
+
+    @Bean
+    public CultivoConUmbralesRepository cultivoConUmbralesRepository(Jdbi jdbi) {
+        return jdbi.onDemand(CultivoConUmbralesRepository.class);
     }
 }

@@ -19,13 +19,13 @@ public class RecomendacionService {
 
     private final WebClient webClient;
 
-    @Value("${deepseek.api.key}")
+    @Value("${grop.api.key}")
     private String apiKey;
 
-    @Value("${deepseek.api.model}")
+    @Value("${grop.api.model}")
     private String model;
 
-    public RecomendacionService(@Value("${deepseek.api.url}") String apiUrl) {
+    public RecomendacionService(@Value("${grop.api.url}") String apiUrl) {
         this.webClient = WebClient.builder()
                 .baseUrl(apiUrl)
                 .build();
@@ -65,7 +65,7 @@ public class RecomendacionService {
             return texto;
 
         } catch (Exception e) {
-            log.warn("DeepSeek no disponible para alerta {}/{}: {}", tipoAlerta, cultivo, e.getMessage());
+            log.warn("Grop no disponible para alerta {}/{}: {}", tipoAlerta, cultivo, e.getMessage());
             return null;
         }
     }

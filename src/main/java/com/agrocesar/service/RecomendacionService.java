@@ -19,13 +19,13 @@ public class RecomendacionService {
 
     private final WebClient webClient;
 
-    @Value("${grop.api.key}")
+    @Value("${groq.api.key}")
     private String apiKey;
 
-    @Value("${grop.api.model}")
+    @Value("${groq.api.model}")
     private String model;
 
-    public RecomendacionService(@Value("${grop.api.url}") String apiUrl) {
+    public RecomendacionService(@Value("${groq.api.url}") String apiUrl) {
         this.webClient = WebClient.builder()
                 .baseUrl(apiUrl)
                 .build();
@@ -65,7 +65,7 @@ public class RecomendacionService {
             return texto;
 
         } catch (Exception e) {
-            log.warn("Grop no disponible para alerta {}/{}: {}", tipoAlerta, cultivo, e.getMessage());
+            log.warn("Groq no disponible para alerta {}/{}: {}", tipoAlerta, cultivo, e.getMessage());
             return null;
         }
     }

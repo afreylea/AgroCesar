@@ -2,10 +2,29 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Catálogo - Admin Agrocesar', ~{::main})}">
 
 <body>
-    <main>
+    <main class="px-2 pt-4 pb-12" x-data="{
+          /* ── Wizard de 3 pasos ─────────────────────── */
+          paso: 1,
+          totalPasos: 3,
+          get progreso() { return Math.round((this.paso / this.totalPasos) * 100); },
+          siguiente() { if (this.paso < this.totalPasos) this.paso++; },
+          anterior() { if (this.paso > 1) this.paso--; },
 
-        <!-- Hero isla -->
-        <div class="relative overflow-hidden mb-6" style="height:160px;
+          /* ── Preview imagen ────────────────────────── */
+          imagenPreview: null,
+          imagenNombre: null,
+          cargarImagen(input) {
+              if (input.files && input.files[0]) {
+                  this.imagenNombre = input.files[0].name;
+                  const reader = new FileReader();
+                  reader.onload = e => { this.imagenPreview = e.target.result; };
+                  reader.readAsDataURL(input.files[0]);
+              }
+          }
+      }">
+
+        <!-- ── HERO ──────────────────────────────────────── -->
+        <div class="relative overflow-hidden mb-8" style="height:160px;
                 border-radius:2rem;
                 background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop');
                 background-size:cover;
@@ -17,23 +36,20 @@
             <div class="relative z-10 h-full flex items-center justify-between px-10">
                 <div class="text-white">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
                         <span class="text-green-300 text-xs font-semibold uppercase tracking-widest">Panel de
-                            administración</span>
+                            administracion</span>
                     </div>
                     <h2 class="text-3xl font-bold mb-1"
                         th:text="${accion == 'editar'} ? 'Editar Cultivo' : 'Nuevo Cultivo'"></h2>
                     <p class="text-green-100/70 text-sm"
-                        th:text="${accion == 'editar'} ? 'Modifica los umbrales y parámetros del cultivo.' : 'Añade un nuevo cultivo al catálogo del sistema.'">
+                        th:text="${accion == 'editar'} ? 'Modifica los umbrales y parametros del cultivo.' : 'Añade un nuevo cultivo al catalogo del sistema.'">
                     </p>
                 </div>
                 <a th:href="@{/admin/catalogo}"
                     class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition border border-white/30 text-white"
                     style="background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
+                    <i class="ph-bold ph-arrow-left" style="font-size:14px;"></i>
                     Volver
                 </a>
             </div>
@@ -41,416 +57,616 @@
 
         <!-- Error -->
         <div th:if="${error}"
-            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
+            <i class="ph-fill ph-warning-circle" style="font-size:16px;color:#ef4444;"></i>
             <span th:text="${error}"></span>
         </div>
 
-        <!-- Layout: formulario + panel lateral -->
+        <!-- ── WIZARD PROGRESS ────────────────────────────── -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+
+            <!-- Steps -->
+            <div class="flex items-center justify-between mb-4">
+
+                <!-- Paso 1 -->
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm shrink-0 transition-all duration-300"
+                        :class="paso >= 1 ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-400'">
+                        <i x-show="paso > 1" class="ph-bold ph-check" style="font-size:14px;"></i>
+                        <span x-show="paso <= 1">1</span>
+                    </div>
+                    <div class="hidden sm:block">
+                        <p class="text-xs font-bold" :class="paso >= 1 ? 'text-green-700' : 'text-gray-400'">Informacion
+                            basica</p>
+                        <p class="text-xs text-gray-400">Nombre, categoria y descripcion</p>
+                    </div>
+                </div>
+
+                <!-- Linea -->
+                <div class="flex-1 mx-3 h-0.5 rounded-full transition-all duration-500"
+                    :class="paso >= 2 ? 'bg-green-500' : 'bg-gray-200'"></div>
+
+                <!-- Paso 2 -->
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm shrink-0 transition-all duration-300"
+                        :class="paso >= 2 ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-400'">
+                        <i x-show="paso > 2" class="ph-bold ph-check" style="font-size:14px;"></i>
+                        <span x-show="paso <= 2">2</span>
+                    </div>
+                    <div class="hidden sm:block">
+                        <p class="text-xs font-bold" :class="paso >= 2 ? 'text-green-700' : 'text-gray-400'">Umbrales
+                            climaticos</p>
+                        <p class="text-xs text-gray-400">Temperatura, lluvia y humedad</p>
+                    </div>
+                </div>
+
+                <!-- Linea -->
+                <div class="flex-1 mx-3 h-0.5 rounded-full transition-all duration-500"
+                    :class="paso >= 3 ? 'bg-green-500' : 'bg-gray-200'"></div>
+
+                <!-- Paso 3 -->
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm shrink-0 transition-all duration-300"
+                        :class="paso >= 3 ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-400'">
+                        <span>3</span>
+                    </div>
+                    <div class="hidden sm:block">
+                        <p class="text-xs font-bold" :class="paso >= 3 ? 'text-green-700' : 'text-gray-400'">Datos
+                            agricolas e imagen</p>
+                        <p class="text-xs text-gray-400">Cosecha, suelo y confirmacion</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                    :style="'width:' + progreso + '%'"></div>
+            </div>
+            <div class="flex justify-between mt-1.5">
+                <span class="text-xs text-gray-400" x-text="'Paso ' + paso + ' de ' + totalPasos"></span>
+                <span class="text-xs text-green-600 font-semibold" x-text="progreso + '% completado'"></span>
+            </div>
+        </div>
+
+        <!-- ── FORM PRINCIPAL ─────────────────────────────── -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Formulario — 2/3 -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
-                <!-- Banner -->
-                <div class="bg-gradient-to-r from-green-800 to-green-600 px-8 py-5 flex items-center gap-4">
-                    <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-white font-semibold text-lg">Información del Cultivo</p>
-                        <p class="text-green-200 text-sm">Completa todos los campos requeridos</p>
-                    </div>
-                </div>
-
+            <div class="lg:col-span-2">
                 <form th:object="${catalogo}" method="post" enctype="multipart/form-data"
-                    th:action="${accion == 'editar'} ? @{/admin/catalogo/editar/{id}(id=${catalogo.id})} : @{/admin/catalogo/nuevo}"
-                    class="p-8 space-y-6">
+                    th:action="${accion == 'editar'} ? @{/admin/catalogo/editar/{id}(id=${catalogo.id})} : @{/admin/catalogo/nuevo}">
 
-                    <!-- Nombre + Categoría -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre <span
-                                    class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <div
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" />
-                                    </svg>
-                                </div>
-                                <input type="text" th:field="*{nombre}" required placeholder="Ej: Arroz"
-                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <!-- ── PASO 1: Informacion basica ──────── -->
+                    <div x-show="paso === 1" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-x-4"
+                        x-transition:enter-end="opacity-100 translate-x-0"
+                        class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+                        <div class="bg-gradient-to-r from-green-800 to-green-600 px-7 py-4 flex items-center gap-3">
+                            <div class="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                                <i class="ph-duotone ph-book-open" style="font-size:20px;color:white;"></i>
                             </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Categoría <span
-                                    class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <div
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                </div>
-                                <select th:field="*{categoria}" required
-                                    class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 hover:border-gray-300 transition cursor-pointer">
-                                    <option value="">Selecciona categoría</option>
-                                    <option value="TRANSITORIO">TRANSITORIO</option>
-                                    <option value="PERMANENTE">PERMANENTE</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Descripción -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
-                        <textarea th:field="*{descripcion}" rows="2" placeholder="Descripción breve del cultivo..."
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition resize-none"></textarea>
-                    </div>
-
-                    <!-- Umbrales climáticos -->
-                    <div class="border border-gray-100 rounded-2xl p-6 space-y-5">
-                        <div class="flex items-center gap-2 mb-1">
-                            <div class="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                                </svg>
-                            </div>
-                            <p class="text-sm font-bold text-gray-700 uppercase tracking-wide">Umbrales Climáticos</p>
-                        </div>
-
-                        <!-- Temperatura -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-base">🌡️</span>
-                                <p class="text-xs font-semibold text-orange-600 uppercase tracking-wide">Temperatura
-                                    (°C)</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mínima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{tempMin}" step="0.1" required
-                                            placeholder="15.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Máxima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{tempMax}" step="0.1" required
-                                            placeholder="38.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-gray-100"></div>
-
-                        <!-- Lluvia -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-base">🌧️</span>
-                                <p class="text-xs font-semibold text-sky-600 uppercase tracking-wide">Lluvia (mm)</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mínima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-sky-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{lluviaMin}" step="0.1" required
-                                            placeholder="5.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Máxima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-sky-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{lluviaMax}" step="0.1" required
-                                            placeholder="120.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-gray-100"></div>
-
-                        <!-- Humedad -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-base">💧</span>
-                                <p class="text-xs font-semibold text-purple-600 uppercase tracking-wide">Humedad (%)</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mínima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{humedadMin}" step="0.1" required
-                                            placeholder="60.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Máxima <span
-                                            class="text-red-500">*</span></label>
-                                    <div class="relative">
-                                        <div
-                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                            </svg>
-                                        </div>
-                                        <input type="number" th:field="*{humedadMax}" step="0.1" required
-                                            placeholder="95.0"
-                                            class="w-full pl-13 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Días cosecha + Tipo suelo -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Días Cosecha Mín.</label>
-                            <input type="number" th:field="*{diasCosechaMin}" min="1" placeholder="Ej: 90"
-                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Días Cosecha Máx.</label>
-                            <input type="number" th:field="*{diasCosechaMax}" min="1" placeholder="Ej: 120"
-                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Suelo</label>
-                            <input type="text" th:field="*{tipoSuelo}" placeholder="Ej: Franco arcilloso"
-                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
-                        </div>
-                    </div>
-
-                    <!-- Fuente -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Fuente de Datos</label>
-                        <input type="text" th:field="*{fuenteDatos}" placeholder="Ej: ICA, FAO, CORPOICA..."
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 placeholder-gray-400 hover:border-gray-300 transition">
-                    </div>
-
-                    <!-- Imagen del cultivo -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Imagen del cultivo</label>
-
-                        <!-- Preview imagen actual si existe -->
-                        <div th:if="${catalogo.imagenUrl != null && !#strings.isEmpty(catalogo.imagenUrl)}"
-                            class="mb-3 flex items-center gap-4">
-                            <img th:src="@{/imagenes/} + ${catalogo.imagenUrl}"
-                                class="w-20 h-20 rounded-xl object-cover border border-gray-200 shadow-sm"
-                                alt="Imagen actual">
                             <div>
-                                <p class="text-xs font-semibold text-gray-600">Imagen actual</p>
-                                <p class="text-xs text-gray-400">Sube una nueva para reemplazarla</p>
+                                <p class="text-white font-semibold">Informacion basica</p>
+                                <p class="text-green-200 text-xs">Datos principales del cultivo</p>
                             </div>
                         </div>
 
-                        <!-- Input file -->
-                        <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-green-400 transition cursor-pointer"
-                            onclick="document.getElementById('inputImagen').click()">
-                            <input type="file" id="inputImagen" name="imagen" accept="image/jpeg,image/png,image/webp"
-                                class="hidden" onchange="previsualizarImagen(this)">
-                            <div id="previewContainer" class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
-                                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                        <div class="p-7 space-y-5">
+
+                            <!-- Nombre + Categoria -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                        Nombre del cultivo <span class="text-red-400">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                            <i class="ph-duotone ph-plant" style="font-size:18px;color:#16a34a;"></i>
+                                        </div>
+                                        <input type="text" th:field="*{nombre}" required placeholder="Ej: Arroz"
+                                            class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
+                                    </div>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-700">Haz clic para seleccionar imagen</p>
-                                    <p class="text-xs text-gray-400">JPG, PNG o WEBP · Máx. 2MB</p>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                        Categoria <span class="text-red-400">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                            <i class="ph-duotone ph-tag" style="font-size:18px;color:#16a34a;"></i>
+                                        </div>
+                                        <select th:field="*{categoria}" required
+                                            class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 text-sm hover:border-gray-300 transition cursor-pointer">
+                                            <option value="">Selecciona categoria</option>
+                                            <option value="TRANSITORIO">TRANSITORIO</option>
+                                            <option value="PERMANENTE">PERMANENTE</option>
+                                        </select>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <!-- Descripcion -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                    Descripcion
+                                </label>
+                                <textarea th:field="*{descripcion}" rows="3"
+                                    placeholder="Describe brevemente las caracteristicas del cultivo, variedad, ciclo, etc."
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition resize-none"></textarea>
+                            </div>
+
+                            <!-- Navegacion -->
+                            <div class="flex justify-end pt-4 border-t border-gray-100">
+                                <button type="button" @click="siguiente()"
+                                    class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-semibold transition shadow-sm">
+                                    Siguiente
+                                    <i class="ph-bold ph-caret-right" style="font-size:13px;"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="flex gap-3 justify-end pt-4 border-t border-gray-100">
-                        <a th:href="@{/admin/catalogo}"
-                            class="px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium flex items-center gap-2 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Cancelar
-                        </a>
-                        <button type="submit"
-                            class="px-6 py-3 rounded-xl bg-green-700 hover:bg-green-800 text-white font-semibold flex items-center gap-2 transition shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span th:text="${accion == 'editar'} ? 'Guardar Cambios' : 'Registrar Cultivo'"></span>
-                        </button>
+                    <!-- ── PASO 2: Umbrales climaticos ─────── -->
+                    <div x-show="paso === 2" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-x-4"
+                        x-transition:enter-end="opacity-100 translate-x-0"
+                        class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+                        <div class="bg-gradient-to-r from-green-800 to-green-600 px-7 py-4 flex items-center gap-3">
+                            <div class="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                                <i class="ph-duotone ph-cloud-sun" style="font-size:20px;color:white;"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-semibold">Umbrales climaticos</p>
+                                <p class="text-green-200 text-xs">Define los rangos optimos para generar alertas</p>
+                            </div>
+                        </div>
+
+                        <div class="p-7 space-y-6">
+
+                            <!-- Temperatura -->
+                            <div class="bg-orange-50/50 rounded-2xl p-5 border border-orange-100">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div
+                                        class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
+                                        <i class="ph-fill ph-thermometer-hot" style="font-size:18px;color:#ea580c;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-orange-700 uppercase tracking-wide">Temperatura
+                                            (°C)</p>
+                                        <p class="text-xs text-orange-500">Rango optimo de temperatura del cultivo</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Minima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-down"
+                                                    style="font-size:12px;color:#ea580c;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{tempMin}" step="0.1" required
+                                                placeholder="15.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-orange-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Maxima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-up"
+                                                    style="font-size:12px;color:#ea580c;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{tempMax}" step="0.1" required
+                                                placeholder="38.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-orange-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lluvia -->
+                            <div class="bg-sky-50/50 rounded-2xl p-5 border border-sky-100">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div
+                                        class="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center shrink-0">
+                                        <i class="ph-fill ph-cloud-rain" style="font-size:18px;color:#0284c7;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-sky-700 uppercase tracking-wide">Lluvia (mm)
+                                        </p>
+                                        <p class="text-xs text-sky-500">Activa alertas por sequia o exceso hidrico</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Minima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-down"
+                                                    style="font-size:12px;color:#0284c7;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{lluviaMin}" step="0.1" required
+                                                placeholder="5.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-sky-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Maxima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-up"
+                                                    style="font-size:12px;color:#0284c7;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{lluviaMax}" step="0.1" required
+                                                placeholder="120.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-sky-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Humedad -->
+                            <div class="bg-purple-50/50 rounded-2xl p-5 border border-purple-100">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div
+                                        class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
+                                        <i class="ph-fill ph-drop-half" style="font-size:18px;color:#7c3aed;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-purple-700 uppercase tracking-wide">Humedad (%)
+                                        </p>
+                                        <p class="text-xs text-purple-500">Controla riesgo de hongos y enfermedades
+                                            fungicas</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Minima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-down"
+                                                    style="font-size:12px;color:#7c3aed;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{humedadMin}" step="0.1" required
+                                                placeholder="60.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Maxima <span
+                                                class="text-red-400">*</span></label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-lg flex items-center justify-center pointer-events-none z-10 shadow-sm">
+                                                <i class="ph-fill ph-arrow-up"
+                                                    style="font-size:12px;color:#7c3aed;"></i>
+                                            </div>
+                                            <input type="number" th:field="*{humedadMax}" step="0.1" required
+                                                placeholder="95.0"
+                                                class="w-full pl-12 pr-4 py-2.5 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:outline-none text-gray-700 text-sm bg-white placeholder-gray-400 transition">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Navegacion -->
+                            <div class="flex justify-between pt-4 border-t border-gray-100">
+                                <button type="button" @click="anterior()"
+                                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
+                                    <i class="ph-bold ph-caret-left" style="font-size:13px;"></i>
+                                    Anterior
+                                </button>
+                                <button type="button" @click="siguiente()"
+                                    class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-semibold transition shadow-sm">
+                                    Siguiente
+                                    <i class="ph-bold ph-caret-right" style="font-size:13px;"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <script>
-                        function previsualizarImagen(input) {
-                            if (input.files && input.files[0]) {
-                                const reader = new FileReader();
-                                reader.onload = function (e) {
-                                    document.getElementById('previewContainer').innerHTML =
-                                        '<img src="' + e.target.result + '" class="w-20 h-20 rounded-xl object-cover border border-gray-200 shadow-sm">' +
-                                        '<div><p class="text-sm font-semibold text-green-700">' + input.files[0].name + '</p>' +
-                                        '<p class="text-xs text-gray-400">Lista para subir</p></div>';
-                                };
-                                reader.readAsDataURL(input.files[0]);
-                            }
-                        }
-                    </script>
+
+                    <!-- ── PASO 3: Datos agricolas e imagen ── -->
+                    <div x-show="paso === 3" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-x-4"
+                        x-transition:enter-end="opacity-100 translate-x-0"
+                        class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+                        <div class="bg-gradient-to-r from-green-800 to-green-600 px-7 py-4 flex items-center gap-3">
+                            <div class="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                                <i class="ph-duotone ph-check-square" style="font-size:20px;color:white;"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-semibold">Datos agricolas e imagen</p>
+                                <p class="text-green-200 text-xs">Cosecha, suelo, fuente e imagen del cultivo</p>
+                            </div>
+                        </div>
+
+                        <div class="p-7 space-y-5">
+
+                            <!-- Dias cosecha + Tipo suelo -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                        Dias Cosecha Min.
+                                    </label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                            <i class="ph-fill ph-calendar-blank"
+                                                style="font-size:13px;color:#16a34a;"></i>
+                                        </div>
+                                        <input type="number" th:field="*{diasCosechaMin}" min="1" placeholder="Ej: 90"
+                                            class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                        Dias Cosecha Max.
+                                    </label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                            <i class="ph-fill ph-calendar-check"
+                                                style="font-size:13px;color:#16a34a;"></i>
+                                        </div>
+                                        <input type="number" th:field="*{diasCosechaMax}" min="1" placeholder="Ej: 120"
+                                            class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                        Tipo de Suelo
+                                    </label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                            <i class="ph-fill ph-mountains" style="font-size:13px;color:#16a34a;"></i>
+                                        </div>
+                                        <input type="text" th:field="*{tipoSuelo}" placeholder="Ej: Franco arcilloso"
+                                            class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fuente -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                    Fuente de Datos
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                                        <i class="ph-fill ph-books" style="font-size:13px;color:#16a34a;"></i>
+                                    </div>
+                                    <input type="text" th:field="*{fuenteDatos}" placeholder="Ej: ICA, FAO, CORPOICA..."
+                                        class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
+                                </div>
+                            </div>
+
+                            <!-- Imagen -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
+                                    Imagen del Cultivo
+                                </label>
+
+                                <!-- Preview imagen actual -->
+                                <div th:if="${catalogo.imagenUrl != null && !#strings.isEmpty(catalogo.imagenUrl)}"
+                                    class="flex items-center gap-4 mb-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <img th:src="@{/imagenes/} + ${catalogo.imagenUrl}"
+                                        class="w-16 h-16 rounded-xl object-cover border border-gray-200 shadow-sm"
+                                        alt="Imagen actual">
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-600">Imagen actual</p>
+                                        <p class="text-xs text-gray-400">Sube una nueva para reemplazarla</p>
+                                    </div>
+                                </div>
+
+                                <!-- Preview nueva imagen -->
+                                <div x-show="imagenPreview"
+                                    class="flex items-center gap-4 mb-3 p-3 bg-green-50 rounded-xl border border-green-100">
+                                    <img :src="imagenPreview"
+                                        class="w-16 h-16 rounded-xl object-cover border border-green-200 shadow-sm"
+                                        alt="Preview">
+                                    <div>
+                                        <p class="text-xs font-semibold text-green-700" x-text="imagenNombre"></p>
+                                        <p class="text-xs text-green-500">Lista para subir</p>
+                                    </div>
+                                </div>
+
+                                <!-- Dropzone -->
+                                <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-5 hover:border-green-400 transition cursor-pointer text-center"
+                                    onclick="document.getElementById('inputImagen').click()">
+                                    <input type="file" id="inputImagen" name="imagen"
+                                        accept="image/jpeg,image/png,image/webp" class="hidden"
+                                        @change="cargarImagen($event.target)">
+                                    <div x-show="!imagenPreview">
+                                        <i class="ph-duotone ph-image" style="font-size:32px;color:#86efac;"></i>
+                                        <p class="text-sm font-medium text-gray-600 mt-2">Haz clic para seleccionar
+                                            imagen</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">JPG, PNG o WEBP · Max. 20MB</p>
+                                    </div>
+                                    <div x-show="imagenPreview"
+                                        class="flex items-center justify-center gap-2 text-green-700">
+                                        <i class="ph-fill ph-check-circle" style="font-size:18px;"></i>
+                                        <span class="text-sm font-semibold">Imagen seleccionada — clic para
+                                            cambiar</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Navegacion final -->
+                            <div class="flex justify-between pt-5 border-t border-gray-100">
+                                <button type="button" @click="anterior()"
+                                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
+                                    <i class="ph-bold ph-caret-left" style="font-size:13px;"></i>
+                                    Anterior
+                                </button>
+                                <div class="flex gap-3">
+                                    <a th:href="@{/admin/catalogo}"
+                                        class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
+                                        <i class="ph-bold ph-x" style="font-size:13px;"></i>
+                                        Cancelar
+                                    </a>
+                                    <button type="submit"
+                                        class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-semibold transition shadow-sm">
+                                        <i class="ph-bold ph-check" style="font-size:13px;"></i>
+                                        <span
+                                            th:text="${accion == 'editar'} ? 'Guardar Cambios' : 'Registrar Cultivo'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
-            <!-- Panel lateral — 1/3 -->
+            <!-- ── PANEL LATERAL ──────────────────────────── -->
             <div class="space-y-4">
 
-                <!-- Qué son los umbrales -->
+                <!-- Contexto del paso activo -->
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <div class="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        ¿Para qué sirven los umbrales?
-                    </h4>
-                    <div class="space-y-3">
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
-                                <span class="text-sm">🌡️</span>
+
+                    <!-- Paso 1 -->
+                    <div x-show="paso === 1">
+                        <h4
+                            class="text-xs font-bold text-gray-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                            <div class="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center">
+                                <i class="ph-fill ph-info" style="font-size:11px;color:#16a34a;"></i>
                             </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-700">Temperatura</p>
-                                <p class="text-xs text-gray-400">Define el rango óptimo para el crecimiento del cultivo
+                            Para que sirve esta info
+                        </h4>
+                        <p class="text-xs text-gray-500 leading-relaxed mb-4">
+                            Estos datos identifican el cultivo en el catalogo. El nombre y la categoria son obligatorios
+                            para que los agricultores puedan registrarlo en sus fincas.
+                        </p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+                                <i class="ph-fill ph-clock-countdown" style="font-size:18px;color:#3b82f6;"></i>
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-700">Transitorio</p>
+                                    <p class="text-xs text-blue-500">Ciclo corto — menos de 1 año</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
+                                <i class="ph-fill ph-tree-evergreen" style="font-size:18px;color:#d97706;"></i>
+                                <div>
+                                    <p class="text-xs font-semibold text-amber-700">Permanente</p>
+                                    <p class="text-xs text-amber-500">Ciclo largo — mas de 1 año</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div x-show="paso === 2">
+                        <h4
+                            class="text-xs font-bold text-gray-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                            <div class="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center">
+                                <i class="ph-fill ph-info" style="font-size:11px;color:#16a34a;"></i>
+                            </div>
+                            Como se usan los umbrales
+                        </h4>
+                        <div class="space-y-3 text-xs text-gray-500">
+                            <div class="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
+                                <i class="ph-fill ph-arrow-right"
+                                    style="font-size:12px;color:#16a34a;margin-top:1px;"></i>
+                                <p>El sistema compara el pronostico de Open-Meteo contra estos umbrales dos veces al dia
                                 </p>
                             </div>
+                            <div class="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
+                                <i class="ph-fill ph-arrow-right"
+                                    style="font-size:12px;color:#16a34a;margin-top:1px;"></i>
+                                <p>Si un valor supera el umbral, genera una alerta automatica para el agricultor</p>
+                            </div>
+                            <div class="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
+                                <i class="ph-fill ph-arrow-right"
+                                    style="font-size:12px;color:#16a34a;margin-top:1px;"></i>
+                                <p>La IA genera recomendaciones agronomicas basadas en el tipo de alerta</p>
+                            </div>
                         </div>
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-sky-50 rounded-xl flex items-center justify-center shrink-0">
-                                <span class="text-sm">🌧️</span>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div x-show="paso === 3">
+                        <h4
+                            class="text-xs font-bold text-gray-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                            <div class="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center">
+                                <i class="ph-fill ph-info" style="font-size:11px;color:#16a34a;"></i>
                             </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-700">Lluvia</p>
-                                <p class="text-xs text-gray-400">Activa alertas por sequía o exceso hídrico</p>
+                            Datos de cosecha e imagen
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-xl">
+                                <i class="ph-fill ph-warning" style="font-size:16px;color:#d97706;margin-top:1px;"></i>
+                                <div>
+                                    <p class="text-xs font-bold text-amber-800 mb-0.5">Dias de cosecha</p>
+                                    <p class="text-xs text-amber-700 leading-relaxed">Determinan la etapa fenologica del
+                                        cultivo y ajustan la severidad de las alertas automaticamente.</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
-                                <span class="text-sm">💧</span>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-700">Humedad</p>
-                                <p class="text-xs text-gray-400">Controla riesgo de hongos y enfermedades fúngicas</p>
+                            <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-xl">
+                                <i class="ph-fill ph-image" style="font-size:16px;color:#3b82f6;margin-top:1px;"></i>
+                                <div>
+                                    <p class="text-xs font-bold text-blue-800 mb-0.5">Imagen del cultivo</p>
+                                    <p class="text-xs text-blue-700 leading-relaxed">Se muestra en el dashboard del
+                                        agricultor y en la lista de cultivos. Recomendado JPG de buena calidad.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cómo se usan en el sistema -->
+                <!-- Card verde — flujo del sistema -->
                 <div class="bg-gradient-to-br from-green-900 to-green-700 rounded-2xl p-5 text-white">
-                    <h4 class="text-sm font-bold mb-3 flex items-center gap-2">
-                        <span class="text-lg">⚡</span>
-                        Cómo usa el sistema estos datos
+                    <h4 class="text-xs font-bold mb-4 flex items-center gap-2 uppercase tracking-wide">
+                        <i class="ph-fill ph-lightning" style="font-size:14px;color:#86efac;"></i>
+                        Como funciona el sistema
                     </h4>
-                    <div class="space-y-2.5 text-xs text-green-100">
-                        <div class="flex items-start gap-2">
-                            <span class="text-green-400 font-bold shrink-0">→</span>
-                            <p>Compara el pronóstico Open-Meteo del municipio contra los umbrales definidos aquí</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 bg-white/15 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                1</div>
+                            <p class="text-xs text-green-200">Agricultor registra su cultivo</p>
                         </div>
-                        <div class="flex items-start gap-2">
-                            <span class="text-green-400 font-bold shrink-0">→</span>
-                            <p>Si un valor supera el umbral, genera una alerta automática para el agricultor</p>
+                        <div class="w-px h-2 bg-white/15 ml-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 bg-white/15 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                2</div>
+                            <p class="text-xs text-green-200">Sistema consulta Open-Meteo 2x dia</p>
                         </div>
-                        <div class="flex items-start gap-2">
-                            <span class="text-green-400 font-bold shrink-0">→</span>
-                            <p>Las alertas pueden enviarse por SMS via Twilio según la severidad</p>
+                        <div class="w-px h-2 bg-white/15 ml-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 bg-white/15 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                3</div>
+                            <p class="text-xs text-green-200">Compara pronostico vs umbrales</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Tip días de cosecha -->
-                <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-3">
-                    <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-amber-800 mb-0.5">Días de cosecha</p>
-                        <p class="text-xs text-amber-700">Se usan para calcular la etapa fenológica del cultivo del
-                            agricultor y ajustar la severidad de las alertas.</p>
+                        <div class="w-px h-2 bg-white/15 ml-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 bg-white/15 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                4</div>
+                            <p class="text-xs text-green-200">Genera alerta + recomendacion IA + SMS</p>
+                        </div>
                     </div>
                 </div>
             </div>

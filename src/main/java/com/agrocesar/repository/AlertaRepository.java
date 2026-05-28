@@ -7,7 +7,8 @@ import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
-
+import com.agrocesar.dto.CultivoMasAfectadoDTO;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -123,4 +124,31 @@ public interface AlertaRepository {
         ORDER BY FECHA_GENERACION DESC
         """)
     List<AlertaVistaDTO> findAll();
+    @SqlQuery("""
+    SELECT * FROM V_ALERTAS
+    WHERE FECHA_DIA_PRONOSTICO BETWEEN :fechaDesde AND :fechaHasta
+    ORDER BY FECHA_DIA_PRONOSTICO DESC
+    """)
+    List<AlertaVistaDTO> findByRangoFechas(
+            @Bind("fechaDesde") LocalDate fechaDesde,
+            @Bind("fechaHasta") LocalDate fechaHasta
+    );
+
+    @SqlQuery("""
+    SELECT CULTIVO AS nombreCultivo, MUNICIPIO, COUNT(*) AS totalAlertas
+    FROM V_ALERTAS
+    WHERE FECHA_DIA_PRONOSTICO BETWEEN :fechaDesde AND :fechaHasta
+    GROUP BY CULTIVO, MUNICIPIO
+    ORDER BY COUNT(*) DESC
+    """)
+    List<CultivoMasAfectadoDTO> findCultivosMasAfectados(
+            @Bind("fechaDesde") LocalDate fechaDesde,
+            @Bind("fechaHasta") LocalDate fechaHasta
+    );
+
+    @SqlQuery("SELECT COUNT(*) FROM ALERTAS WHERE LEIDA = 0")
+    int countActivas();
+
+    @SqlQuery("SELECT COUNT(*) FROM ALERTAS WHERE LEIDA = 0 AND SEVERIDAD IN ('ALTA', 'CRITICA')")
+    int countCriticas();
 }

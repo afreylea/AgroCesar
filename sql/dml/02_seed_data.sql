@@ -53,42 +53,42 @@ COMMIT;
 -- Admin del sistema
 INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Administrador',
-    'Del Sistema',
-    'admin@agrocesar.com',
-    '$2b$12$OA6RhTTL8o7vBdwxnq.5gOvv3CtibBsT0zVgVMdb74ezX6qkNLium',
-    'ADMIN',
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
-    '3008001001',
-    1
-);
+           'Administrador',
+           'Del Sistema',
+           'admin@agrocesar.com',
+           '$2b$12$OA6RhTTL8o7vBdwxnq.5gOvv3CtibBsT0zVgVMdb74ezX6qkNLium',
+           'ADMIN',
+           (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
+           '3008001001',
+           1
+       );
 
 -- Agricultor 1 — residente en Valledupar
 -- Tiene cultivos en DOS municipios distintos para probar pronósticos diferenciados
 INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'Juan',
-    'Pérez',
-    'agricultor@cesar.com',
-    '$2b$12$RRONJqWoDFJ4ue4n8WDgx.PMwpNC06rrGsV9llcWxOLWRMUaRwLfy',
-    'AGRICULTOR',
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
-    '3001234567',
-    1
-);
+           'Juan',
+           'Pérez',
+           'agricultor@cesar.com',
+           '$2b$12$RRONJqWoDFJ4ue4n8WDgx.PMwpNC06rrGsV9llcWxOLWRMUaRwLfy',
+           'AGRICULTOR',
+           (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
+           '3001234567',
+           1
+       );
 
 -- Agricultor 2 — INACTIVO para probar que findByEmailAndActivo la rechaza
 INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, MUNICIPIO_ID, TELEFONO, ACTIVO)
 VALUES (
-    'María',
-    'González',
-    'agricultora@astrea.com',
-    '$2b$12$27JdeEySOhco5jpWARAasukAaUDsdIb7jXIjpm3kfwlaTAXr3YMlW',
-    'AGRICULTOR',
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Astrea'),
-    '3009876543',
-    0
-);
+           'María',
+           'González',
+           'agricultora@astrea.com',
+           '$2b$12$27JdeEySOhco5jpWARAasukAaUDsdIb7jXIjpm3kfwlaTAXr3YMlW',
+           'AGRICULTOR',
+           (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Astrea'),
+           '3009876543',
+           0
+       );
 
 COMMIT;
 
@@ -447,11 +447,11 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     USUARIO_ID, CATALOGO_ID, MUNICIPIO_ID,
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
-    (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz amarillo duro'),
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
-    5.5, SYSDATE - 45, 1
-);
+             (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
+             (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Maíz amarillo duro'),
+             (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Valledupar'),
+             5.5, SYSDATE - 45, 1
+         );
 
 -- Juan — Arroz en Agustín Codazzi (municipio distinto al de residencia)
 -- 20 días sembrado → días restantes ≈ 110-130 → severidad BAJA en TRANSITORIO
@@ -459,11 +459,11 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     USUARIO_ID, CATALOGO_ID, MUNICIPIO_ID,
     HECTAREAS, FECHA_SIEMBRA, ACTIVO
 ) VALUES (
-    (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz secano mecanizado'),
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Agustín Codazzi'),
-    3.0, SYSDATE - 20, 1
-);
+             (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultor@cesar.com'),
+             (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Arroz secano mecanizado'),
+             (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Agustín Codazzi'),
+             3.0, SYSDATE - 20, 1
+         );
 
 -- Yuca de María en Astrea con override TEMP_MAX = 37°C
 -- Verifica NVL(37, 40) = 37 en V_CULTIVOS_CON_UMBRALES
@@ -473,11 +473,11 @@ INSERT INTO CULTIVOS_AGRICULTOR (
     HECTAREAS, FECHA_SIEMBRA,
     TEMP_MAX_OVERRIDE, ACTIVO
 ) VALUES (
-    (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultora@astrea.com'),
-    (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Yuca'),
-    (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Astrea'),
-    12.0, SYSDATE - 120, 37, 1
-);
+             (SELECT ID FROM USUARIOS  WHERE EMAIL  = 'agricultora@astrea.com'),
+             (SELECT ID FROM CULTIVOS_CATALOGO WHERE NOMBRE = 'Yuca'),
+             (SELECT ID FROM MUNICIPIOS WHERE NOMBRE = 'Astrea'),
+             12.0, SYSDATE - 120, 37, 1
+         );
 
 COMMIT;
 

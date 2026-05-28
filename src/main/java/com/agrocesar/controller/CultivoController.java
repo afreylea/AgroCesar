@@ -56,7 +56,7 @@ public class CultivoController {
         model.addAttribute("cultivo", new CultivoAgricultor());
         // Catolog y municipios necesarios para los selectores del formulario
         model.addAttribute("catalogo", catalogoRepository.findAllActivos());
-        model.addAttribute("municipios", municipioRepository.findAllActivos());
+        model.addAttribute("municipios", municipioRepository.findActivos());
         return "cultivos/nuevo";
     }
 

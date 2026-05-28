@@ -28,7 +28,7 @@ public class AuthController {
 
     @GetMapping("/registro")
     public String registroPage(Model model) {
-        model.addAttribute("municipios", municipioService.findAllActivos());
+        model.addAttribute("municipios", municipioService.findActivos());
         return "auth/registro";
     }
 
@@ -51,7 +51,7 @@ public class AuthController {
 
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("municipios", municipioService.findAllActivos());
+            model.addAttribute("municipios", municipioService.findActivos());
             return "auth/registro";
         }
     }

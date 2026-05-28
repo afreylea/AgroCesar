@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Mis Cultivos - Agrocesar', ~{::main})}">
 
 <body>
-    <main>
+    <main class="min-h-screen px-2 pt-4">
 
         <!-- Hero isla -->
-        <div class="relative overflow-hidden mb-6" style="height:160px;
+        <div class="relative overflow-hidden mb-8" style="height:160px;
                 border-radius:2rem;
                 background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop');
                 background-size:cover;
@@ -17,7 +17,7 @@
             <div class="relative z-10 h-full flex items-center justify-between px-10">
                 <div class="text-white">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
                         <span class="text-green-300 text-xs font-semibold uppercase tracking-widest">Monitoreo
                             activo</span>
                     </div>
@@ -27,74 +27,111 @@
                 <a th:href="@{/cultivos/nuevo}"
                     class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition border border-white/30 text-white"
                     style="background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
+                    <i class="ph-bold ph-plus" style="font-size:14px;"></i>
                     Nuevo Cultivo
                 </a>
             </div>
         </div>
 
-        <!-- Flash -->
+        <!-- Flash exito -->
         <div th:if="${exito}"
             class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+            <i class="ph-fill ph-check-circle" style="font-size:16px; color:#16a34a;"></i>
             <span th:text="${exito}"></span>
         </div>
+
+        <!-- Flash error -->
         <div th:if="${error}"
             class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <i class="ph-fill ph-warning-circle" style="font-size:16px; color:#ef4444;"></i>
             <span th:text="${error}"></span>
         </div>
 
-        <!-- Cards resumen -->
+        <!-- Cards resumen con barra de progreso visual -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+
+            <!-- Total cultivos -->
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
-                <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-                    </svg>
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-all duration-200">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-duotone ph-plant" style="font-size:22px; color:#16a34a;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Total Cultivos</p>
+                        <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(cultivos)}">0</p>
+                        <p class="text-xs text-green-600 font-medium">Registrados</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Total Cultivos</p>
-                    <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(cultivos)}">0</p>
-                    <p class="text-xs text-green-600 font-medium">Registrados</p>
+                <!-- Barra progreso: transitorios vs permanentes -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Transitorios</span>
+                        <span
+                            th:text="${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])} + ' / ' + ${#lists.size(cultivos)}"></span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                            th:style="'width:' + (${#lists.size(cultivos)} > 0 ? (${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])} * 100 / ${#lists.size(cultivos)}) : 0) + '%'">
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Transitorios -->
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
-                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-all duration-200">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-duotone ph-clock-countdown" style="font-size:22px; color:#3b82f6;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Transitorios</p>
+                        <p class="text-2xl font-black text-gray-900"
+                            th:text="${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])}">0</p>
+                        <p class="text-xs text-blue-500 font-medium">Ciclo corto</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Transitorios</p>
-                    <p class="text-2xl font-black text-gray-900"
-                        th:text="${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])}">0</p>
-                    <p class="text-xs text-blue-500 font-medium">Ciclo corto</p>
+                <!-- Barra progreso: proporcion de transitorios -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Del total</span>
+                        <span
+                            th:text="${#lists.size(cultivos)} > 0 ? (${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])} * 100 / ${#lists.size(cultivos)}) + '%' : '0%'"></span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="bg-blue-400 h-1.5 rounded-full transition-all duration-500"
+                            th:style="'width:' + (${#lists.size(cultivos)} > 0 ? (${#lists.size(cultivos.?[categoria == 'TRANSITORIO'])} * 100 / ${#lists.size(cultivos)}) : 0) + '%'">
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total hectareas -->
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
-                <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 7m0 13V7" />
-                    </svg>
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-all duration-200">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-duotone ph-map-trifold" style="font-size:22px; color:#f59e0b;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Total Hectareas</p>
+                        <p class="text-2xl font-black text-gray-900"
+                            th:text="${#aggregates.sum(cultivos.![hectareas])}">0</p>
+                        <p class="text-xs text-amber-500 font-medium">Area cultivada</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Total Hectáreas</p>
-                    <p class="text-2xl font-black text-gray-900" th:text="${#aggregates.sum(cultivos.![hectareas])}">0
-                    </p>
-                    <p class="text-xs text-amber-500 font-medium">Área cultivada</p>
+                <!-- Barra decorativa referencia 100ha -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Referencia 100 ha</span>
+                        <span th:text="${#aggregates.sum(cultivos.![hectareas])} + ' ha'"></span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="bg-amber-400 h-1.5 rounded-full transition-all duration-500"
+                            th:style="'width:' + (${#aggregates.sum(cultivos.![hectareas])} > 100 ? 100 : ${#aggregates.sum(cultivos.![hectareas])}) + '%'">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,82 +139,74 @@
         <!-- Estado vacío -->
         <div th:if="${#lists.isEmpty(cultivos)}"
             class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center mb-8">
-            <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064" />
-                </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-700 mb-1">Sin cultivos registrados</h3>
+            <i class="ph-duotone ph-plant" style="font-size:48px; color:#86efac;"></i>
+            <h3 class="text-lg font-semibold text-gray-700 mt-4 mb-1">Sin cultivos registrados</h3>
             <p class="text-gray-400 text-sm mb-5">Comienza monitoreando tu primer cultivo</p>
             <a th:href="@{/cultivos/nuevo}"
                 class="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
+                <i class="ph-bold ph-plus" style="font-size:14px;"></i>
                 Registrar primer cultivo
             </a>
         </div>
 
-        <!-- Tabla -->
-        <div th:if="${not #lists.isEmpty(cultivos)}" class="mb-8">
+        <!-- Tabla con carga progresiva via Alpine -->
+        <div th:if="${not #lists.isEmpty(cultivos)}" class="mb-8" x-data="{
+             /* Carga progresiva: muestra de a 5 filas con animacion */
+             visibles: 5,
+             total: [[${#lists.size(cultivos)}]],
+             mostrarMas() { this.visibles = Math.min(this.visibles + 5, this.total); },
+             get hayMas() { return this.visibles < this.total; },
+             get progreso() { return Math.round((this.visibles / this.total) * 100); }
+         }">
 
-            <!-- Header tabla -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
                 <!-- Banner -->
                 <div class="bg-gradient-to-r from-green-900 to-green-700 px-6 py-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-                        </svg>
+                        <i class="ph-duotone ph-rows" style="font-size:20px; color:#86efac;"></i>
                         <span class="text-white font-semibold">Listado de Cultivos</span>
                     </div>
-                    <span class="text-green-300 text-sm" th:text="${#lists.size(cultivos)} + ' registros'"></span>
+                    <!-- Progreso de filas visibles -->
+                    <div class="flex items-center gap-3">
+                        <div class="hidden sm:flex items-center gap-2">
+                            <div class="w-24 bg-white/20 rounded-full h-1.5">
+                                <div class="bg-green-300 h-1.5 rounded-full transition-all duration-500"
+                                    :style="'width:' + progreso + '%'"></div>
+                            </div>
+                            <span class="text-green-300 text-xs" x-text="visibles + ' / ' + total"></span>
+                        </div>
+                        <span class="text-green-300 text-sm" th:text="${#lists.size(cultivos)} + ' registros'"></span>
+                    </div>
                 </div>
 
                 <!-- Encabezado -->
                 <div
                     class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     <div class="col-span-3">Cultivo</div>
-                    <div class="col-span-2 text-center">Categoría</div>
+                    <div class="col-span-2 text-center">Categoria</div>
                     <div class="col-span-2 text-center">Municipio</div>
-                    <div class="col-span-2 text-center">Hectáreas</div>
+                    <div class="col-span-2 text-center">Hectareas</div>
                     <div class="col-span-2 text-center">Siembra</div>
-                    <div class="col-span-1 text-center">Acción</div>
+                    <div class="col-span-1 text-center">Accion</div>
                 </div>
 
-                <!-- Filas -->
-                <div th:each="c : ${cultivos}"
+                <!-- Filas con carga progresiva -->
+                <div th:each="c, iterStat : ${cultivos}" x-show="[[${iterStat.index}]] < visibles"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
                     class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 items-center hover:bg-green-50/30 transition group">
 
+                    <!-- Imagen + nombre -->
                     <div class="col-span-3 flex items-center gap-3">
                         <div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                            <img th:if="${c.nombreCultivo == 'Maíz'}"
-                                src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=120&h=120&fit=crop"
-                                class="w-full h-full object-cover" alt="Maíz">
-                            <img th:if="${c.nombreCultivo == 'Arroz'}"
-                                src="https://crisprenplantas.org/sites/default/files/2025-12/arroz%20editado%20colombiano.jpg"
-                                class="w-full h-full object-cover" alt="Arroz">
-                            <img th:if="${c.nombreCultivo == 'Palma de aceite' || c.nombreCultivo == 'Palma'}"
-                                src="https://www.agrosavia.co/media/4838/oxg_el_mira.jpg"
-                                class="w-full h-full object-cover" alt="Palma">
-                            <img th:if="${c.nombreCultivo == 'Yuca'}"
-                                src="https://www.agrosavia.co/media/1409/agrosavia-busca-liberar-variedades-de-yuca-para-fortalecer-agroindustria-del-pai-s_agrosavia.jpg"
-                                class="w-full h-full object-cover" alt="Yuca">
-                            <img th:if="${c.nombreCultivo == 'Algodón'}"
-                                src="https://images.unsplash.com/photo-1595152772835-219674b2a8a6?w=120&h=120&fit=crop"
-                                class="w-full h-full object-cover" alt="Algodón">
-                            <img th:if="${c.nombreCultivo == 'Sorgo'}"
-                                src="https://images.unsplash.com/photo-1501430654243-c934cec2e1c0?w=120&h=120&fit=crop"
-                                class="w-full h-full object-cover" alt="Sorgo">
-                            <div th:if="${c.nombreCultivo != 'Maíz' && c.nombreCultivo != 'Arroz' && c.nombreCultivo != 'Palma de aceite' && c.nombreCultivo != 'Palma' && c.nombreCultivo != 'Yuca' && c.nombreCultivo != 'Algodón' && c.nombreCultivo != 'Sorgo'}"
+                            <img th:if="${c.imagenUrl != null && !#strings.isEmpty(c.imagenUrl)}"
+                                th:src="@{/imagenes/} + ${c.imagenUrl}" class="w-full h-full object-cover"
+                                alt="Imagen cultivo">
+                            <div th:if="${c.imagenUrl == null || #strings.isEmpty(c.imagenUrl)}"
                                 class="w-full h-full bg-green-50 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945" />
-                                </svg>
+                                <i class="ph-duotone ph-plant" style="font-size:22px; color:#86efac;"></i>
                             </div>
                         </div>
                         <div>
@@ -186,6 +215,7 @@
                         </div>
                     </div>
 
+                    <!-- Categoria -->
                     <div class="col-span-2 text-center">
                         <span th:if="${c.categoria == 'TRANSITORIO'}"
                             class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">Transitorio</span>
@@ -193,40 +223,33 @@
                             class="bg-amber-50 text-amber-600 text-xs font-semibold px-3 py-1 rounded-full">Permanente</span>
                     </div>
 
+                    <!-- Municipio -->
                     <div class="col-span-2 text-center">
                         <span class="text-sm text-gray-600 flex items-center justify-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            </svg>
+                            <i class="ph-fill ph-map-pin" style="font-size:12px; color:#16a34a;"></i>
                             <span th:text="${c.municipio}"></span>
                         </span>
                     </div>
 
+                    <!-- Hectareas -->
                     <div class="col-span-2 text-center">
                         <span class="text-sm font-bold text-green-700" th:text="${c.hectareas} + ' ha'"></span>
                     </div>
 
+                    <!-- Fecha siembra -->
                     <div class="col-span-2 text-center">
                         <span class="text-xs text-gray-500 flex items-center justify-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                            <i class="ph-fill ph-calendar-blank" style="font-size:12px; color:#16a34a;"></i>
                             <span th:text="${#temporals.format(c.fechaSiembra, 'dd/MM/yyyy')}"></span>
                         </span>
                     </div>
 
+                    <!-- Eliminar -->
                     <div class="col-span-1 text-center">
                         <div x-data="{ confirmar: false }">
                             <button @click="confirmar = true"
                                 class="w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 flex items-center justify-center transition mx-auto">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <i class="ph-bold ph-trash" style="font-size:15px;"></i>
                             </button>
                             <div x-show="confirmar"
                                 class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
@@ -235,15 +258,11 @@
                                     class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-sm mx-4">
                                     <div
                                         class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
+                                        <i class="ph-fill ph-warning" style="font-size:24px; color:#ef4444;"></i>
                                     </div>
-                                    <h4 class="text-base font-bold text-gray-900 text-center mb-1">¿Eliminar cultivo?
+                                    <h4 class="text-base font-bold text-gray-900 text-center mb-1">Eliminar cultivo?
                                     </h4>
-                                    <p class="text-sm text-gray-500 text-center mb-5">Esta acción no se puede deshacer.
+                                    <p class="text-sm text-gray-500 text-center mb-5">Esta accion no se puede deshacer.
                                     </p>
                                     <div class="flex gap-3">
                                         <button @click="confirmar = false"
@@ -256,7 +275,7 @@
                                                 th:value="${_csrf.token}">
                                             <button type="submit"
                                                 class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
-                                                Sí, eliminar
+                                                Si, eliminar
                                             </button>
                                         </form>
                                     </div>
@@ -264,6 +283,31 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Boton mostrar mas con barra de progreso -->
+                <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    <div class="flex items-center gap-4">
+                        <!-- Barra de progreso de carga -->
+                        <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                                :style="'width:' + progreso + '%'"></div>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap"
+                            x-text="'Mostrando ' + visibles + ' de ' + total"></span>
+                        <button @click="mostrarMas()"
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
+                            <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
+                            Ver mas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Todos visibles -->
+                <div x-show="!hayMas && total > 5"
+                    class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+                    <i class="ph-fill ph-check-circle" style="font-size:14px; color:#16a34a;"></i>
+                    Mostrando todos los cultivos
                 </div>
             </div>
         </div>
@@ -273,21 +317,24 @@
             style="background:linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 100%);">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <i class="ph-duotone ph-shield-check" style="font-size:24px; color:#16a34a;"></i>
                 </div>
                 <div>
                     <h4 class="font-bold text-green-900">Monitoreo 24/7 activo</h4>
-                    <p class="text-sm text-gray-500">El sistema revisa umbrales climáticos dos veces al día y genera
-                        alertas automáticas.</p>
+                    <p class="text-sm text-gray-500">El sistema revisa umbrales climaticos dos veces al dia y genera
+                        alertas automaticas.</p>
                 </div>
             </div>
-            <div class="hidden md:flex items-center gap-2 text-green-600">
-                <span class="text-2xl">🌡️</span>
-                <span class="text-2xl">🌧️</span>
-                <span class="text-2xl">💧</span>
+            <div class="hidden md:flex items-center gap-3">
+                <div class="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-thermometer-hot" style="font-size:20px; color:#f97316;"></i>
+                </div>
+                <div class="w-9 h-9 bg-sky-50 rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-cloud-rain" style="font-size:20px; color:#0ea5e9;"></i>
+                </div>
+                <div class="w-9 h-9 bg-teal-50 rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-drop-half" style="font-size:20px; color:#14b8a6;"></i>
+                </div>
             </div>
         </div>
 

@@ -54,7 +54,26 @@ public interface UsuarioRepository {
         WHERE ACTIVO = 1
         ORDER BY NOMBRE
         """)
-    List<Usuario> findAllActivos();
+    List<Usuario> findActivos();
+
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ACTIVO = 0
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findInactivos();
+
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findAll();
 
     @SqlQuery("""
         SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,

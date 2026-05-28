@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 
+    <!-- Phosphor Icons — carga antes que Alpine para evitar parpadeo -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -21,45 +25,49 @@
         }
     </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        /* ── Sidebar ────────────────────────────────── */
         .sidebar-expanded {
-            width: 256px;
+            width: 260px;
         }
 
         .sidebar-collapsed {
-            width: 72px;
+            width: 76px;
         }
 
         .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* ── Content area ───────────────────────────── */
         .content-expanded {
-            margin-left: 256px;
+            margin-left: 260px;
         }
 
         .content-collapsed {
-            margin-left: 72px;
+            margin-left: 76px;
         }
 
         .content-transition {
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* ── Labels de nav ──────────────────────────── */
         .nav-label {
-            transition: opacity 0.2s ease, width 0.2s ease;
+            transition: opacity 0.18s ease, max-width 0.18s ease;
         }
 
+        /* ── Fondo del sidebar ──────────────────────── */
         .sidebar-bg {
-            background: linear-gradient(180deg, #052e16 0%, #14532d 60%, #052e16 100%);
+            background: linear-gradient(180deg, #052e16 0%, #14532d 55%, #052e16 100%);
         }
 
+        /* ── Item de navegacion ─────────────────────── */
         .nav-item {
             position: relative;
             overflow: hidden;
@@ -83,53 +91,89 @@
             transform: scaleY(1);
         }
 
+        /* ── Avatar ring ────────────────────────────── */
         .avatar-ring {
             background: linear-gradient(135deg, #4ade80, #16a34a);
             padding: 2px;
             border-radius: 50%;
         }
 
-        .content-expanded {
-            margin-left: 256px;
+        /* ── Pin button ─────────────────────────────── */
+        .pin-btn {
+            transition: transform 0.3s ease;
         }
 
-        .content-collapsed {
-            margin-left: 72px;
+        .pin-btn.pinned {
+            transform: rotate(45deg);
+        }
+
+        /* ── Tooltip cuando esta colapsado ──────────── */
+        .nav-tooltip {
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1a2e1a;
+            color: #d1fae5;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 100;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .nav-item:hover .nav-tooltip {
+            opacity: 1;
         }
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex" x-data="{ expandido: true }">
+<body class="bg-gray-100 min-h-screen flex" x-data="{
+          /* fijado: el sidebar queda abierto aunque el mouse salga */
+          fijado: true,
+          /* expandido: true cuando fijado=true O cuando hover=true */
+          hover: false,
+          get expandido() { return this.fijado || this.hover; }
+      }">
 
-    <!-- ── SIDEBAR ─────────────────────────────── -->
+    <!-- ── SIDEBAR ──────────────────────────────────────── -->
     <aside class="sidebar-transition sidebar-bg min-h-screen flex flex-col fixed top-0 left-0 z-40 overflow-hidden"
-        :class="expandido ? 'sidebar-expanded' : 'sidebar-collapsed'">
+        :class="expandido ? 'sidebar-expanded' : 'sidebar-collapsed'" @mouseenter="hover = true"
+        @mouseleave="hover = false">
 
-        <!-- Header del sidebar -->
-        <div class="flex items-center justify-between px-4 py-4 border-b border-white/10 shrink-0">
-            <!-- Logo + nombre -->
+        <!-- Header: logo + pin -->
+        <div class="flex items-center justify-between px-3 py-4 border-b border-white/10 shrink-0 min-h-[68px]">
             <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-9 h-9 shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-green-700">
-                    <img th:src="@{/images/logo-agrocesar.png}" alt="Logo" class="w-7 h-7 object-contain">
+                <!-- Logo siempre visible -->
+                <div
+                    class="w-10 h-10 shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-green-700 shadow-lg">
+                    <img th:src="@{/images/logo-agrocesar.png}" alt="Logo" class="w-8 h-8 object-contain">
                 </div>
-                <div class="nav-label overflow-hidden" :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">
+                <!-- Nombre — oculto cuando colapsado -->
+                <div class="nav-label overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0'">
                     <span class="font-black text-white text-base tracking-wide whitespace-nowrap">Agrocesar</span>
                     <p class="text-xs text-green-400 whitespace-nowrap">Monitoreo de Cultivos</p>
                 </div>
             </div>
-            <!-- Botón hamburguesa -->
-            <button @click="expandido = !expandido"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-green-300 hover:text-white hover:bg-white/10 transition shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+
+            <!-- Boton pin — solo visible cuando expandido -->
+            <button @click="fijado = !fijado"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-green-300 hover:text-white hover:bg-white/10 transition shrink-0 pin-btn"
+                :class="[expandido ? 'opacity-100' : 'opacity-0 pointer-events-none', fijado ? 'pinned' : '']"
+                :title="fijado ? 'Desfijar sidebar' : 'Fijar sidebar abierto'">
+                <i class="ph-fill ph-push-pin" style="font-size:16px;"></i>
             </button>
         </div>
 
         <!-- Card de usuario -->
-        <div class="px-3 py-4 border-b border-white/10 shrink-0">
+        <div class="px-3 py-3 border-b border-white/10 shrink-0">
             <div class="flex items-center gap-3 overflow-hidden">
-                <!-- Avatar con iniciales -->
                 <div class="avatar-ring shrink-0">
                     <div class="w-9 h-9 rounded-full bg-green-800 flex items-center justify-center">
                         <span class="text-sm font-black text-white" sec:authentication="name"
@@ -137,7 +181,8 @@
                             th:text="${#strings.toUpperCase(#strings.substring(nombre, 0, 1))}">U</span>
                     </div>
                 </div>
-                <div class="nav-label overflow-hidden" :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">
+                <div class="nav-label overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0'">
                     <p class="text-sm font-bold text-white whitespace-nowrap truncate max-w-[140px]"
                         sec:authentication="name" th:text="${#authentication.principal.username}">Usuario</p>
                     <div class="flex items-center gap-1.5 mt-0.5">
@@ -148,110 +193,109 @@
             </div>
         </div>
 
-        <!-- Navegación AGRICULTOR -->
-        <nav sec:authorize="hasRole('AGRICULTOR')" class="flex flex-col gap-1 px-2 py-4 flex-1">
-            <p class="nav-label text-xs text-green-500 uppercase px-2 mb-2 tracking-widest font-semibold overflow-hidden whitespace-nowrap"
-                :class="expandido ? 'opacity-100' : 'opacity-0'">Menú</p>
+        <!-- ── NAV AGRICULTOR ───────────────────────── -->
+        <nav sec:authorize="hasRole('AGRICULTOR')" class="flex flex-col gap-0.5 px-2 py-4 flex-1">
+            <p class="nav-label text-xs text-green-500 uppercase px-2 mb-2 tracking-widest font-bold overflow-hidden whitespace-nowrap"
+                :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Menu</p>
 
+            <!-- Dashboard -->
             <a th:href="@{/dashboard}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white group">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Dashboard</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white group"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-house shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Dashboard</span>
+                <!-- Tooltip colapsado -->
+                <span class="nav-tooltip" x-show="!expandido">Dashboard</span>
             </a>
 
+            <!-- Mis Cultivos -->
             <a th:href="@{/cultivos}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Mis Cultivos</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-plant shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Mis Cultivos</span>
+                <span class="nav-tooltip" x-show="!expandido">Mis Cultivos</span>
             </a>
 
+            <!-- Alertas -->
             <a th:href="@{/alertas}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
                 <div class="relative shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <!-- Punto rojo de notificación -->
+                    <i class="ph-duotone ph-bell-ringing" style="font-size:22px;"></i>
                     <div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 </div>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Alertas</span>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Alertas</span>
+                <span class="nav-tooltip" x-show="!expandido">Alertas</span>
             </a>
         </nav>
 
-        <!-- Navegación ADMIN -->
-        <nav sec:authorize="hasRole('ADMIN')" class="flex flex-col gap-1 px-2 py-4 flex-1">
-            <p class="nav-label text-xs text-green-500 uppercase px-2 mb-2 tracking-widest font-semibold overflow-hidden whitespace-nowrap"
-                :class="expandido ? 'opacity-100' : 'opacity-0'">Administración</p>
+        <!-- ── NAV ADMIN ────────────────────────────── -->
+        <nav sec:authorize="hasRole('ADMIN')" class="flex flex-col gap-0.5 px-2 py-4 flex-1">
+            <p class="nav-label text-xs text-green-500 uppercase px-2 mb-2 tracking-widest font-bold overflow-hidden whitespace-nowrap"
+                :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Administracion</p>
 
+            <!-- Dashboard Admin -->
             <a th:href="@{/admin/dashboard}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Dashboard</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-chart-bar shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Dashboard</span>
+                <span class="nav-tooltip" x-show="!expandido">Dashboard</span>
             </a>
 
+            <!-- Catalogo -->
             <a th:href="@{/admin/catalogo}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Catálogo</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-books shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Catalogo</span>
+                <span class="nav-tooltip" x-show="!expandido">Catalogo</span>
             </a>
 
+            <!-- Usuarios -->
             <a th:href="@{/admin/usuarios}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Usuarios</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-users-three shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Usuarios</span>
+                <span class="nav-tooltip" x-show="!expandido">Usuarios</span>
             </a>
 
+            <!-- Reportes -->
             <a th:href="@{/admin/reportes}"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition text-green-100 hover:text-white">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span class="nav-label text-sm font-medium whitespace-nowrap overflow-hidden"
-                    :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Reportes</span>
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-file-chart-bar shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Reportes</span>
+                <span class="nav-tooltip" x-show="!expandido">Reportes</span>
             </a>
         </nav>
 
-        <!-- Cerrar sesión -->
+        <!-- Cerrar sesion -->
         <div sec:authorize="isAuthenticated()" class="px-2 py-4 border-t border-white/10 shrink-0">
             <form th:action="@{/logout}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-700/80 hover:bg-amber-600 transition text-amber-100 font-semibold">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                    class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-amber-700/80 hover:bg-amber-600 transition text-amber-100 font-semibold"
+                    :class="expandido ? '' : 'justify-center'">
+                    <i class="ph-bold ph-sign-out shrink-0" style="font-size:20px;"></i>
                     <span class="nav-label text-sm whitespace-nowrap overflow-hidden"
-                        :class="expandido ? 'opacity-100 w-auto' : 'opacity-0 w-0'">Cerrar sesión</span>
+                        :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Cerrar sesion</span>
+                    <span class="nav-tooltip" x-show="!expandido">Cerrar sesion</span>
                 </button>
             </form>
         </div>
     </aside>
 
-    <!-- ── ÁREA PRINCIPAL ──────────────────────── -->
+    <!-- ── AREA PRINCIPAL ────────────────────────────── -->
     <div class="flex-1 flex flex-col content-transition min-w-0 overflow-hidden"
         :class="expandido ? 'content-expanded' : 'content-collapsed'">
 
@@ -259,7 +303,7 @@
 
         <footer class="bg-green-900 text-amber-200 text-center py-3 text-sm flex items-center justify-center gap-2">
             <img th:src="@{/images/logo-agrocesar.png}" alt="Logo" class="w-4 h-4 object-contain opacity-70">
-            <span>Agrocesar · Sistema de Monitoreo de Cultivos y Alertas Climáticas © | Cesar, Colombia</span>
+            <span>Agrocesar · Sistema de Monitoreo de Cultivos y Alertas Climaticas © | Cesar, Colombia</span>
         </footer>
     </div>
 

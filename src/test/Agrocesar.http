@@ -9,3 +9,19 @@ Accept: application/json
 ### Listar catálogo (requiere estar logueado como ADMIN)
 GET http://localhost:8080/admin/catalogo
 Accept: application/json
+
+### Probar Groq
+POST https://api.groq.com/openai/v1/chat/completions
+Authorization: Bearer api_key_aqui
+Content-Type: application/json
+
+{
+  "model": "llama-3.3-70b-versatile",
+  "max_tokens": 300,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Eres un agrónomo experto en cultivos del Caribe colombiano. Se detectó una alerta de tipo TEMPERATURA_ALTA (severidad ALTA) en el cultivo de maíz. Valor registrado: 38.50. El cultivo lleva 15% de su ciclo completado (75 días restantes). En máximo 2 oraciones concretas y directas, indica qué debe hacer el agricultor ahora mismo."
+    }
+  ]
+}

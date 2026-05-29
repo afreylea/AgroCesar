@@ -7,8 +7,6 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import com.agrocesar.dto.RankingCultivoDTO;
 import java.util.List;
 import java.util.Optional;
-import com.agrocesar.repository.RankingCultivoDTOMapper;
-
 
 @RegisterRowMapper(RankingCultivoDTOMapper.class)
 @RegisterRowMapper(CultivoConUmbralesDTOMapper.class)
@@ -24,11 +22,13 @@ public interface CultivoConUmbralesRepository {
     List<CultivoConUmbralesDTO> findByUsuarioId(@Bind("usuarioId") Long usuarioId);
 
     @SqlQuery("""
-    SELECT cultivo AS nombre, municipio, SUM(hectareas) AS totalHectareas
-    FROM V_CULTIVOS_CON_UMBRALES
-    WHERE ACTIVO = 1
-    GROUP BY cultivo, municipio
-    ORDER BY totalHectareas DESC
-    """)
+            SELECT cultivo AS NOMBRE,
+                   COUNT(DISTINCT usuario_id) AS TOTAL_AGRICULTORES,
+                   SUM(hectareas) AS TOTAL_HECTAREAS
+            FROM V_CULTIVOS_CON_UMBRALES
+            WHERE ACTIVO = 1
+            GROUP BY cultivo
+            ORDER BY TOTAL_AGRICULTORES DESC
+            """)
     List<RankingCultivoDTO> findRankingCultivos();
 }

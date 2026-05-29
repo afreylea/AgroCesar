@@ -13,25 +13,101 @@ import java.util.Optional;
 @RegisterRowMapper(MunicipioMapper.class)
 public interface MunicipioRepository {
 
-    @SqlQuery("SELECT id, nombre, departamento, latitud, longitud, activo, fecha_creacion " +
-            "FROM municipios WHERE id = :id")
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        WHERE ID = :id
+        """)
     Optional<Municipio> findById(@Bind("id") Long id);
 
-    @SqlQuery("SELECT id, nombre, departamento, latitud, longitud, activo, fecha_creacion " +
-            "FROM municipios WHERE activo = 1 ORDER BY nombre")
-    List<Municipio> findAllActivos();
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        WHERE UPPER(NOMBRE) LIKE :nombre
+        """)
+    List<Municipio> findByNombre(@Bind("nombre") String nombre);
 
-    @SqlQuery("SELECT id, nombre, departamento, latitud, longitud, activo, fecha_creacion " +
-            "FROM municipios WHERE UPPER(nombre) LIKE UPPER(:nombre) AND activo = 1")
-    List<Municipio> searchByNombre(@Bind("nombre") String nombre);
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        WHERE UPPER(DEPARTAMENTO) = :departamento
+        ORDER BY NOMBRE
+        """)
+    List<Municipio> findByDepartamento(
+            @Bind("departamento") String departamento
+    );
 
-    @SqlQuery("SELECT SEQ_MUNICIPIOS.NEXTVAL FROM DUAL")
-    Long nextId();
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        WHERE ACTIVO = 1
+        ORDER BY NOMBRE
+        """)
+    List<Municipio> findActivos();
 
-    @SqlUpdate("INSERT INTO municipios (ID, nombre, departamento, latitud, longitud) " +
-           "VALUES (:id, :nombre, :departamento, :latitud, :longitud)")
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        WHERE ACTIVO = 0
+        ORDER BY NOMBRE
+        """)
+    List<Municipio> findInactivos();
+
+    @SqlQuery("""
+        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
+               ACTIVO, FECHA_CREACION
+        FROM MUNICIPIOS
+        ORDER BY NOMBRE
+        """)
+    List<Municipio> findAll();
+
+    @SqlUpdate("""
+        INSERT INTO MUNICIPIOS (
+            NOMBRE,
+            DEPARTAMENTO,
+            LATITUD,
+            LONGITUD,
+            ACTIVO,
+            FECHA_CREACION
+        )
+        VALUES (
+            :nombre,
+            :departamento,
+            :latitud,
+            :longitud,
+            :activo,
+            :fechaCreacion
+        )
+        """)
     void insert(@BindBean Municipio municipio);
 
-    @SqlUpdate("UPDATE municipios SET activo = 0 WHERE id = :id")
+    @SqlUpdate("""
+        UPDATE MUNICIPIOS
+        SET NOMBRE = :nombre,
+            DEPARTAMENTO = :departamento,
+            LATITUD = :latitud,
+            LONGITUD = :longitud,
+            ACTIVO = :activo
+        WHERE ID = :id
+        """)
+    int update(@BindBean Municipio municipio);
+
+    @SqlUpdate("""
+        UPDATE MUNICIPIOS
+        SET ACTIVO = 0
+        WHERE ID = :id
+        """)
     int desactivar(@Bind("id") Long id);
+
+    @SqlUpdate("""
+        UPDATE MUNICIPIOS
+        SET ACTIVO = 1
+        WHERE ID = :id
+        """)
+    int activar(@Bind("id") Long id);
 }

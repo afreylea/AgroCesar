@@ -52,11 +52,11 @@ public class DashboardController {
     private final CultivoConUmbralesRepository cultivoConUmbralesRepository;
 
     public DashboardController(WeatherService weatherService,
-                               MunicipioRepository municipioRepository,
-                               UsuarioService usuarioService,
-                               CultivoAgricultorService cultivoService,
-                               CatalogoRepository catalogoRepository,
-                               CultivoConUmbralesRepository cultivoConUmbralesRepository) {
+            MunicipioRepository municipioRepository,
+            UsuarioService usuarioService,
+            CultivoAgricultorService cultivoService,
+            CatalogoRepository catalogoRepository,
+            CultivoConUmbralesRepository cultivoConUmbralesRepository) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
         this.usuarioService = usuarioService;
@@ -173,7 +173,7 @@ public class DashboardController {
         return "dashboard";
     }
 
-    @GetMapping("/dashboard/ranking-cultivos")
+    @GetMapping(value = "/dashboard/ranking-cultivos", produces = "application/json")
     @ResponseBody
     public ResponseEntity<List<RankingCultivoDTO>> getRankingCultivos() {
         List<RankingCultivoDTO> ranking = cultivoConUmbralesRepository.findRankingCultivos();

@@ -3,19 +3,19 @@
 
 <body>
     <main class="px-2 pt-4" x-data="{
+    cultivoActivo: null,
+    municipioActivo: '',
+    latActiva: null,
+    lngActiva: null,
+    pronostico: [],
+    cargando: false,
+    mapa: null,
+    marcadores: [],
+    climaHoy: null,
+    rankingAbierto: false,
+    ranking: [],
+    rankingCargando: false,
 
-    /* ── Estado global del dashboard ─────────────────────── */
-    cultivoActivo: null,      // nombre del cultivo seleccionado
-    municipioActivo: '',      // nombre del municipio activo
-    latActiva: null,          // latitud del cultivo activo
-    lngActiva: null,          // longitud del cultivo activo
-    pronostico: [],           // array de 7 DailyForecast
-    cargando: false,          // spinner del pronostico
-    mapa: null,               // instancia Leaflet
-    marcadores: [],           // todos los marcadores del mapa
-    climaHoy: null,           // primer dia del pronostico (hoy)
-
-    /* ── Inicializacion: selecciona el primer cultivo ─────── */
     init() {
         const primero = document.querySelector('[data-cultivo]');
         if (primero) {
@@ -29,38 +29,33 @@
         }
     },
 
-    /* ── Selecciona un cultivo y carga su pronostico ──────── */
     seleccionar(municipioId, nombre, municipio, lat, lng) {
-        this.cultivoActivo  = nombre;
+        this.cultivoActivo   = nombre;
         this.municipioActivo = municipio;
-        this.latActiva      = parseFloat(lat);
-        this.lngActiva      = parseFloat(lng);
-        this.cargando       = true;
-        this.pronostico     = [];
-        this.climaHoy       = null;
+        this.latActiva       = parseFloat(lat);
+        this.lngActiva       = parseFloat(lng);
+        this.cargando        = true;
+        this.pronostico      = [];
+        this.climaHoy        = null;
 
         fetch('/api/pronostico/' + municipioId)
             .then(r => r.json())
             .then(data => {
                 this.pronostico = data;
-                this.climaHoy   = data[0]; // primer dia = hoy
+                this.climaHoy   = data[0];
                 this.cargando   = false;
                 this.actualizarMapa(this.latActiva, this.lngActiva, nombre, municipio);
             })
             .catch(() => { this.cargando = false; });
     },
 
-    /* ── Inicializa o actualiza el mapa Leaflet ───────────── */
     actualizarMapa(lat, lng, nombre, municipio) {
-
-        /* Primera vez: crea el mapa y agrega TODOS los cultivos */
         if (!this.mapa) {
             this.mapa = L.map('mapa-cultivo', { zoomControl: true, scrollWheelZoom: false });
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap', maxZoom: 18
             }).addTo(this.mapa);
 
-            /* Recorre todos los elementos con data-cultivo y agrega marcadores */
             document.querySelectorAll('[data-cultivo]').forEach(el => {
                 const elLat       = parseFloat(el.dataset.lat);
                 const elLng       = parseFloat(el.dataset.lng);
@@ -83,12 +78,10 @@
                     .addTo(this.mapa)
                     .bindPopup('<b>' + elNombre + '</b><br>' + elMunicipio + ', Cesar');
 
-                /* Guarda referencia para poder actualizar el color despues */
                 this.marcadores.push({ marker: m, nombre: elNombre });
             });
         }
 
-        /* Actualiza color de todos los marcadores segun el cultivo activo */
         this.marcadores.forEach(m => {
             const esActivo = m.nombre === nombre;
             const color    = esActivo ? '#16a34a' : '#9ca3af';
@@ -101,22 +94,101 @@
                 iconAnchor: [size/2, size/2]
             }));
 
-            /* Abre popup del cultivo activo automaticamente */
             if (esActivo) m.marker.openPopup();
         });
 
         this.mapa.setView([lat, lng], 11);
     },
 
-    /* ── Retorna icono Phosphor segun condicion climatica ─── */
     icono(lluvia, tempMax) {
         if (lluvia > 15) return '<i class=&quot;ph-fill ph-cloud-lightning&quot; style=&quot;font-size:28px;color:#6366f1;&quot;></i>';
         if (lluvia > 5)  return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#3b82f6;&quot;></i>';
         if (lluvia > 0)  return '<i class=&quot;ph-fill ph-cloud-drizzle&quot; style=&quot;font-size:28px;color:#60a5fa;&quot;></i>';
         if (tempMax > 35) return '<i class=&quot;ph-fill ph-thermometer-hot&quot; style=&quot;font-size:28px;color:#ef4444;&quot;></i>';
         return '<i class=&quot;ph-fill ph-sun&quot; style=&quot;font-size:28px;color:#f59e0b;&quot;></i>';
+    },
+
+    abrirRanking() {
+        this.rankingAbierto   = true;
+        this.rankingCargando  = true;
+        fetch('/dashboard/ranking-cultivos')
+            .then(r => r.json())
+            .then(data => { this.ranking = data; this.rankingCargando = false; })
+            .catch(() => { this.rankingCargando = false; });
     }
 }">
+
+        <style>
+            .leaflet-pane,
+            .leaflet-control,
+            .leaflet-top,
+            .leaflet-bottom {
+                z-index: 400 !important;
+            }
+        </style>
+
+        <!-- ── MODAL RANKING ─────────────────────────────────── -->
+        <div x-show="rankingAbierto" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+            style="z-index:99999; display:none;">
+            <div @click.away="rankingAbierto = false" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
+
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
+                            <i class="ph-fill ph-trophy" style="font-size:18px; color:#ca8a04;"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Ranking de Cultivos</h3>
+                            <p class="text-xs text-gray-400">Por hectareas cultivadas en el Cesar</p>
+                        </div>
+                    </div>
+                    <button @click="rankingAbierto = false"
+                        class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                        <i class="ph-bold ph-x" style="font-size:14px;"></i>
+                    </button>
+                </div>
+
+                <div x-show="rankingCargando" class="flex items-center justify-center py-10 gap-3 text-gray-400">
+                    <div class="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                    <span class="text-sm">Cargando ranking...</span>
+                </div>
+
+                <div x-show="!rankingCargando">
+                    <div x-show="ranking.length === 0"
+                        class="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
+                        <i class="ph-duotone ph-chart-bar" style="font-size:32px;color:#d1d5db;"></i>
+                        No hay datos disponibles.
+                    </div>
+                    <ul x-show="ranking.length > 0" class="space-y-2">
+                        <template x-for="(item, index) in ranking" :key="index">
+                            <li
+                                class="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 hover:bg-green-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0"
+                                        :class="index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                      index === 1 ? 'bg-gray-300 text-gray-700' :
+                      index === 2 ? 'bg-amber-600 text-white' : 'bg-green-700 text-white'" x-text="index + 1"></span>
+                                    <span class="text-gray-800 font-semibold text-sm" x-text="item.nombre"></span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="text-blue-600 font-semibold text-xs bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full"
+                                        x-text="item.totalAgricultores + ' agricultores'"></span>
+                                    <span
+                                        class="text-green-700 font-semibold text-xs bg-green-50 border border-green-100 px-2.5 py-1 rounded-full"
+                                        x-text="item.totalHectareas + ' ha'"></span>
+                                </div>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
         <!-- ── HERO ─────────────────────────────────────────── -->
         <div class="relative overflow-hidden mb-8" style="height:240px;
@@ -127,8 +199,6 @@
                     box-shadow:0 20px 60px rgba(0,0,0,0.25);">
             <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/30"></div>
             <div class="relative z-10 h-full flex items-center justify-between px-10">
-
-                <!-- Saludo y municipio activo -->
                 <div class="text-white">
                     <p class="text-green-300 text-xs font-semibold uppercase tracking-widest mb-1">Sistema activo</p>
                     <h2 class="text-3xl font-bold mb-1" th:text="'¡Hola, ' + ${usuario.nombre} + '!'"></h2>
@@ -140,14 +210,9 @@
                         <span x-text="municipioActivo ? municipioActivo + ', Cesar' : 'Cesar, Colombia'"></span>
                     </span>
                 </div>
-
-                <!-- Card clima hoy — reactiva al cambio de cultivo via Alpine -->
                 <div x-show="climaHoy" class="text-white text-center border border-white/20 rounded-2xl p-4"
                     style="background:rgba(255,255,255,0.12); backdrop-filter:blur(16px); min-width:150px;">
-
-                    <!-- Icono Phosphor segun condicion climatica -->
                     <div class="mb-1" x-html="climaHoy ? icono(climaHoy.lluviaMm, climaHoy.tempMax) : ''"></div>
-
                     <div class="text-4xl font-black" x-text="climaHoy ? climaHoy.tempMax + '°C' : '--'"></div>
                     <div class="text-white/60 text-xs uppercase tracking-wide mt-1">Hoy</div>
                     <div class="mt-2 pt-2 border-t border-white/20 text-xs grid grid-cols-2 gap-1">
@@ -176,8 +241,6 @@
                         <p class="text-xs text-gray-400">Selecciona para actualizar pronostico y mapa</p>
                     </div>
                 </div>
-
-                <!-- Pills de cultivos — Alpine actualiza el activo -->
                 <div class="flex flex-wrap gap-2">
                     <button th:each="c : ${cultivos}" th:data-cultivo="'true'" th:data-municipio-id="${c.municipioId}"
                         th:data-nombre="${c.nombreCultivo}" th:data-municipio="${c.municipio}"
@@ -205,39 +268,30 @@
                         · Proximos 7 dias
                     </p>
                 </div>
-                <!-- Spinner mientras carga -->
                 <div x-show="cargando" class="flex items-center gap-2 text-xs text-gray-400">
                     <div class="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
                     Actualizando...
                 </div>
             </div>
 
-            <!-- Render inicial con Thymeleaf — visible hasta que Alpine carga datos -->
             <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}"
                 x-show="pronostico.length === 0 && !cargando"
                 class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <div th:each="dia, iterStat : ${pronostico}"
                     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-
-                    <!-- Barra de color superior por dia -->
                     <div th:class="'h-1 rounded-full mb-3 ' +
                         (${iterStat.index == 0} ? 'bg-green-400' :
                         (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
                         (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
                         (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
                         (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
-                        (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300'))))))">
-                    </div>
-
-                    <!-- Badge hoy / fecha -->
+                        (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300'))))))"></div>
                     <div th:if="${iterStat.index == 0}"
                         class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
                         Hoy</div>
                     <p th:if="${iterStat.index != 0}" class="text-xs text-gray-500 font-medium mb-1"
                         th:text="${#strings.substring(dia.fecha,8,10)} + '/' + ${#strings.substring(dia.fecha,5,7)}">
                     </p>
-
-                    <!-- Icono Phosphor segun condicion climatica (Thymeleaf) -->
                     <div class="mb-1">
                         <i th:if="${dia.lluviaMm > 15}" class="ph-fill ph-cloud-lightning"
                             style="font-size:28px;color:#6366f1;"></i>
@@ -250,7 +304,6 @@
                         <i th:if="${dia.lluviaMm == 0 && dia.tempMax <= 35}" class="ph-fill ph-sun"
                             style="font-size:28px;color:#f59e0b;"></i>
                     </div>
-
                     <p class="text-lg font-black text-gray-900" th:text="${dia.tempMax} + '°C'"></p>
                     <p class="text-xs text-gray-400 mb-2" th:text="'↓ ' + ${dia.tempMin} + '°C'"></p>
                     <p class="text-xs text-blue-500" th:text="${dia.lluviaMm} + ' mm'"></p>
@@ -258,27 +311,19 @@
                 </div>
             </div>
 
-            <!-- Render dinamico con Alpine — se actualiza al cambiar de cultivo -->
             <div x-show="pronostico.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <template x-for="(dia, index) in pronostico" :key="index">
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
                         :class="index === 0 ? 'ring-2 ring-green-400 ring-offset-1' : ''">
-
-                        <!-- Barra de color superior -->
                         <div class="h-1 rounded-full mb-3"
                             :class="['bg-green-400','bg-orange-400','bg-blue-400','bg-purple-400','bg-sky-400','bg-amber-400','bg-yellow-300'][index % 7]">
                         </div>
-
-                        <!-- Badge hoy / fecha -->
                         <div x-show="index === 0"
                             class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
                             Hoy</div>
                         <p x-show="index !== 0" class="text-xs text-gray-500 font-medium mb-1"
                             x-text="dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : ''"></p>
-
-                        <!-- Icono Phosphor via x-html — reactivo al cambio de cultivo -->
                         <div class="mb-1" x-html="icono(dia.lluviaMm, dia.tempMax)"></div>
-
                         <p class="text-lg font-black text-gray-900" x-text="dia.tempMax + '°C'"></p>
                         <p class="text-xs text-gray-400 mb-2" x-text="'↓ ' + dia.tempMin + '°C'"></p>
                         <p class="text-xs text-blue-500" x-text="dia.lluviaMm + ' mm'"></p>
@@ -287,7 +332,6 @@
                 </template>
             </div>
 
-            <!-- Estado vacio — sin cultivos o sin datos -->
             <div x-show="pronostico.length === 0 && !cargando" th:if="${#lists.isEmpty(pronostico)}"
                 class="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400 text-sm">
                 Selecciona un cultivo para ver el pronostico
@@ -297,7 +341,6 @@
         <!-- ── MAPA + CULTIVOS ─────────────────────────────── -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-            <!-- Mapa Leaflet con todos los cultivos -->
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -309,10 +352,7 @@
                         Todos tus cultivos
                     </span>
                 </div>
-
                 <div id="mapa-cultivo" style="height:320px; width:100%;"></div>
-
-                <!-- Leyenda del mapa -->
                 <div
                     class="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
                     <span class="flex items-center gap-1.5">
@@ -327,18 +367,24 @@
                 </div>
             </div>
 
-            <!-- Lista de cultivos del agricultor -->
             <div>
+                <!-- Header con boton ranking visible -->
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-lg font-bold text-gray-900">Mis Cultivos</h3>
-                    <a th:href="@{/cultivos}"
-                        class="text-xs text-green-700 hover:text-green-800 font-medium flex items-center gap-1">
-                        Ver todos
-                        <i class="ph-bold ph-caret-right" style="font-size:12px;"></i>
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <button @click="abrirRanking()"
+                            class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
+                            <i class="ph-fill ph-trophy" style="font-size:14px;"></i>
+                            Ranking
+                        </button>
+                        <a th:href="@{/cultivos}"
+                            class="text-xs text-green-700 hover:text-green-800 font-medium flex items-center gap-1">
+                            Ver todos
+                            <i class="ph-bold ph-caret-right" style="font-size:12px;"></i>
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Estado vacio -->
                 <div th:if="${#lists.isEmpty(cultivos)}"
                     class="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center">
                     <i class="ph-duotone ph-plant" style="font-size:36px; color:#86efac;"></i>
@@ -350,7 +396,6 @@
                     </a>
                 </div>
 
-                <!-- Cards de cultivos — clickeables para cambiar el activo -->
                 <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1" th:if="${not #lists.isEmpty(cultivos)}">
                     <div th:each="c : ${cultivos}" th:data-cultivo="'true'" th:data-municipio-id="${c.municipioId}"
                         th:data-nombre="${c.nombreCultivo}" th:data-municipio="${c.municipio}"
@@ -361,8 +406,6 @@
                              : 'hover:shadow-md hover:-translate-y-0.5'"
                         class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer transition-all duration-200">
                         <div class="flex h-24">
-
-                            <!-- Imagen del cultivo o fallback con icono -->
                             <div class="w-24 relative overflow-hidden shrink-0">
                                 <img th:if="${c.imagenUrl != null && !#strings.isEmpty(c.imagenUrl)}"
                                     th:src="@{/imagenes/} + ${c.imagenUrl}" class="w-full h-full object-cover"
@@ -371,15 +414,12 @@
                                     class="w-full h-full bg-green-50 flex items-center justify-center">
                                     <i class="ph-duotone ph-plant" style="font-size:28px; color:#86efac;"></i>
                                 </div>
-                                <!-- Overlay de cultivo activo -->
                                 <div x-show="cultivoActivo === $el.closest('[data-nombre]').dataset.nombre"
                                     class="absolute inset-0 bg-green-900/40 flex items-center justify-center">
                                     <div class="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
                                         ✓</div>
                                 </div>
                             </div>
-
-                            <!-- Datos del cultivo -->
                             <div class="flex-1 p-3 flex flex-col justify-between">
                                 <div>
                                     <div class="flex items-center justify-between">
@@ -399,83 +439,6 @@
                                     <span class="text-gray-400"
                                         th:text="${#temporals.format(c.fechaSiembra, 'dd/MM/yy')}"></span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ranking de cultivos -->
-                <div x-data="{
-                    abierto: false,
-                    ranking: [],
-                    cargando: false,
-                    abrirRanking() {
-                        this.abierto  = true;
-                        this.cargando = true;
-                        fetch('/dashboard/ranking-cultivos')
-                            .then(r => r.json())
-                            .then(data => { this.ranking = data; this.cargando = false; })
-                            .catch(() => { this.cargando = false; });
-                    }
-                }" class="mt-3 text-right">
-
-                    <button @click="abrirRanking()"
-                        class="text-xs text-green-700 hover:text-green-800 font-medium flex items-center gap-1 ml-auto transition">
-                        <i class="ph-fill ph-trophy" style="font-size:13px; color:#16a34a;"></i>
-                        Ver ranking de cultivos
-                    </button>
-
-                    <!-- Modal ranking -->
-                    <div x-show="abierto"
-                        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
-                        style="display:none">
-                        <div @click.away="abierto = false"
-                            class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
-
-                            <div class="flex items-center justify-between mb-5">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                                        <i class="ph-duotone ph-trophy" style="font-size:18px; color:#16a34a;"></i>
-                                    </div>
-                                    <h3 class="font-bold text-gray-900">Ranking de Cultivos</h3>
-                                </div>
-                                <button @click="abierto = false"
-                                    class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
-                                    <i class="ph-bold ph-x" style="font-size:14px;"></i>
-                                </button>
-                            </div>
-
-                            <!-- Spinner carga ranking -->
-                            <div x-show="cargando" class="flex items-center justify-center py-10 gap-3 text-gray-400">
-                                <div
-                                    class="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin">
-                                </div>
-                                <span class="text-sm">Cargando ranking...</span>
-                            </div>
-
-                            <div x-show="!cargando">
-                                <div x-show="ranking.length === 0" class="text-gray-400 text-sm text-center py-8">
-                                    No hay datos disponibles.
-                                </div>
-                                <ul x-show="ranking.length > 0" class="space-y-2">
-                                    <template x-for="(item, index) in ranking" :key="index">
-                                        <li
-                                            class="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 hover:bg-green-50 transition">
-                                            <div class="flex items-center gap-3">
-                                                <!-- Medallas por posicion -->
-                                                <span
-                                                    class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs text-white shrink-0"
-                                                    :class="index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-amber-600' : 'bg-green-700'"
-                                                    x-text="index + 1"></span>
-                                                <span class="text-gray-800 font-medium text-sm"
-                                                    x-text="item.nombre"></span>
-                                            </div>
-                                            <span
-                                                class="text-green-700 font-semibold text-xs bg-green-50 px-3 py-1 rounded-full"
-                                                x-text="item.total + ' agricultores'"></span>
-                                        </li>
-                                    </template>
-                                </ul>
                             </div>
                         </div>
                     </div>

@@ -3,9 +3,13 @@ package com.agrocesar.controller.admin;
 import com.agrocesar.dto.AlertaVistaDTO;
 import com.agrocesar.service.AlertaService;
 import com.agrocesar.service.UsuarioService;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -53,28 +57,47 @@ public class AdminDashboardController {
      * @return nombre de la plantilla Thymeleaf: admin/dashboard
      */
     @GetMapping("/admin/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+            Model model) {
+
+        if (fechaDesde == null)
+            fechaDesde = LocalDate.now().minusDays(7);
+        if (fechaHasta == null)
+            fechaHasta = LocalDate.now();
 
         List<AlertaVistaDTO> historial = alertaService.findAll();
 
-        long totalAlertas = historial.size();
-        long alertasActivas = historial.stream()
-                .filter(a -> !a.isLeida()).count();
-        long alertasTransitorio = historial.stream()
-                .filter(a -> "TRANSITORIO".equals(a.getCategoria())).count();
-        long alertasPermanente = historial.stream()
-                .filter(a -> "PERMANENTE".equals(a.getCategoria())).count();
+        /* Filtro por fechas en memoria */
+        final LocalDate desde = fechaDesde;
+        final LocalDate hasta = fechaHasta;
+        List<AlertaVistaDTO> historialFiltrado = historial.stream()
+                .filter(a -> {
+                    if (a.getFechaGeneracion() == null)
+                        return false;
+                    LocalDate fecha = a.getFechaGeneracion().toLocalDate();
+                    return !fecha.isBefore(desde) && !fecha.isAfter(hasta);
+                })
+                .toList();
+
+        long totalAlertas = historialFiltrado.size();
+        long alertasActivas = historialFiltrado.stream().filter(a -> !a.isLeida()).count();
+        long alertasTransitorio = historialFiltrado.stream().filter(a -> "TRANSITORIO".equals(a.getCategoria()))
+                .count();
+        long alertasPermanente = historialFiltrado.stream().filter(a -> "PERMANENTE".equals(a.getCategoria())).count();
         long agricultoresActivos = usuarioService.listarActivos().stream()
                 .filter(u -> "AGRICULTOR".equals(u.getRol())).count();
 
-        List<AlertaAdminView> historialView = historial.stream().map(a -> new AlertaAdminView(
+        List<AlertaAdminView> historialView = historialFiltrado.stream().map(a -> new AlertaAdminView(
                 a.getAgricultor(),
                 a.getCultivo(),
                 a.getCategoria(),
                 a.getDescripcion(),
-                a.getFechaGeneracion() != null
-                        ? a.getFechaGeneracion().toLocalDate().atStartOfDay()
-                        : null))
+                a.getSeveridad(),
+                a.getTipoAlerta(),
+                a.isLeida(),
+                a.getFechaGeneracion() != null ? a.getFechaGeneracion().toLocalDate().atStartOfDay() : null))
                 .toList();
 
         model.addAttribute("historialAlertas", historialView);
@@ -83,6 +106,8 @@ public class AdminDashboardController {
         model.addAttribute("alertasTransitorio", alertasTransitorio);
         model.addAttribute("alertasPermanente", alertasPermanente);
         model.addAttribute("agricultoresActivos", agricultoresActivos);
+        model.addAttribute("fechaDesde", fechaDesde);
+        model.addAttribute("fechaHasta", fechaHasta);
 
         return "admin/dashboard";
     }
@@ -100,48 +125,53 @@ public class AdminDashboardController {
         private final String nombreCultivo;
         private final String categoria;
         private final String descripcion;
+        private final String severidad;
+        private final String tipoAlerta;
+        private final boolean leida;
         private final java.time.LocalDateTime fechaCreacion;
 
-        /**
-         * Construye la vista a partir de los campos del DTO original.
-         *
-         * @param nombreAgricultor nombre completo del agricultor
-         * @param nombreCultivo    nombre del cultivo afectado
-         * @param categoria        TRANSITORIO o PERMANENTE
-         * @param descripcion      descripcion de la alerta generada
-         * @param fechaCreacion    fecha y hora de generacion de la alerta
-         */
         public AlertaAdminView(String nombreAgricultor, String nombreCultivo,
                 String categoria, String descripcion,
+                String severidad, String tipoAlerta, boolean leida,
                 java.time.LocalDateTime fechaCreacion) {
             this.nombreAgricultor = nombreAgricultor;
             this.nombreCultivo = nombreCultivo;
             this.categoria = categoria;
             this.descripcion = descripcion;
+            this.severidad = severidad;
+            this.tipoAlerta = tipoAlerta;
+            this.leida = leida;
             this.fechaCreacion = fechaCreacion;
         }
 
-        /** @return nombre completo del agricultor */
         public String getNombreAgricultor() {
             return nombreAgricultor;
         }
 
-        /** @return nombre del cultivo afectado */
         public String getNombreCultivo() {
             return nombreCultivo;
         }
 
-        /** @return categoria de la alerta: TRANSITORIO o PERMANENTE */
         public String getCategoria() {
             return categoria;
         }
 
-        /** @return descripcion del umbral superado */
         public String getDescripcion() {
             return descripcion;
         }
 
-        /** @return fecha y hora de generacion de la alerta */
+        public String getSeveridad() {
+            return severidad;
+        }
+
+        public String getTipoAlerta() {
+            return tipoAlerta;
+        }
+
+        public boolean isLeida() {
+            return leida;
+        }
+
         public java.time.LocalDateTime getFechaCreacion() {
             return fechaCreacion;
         }

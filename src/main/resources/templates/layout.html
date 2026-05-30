@@ -248,6 +248,16 @@
                 <span class="nav-tooltip" x-show="!expandido">Dashboard</span>
             </a>
 
+            <!--Municipios-->
+            <a th:href="@{/admin/municipios}"
+                class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
+                :class="expandido ? '' : 'justify-center'">
+                <i class="ph-duotone ph-map-trifold shrink-0" style="font-size:22px;"></i>
+                <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
+                    :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Municipios</span>
+                <span class="nav-tooltip" x-show="!expandido">Municipios</span>
+            </a>
+
             <!-- Catalogo -->
             <a th:href="@{/admin/catalogo}"
                 class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
@@ -272,7 +282,7 @@
             <a th:href="@{/admin/reportes}"
                 class="nav-item relative flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-green-100 hover:text-white"
                 :class="expandido ? '' : 'justify-center'">
-                <i class="ph-duotone ph-file-chart-bar shrink-0" style="font-size:22px;"></i>
+                <i class="ph-duotone ph-chart-line-up shrink-0" style="font-size:22px;"></i>
                 <span class="nav-label text-sm font-semibold whitespace-nowrap overflow-hidden"
                     :class="expandido ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'">Reportes</span>
                 <span class="nav-tooltip" x-show="!expandido">Reportes</span>

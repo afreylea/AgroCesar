@@ -22,19 +22,19 @@ public class ReporteController {
 
     @GetMapping
     public String reportes(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
             Model model) {
 
-        if (fechaDesde == null) fechaDesde = LocalDate.now().minusMonths(1);
-        if (fechaHasta == null) fechaHasta = LocalDate.now();
+        if (fechaDesde == null)
+            fechaDesde = LocalDate.now().minusMonths(1);
+        if (fechaHasta == null)
+            fechaHasta = LocalDate.now();
 
         model.addAttribute("alertas", reporteService.alertasPorPeriodo(fechaDesde, fechaHasta));
         model.addAttribute("cultivosAfectados", reporteService.cultivosMasAfectados(fechaDesde, fechaHasta));
-        model.addAttribute("totalActivas", reporteService.totalAlertasActivas());
-        model.addAttribute("totalCriticas", reporteService.totalAlertasCriticas());
+        model.addAttribute("totalActivas", reporteService.totalAlertasActivas(fechaDesde, fechaHasta));
+        model.addAttribute("totalCriticas", reporteService.totalAlertasCriticas(fechaDesde, fechaHasta));
         model.addAttribute("fechaDesde", fechaDesde);
         model.addAttribute("fechaHasta", fechaHasta);
 

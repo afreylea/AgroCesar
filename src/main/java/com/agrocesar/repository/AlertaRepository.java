@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RegisterRowMapper(AlertaVistaDTOMapper.class)
+@RegisterRowMapper(CultivoMasAfectadoMapper.class)
+
 public interface AlertaRepository {
 
     //Escritura (tabla ALERTAS)

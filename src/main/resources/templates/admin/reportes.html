@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Reportes - Admin Agrocesar', ~{::main})}">
+
+<body>
+    <main class="px-1 pt-2 pb-12" x-data="{
+          visibles: 8,
+          total: [[${#lists.size(alertas)}]],
+          mostrarMas() { this.visibles = Math.min(this.visibles + 8, this.total); },
+          get hayMas() { return this.visibles < this.total; },
+          get progreso() { return this.total === 0 ? 100 : Math.round((this.visibles / this.total) * 100); }
+      }">
+
+        <!-- ── HERO ──────────────────────────────────────── -->
+        <div class="relative overflow-hidden mb-8" style="height:160px;
+                border-radius:2rem;
+                background-image:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&fit=crop');
+                background-size:cover;
+                background-position:center;
+                box-shadow:0 16px 48px rgba(0,0,0,0.2);">
+            <div class="absolute inset-0"
+                style="background:linear-gradient(135deg,rgba(5,46,22,0.92) 0%,rgba(5,46,22,0.5) 60%,rgba(5,46,22,0.1) 100%);">
+            </div>
+            <div class="relative z-10 h-full flex items-center justify-between px-10">
+                <div class="text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-green-300 text-xs font-semibold uppercase tracking-widest">Panel de
+                            administracion</span>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-1">Reportes</h2>
+                    <p class="text-green-100/70 text-sm">Analisis de alertas y cultivos afectados por periodo</p>
+                </div>
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="text-center rounded-2xl px-5 py-3"
+                        style="background:rgba(255,255,255,0.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);">
+                        <p class="text-2xl font-black text-white" th:text="${totalActivas}">0</p>
+                        <p class="text-green-300 text-xs mt-0.5 flex items-center gap-1 justify-center">
+                            <span class="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>
+                            activas ahora
+                        </p>
+                    </div>
+                    <div class="text-center rounded-2xl px-5 py-3"
+                        style="background:rgba(239,68,68,0.2);backdrop-filter:blur(16px);border:1px solid rgba(239,68,68,0.3);">
+                        <p class="text-2xl font-black text-white" th:text="${totalCriticas}">0</p>
+                        <p class="text-red-300 text-xs mt-0.5">criticas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── FILTRO DE FECHAS ───────────────────────────── -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph-fill ph-calendar-blank" style="font-size:16px;color:#16a34a;"></i>
+                <p class="text-sm font-bold text-gray-800">Filtrar por periodo</p>
+            </div>
+            <form th:action="@{/admin/reportes}" method="get" class="flex flex-col sm:flex-row items-end gap-4">
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Desde</label>
+                    <div class="relative">
+                        <div
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                            <i class="ph-fill ph-calendar-blank" style="font-size:13px;color:#16a34a;"></i>
+                        </div>
+                        <input type="date" name="fechaDesde" th:value="${fechaDesde}"
+                            class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none hover:border-gray-300 transition">
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Hasta</label>
+                    <div class="relative">
+                        <div
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
+                            <i class="ph-fill ph-calendar-check" style="font-size:13px;color:#16a34a;"></i>
+                        </div>
+                        <input type="date" name="fechaHasta" th:value="${fechaHasta}"
+                            class="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none hover:border-gray-300 transition">
+                    </div>
+                </div>
+                <button type="submit"
+                    class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-semibold transition shadow-sm whitespace-nowrap">
+                    <i class="ph-bold ph-magnifying-glass" style="font-size:14px;"></i>
+                    Generar Reporte
+                </button>
+            </form>
+        </div>
+
+        <!-- ── STATS DEL PERIODO ──────────────────────────── -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-duotone ph-bell" style="font-size:20px;color:#6b7280;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">En periodo</p>
+                        <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(alertas)}">0</p>
+                        <p class="text-xs text-gray-500 font-medium">Alertas</p>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                    <div class="bg-gray-400 h-1.5 rounded-full" style="width:100%"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-fill ph-warning-octagon" style="font-size:20px;color:#dc2626;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Activas</p>
+                        <p class="text-2xl font-black text-red-600" th:text="${totalActivas}">0</p>
+                        <p class="text-xs text-red-500 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>
+                            Ahora mismo
+                        </p>
+                    </div>
+                </div>
+                <div class="w-full bg-red-100 rounded-full h-1.5">
+                    <div class="bg-red-500 h-1.5 rounded-full transition-all"
+                        th:style="'width:' + (${#lists.size(alertas)} > 0 ? (${totalActivas} * 100 / ${#lists.size(alertas)}) : 0) + '%'">
+                    </div>
+                </div>
+            </div>
+            <div
+                class="bg-white rounded-2xl p-5 shadow-sm border border-purple-100 hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-fill ph-lightning" style="font-size:20px;color:#9333ea;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Criticas</p>
+                        <p class="text-2xl font-black text-purple-600" th:text="${totalCriticas}">0</p>
+                        <p class="text-xs text-purple-500 font-medium">Severidad alta</p>
+                    </div>
+                </div>
+                <div class="w-full bg-purple-100 rounded-full h-1.5">
+                    <div class="bg-purple-500 h-1.5 rounded-full transition-all"
+                        th:style="'width:' + (${#lists.size(alertas)} > 0 ? (${totalCriticas} * 100 / ${#lists.size(alertas)}) : 0) + '%'">
+                    </div>
+                </div>
+            </div>
+            <div
+                class="bg-white rounded-2xl p-5 shadow-sm border border-green-100 hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-duotone ph-plant" style="font-size:20px;color:#16a34a;"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Cultivos</p>
+                        <p class="text-2xl font-black text-green-700" th:text="${#lists.size(cultivosAfectados)}">0</p>
+                        <p class="text-xs text-green-600 font-medium">Afectados</p>
+                    </div>
+                </div>
+                <div class="w-full bg-green-100 rounded-full h-1.5">
+                    <div class="bg-green-500 h-1.5 rounded-full" style="width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CULTIVOS MAS AFECTADOS ─────────────────────── -->
+        <div th:if="${not #lists.isEmpty(cultivosAfectados)}" class="mb-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph-fill ph-chart-bar" style="font-size:16px;color:#16a34a;"></i>
+                <h3 class="text-base font-bold text-gray-900">Cultivos mas afectados</h3>
+                <span class="text-xs text-gray-400">en el periodo seleccionado</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div th:each="c, iterStat : ${cultivosAfectados}"
+                    class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:-translate-y-0.5 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <!-- Posicion -->
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs text-white shrink-0"
+                                th:classappend="${iterStat.index == 0} ? 'bg-yellow-400' : (${iterStat.index == 1} ? 'bg-gray-400' : (${iterStat.index == 2} ? 'bg-amber-600' : 'bg-green-700'))"
+                                th:text="${iterStat.index + 1}"></div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-900" th:text="${c.nombreCultivo}"></p>
+                                <p class="text-xs text-gray-400 flex items-center gap-1">
+                                    <i class="ph-fill ph-map-pin" style="font-size:10px;color:#9ca3af;"></i>
+                                    <span th:text="${c.municipio}"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xl font-black text-red-600" th:text="${c.totalAlertas}"></p>
+                            <p class="text-xs text-gray-400">alertas</p>
+                        </div>
+                    </div>
+                    <!-- Barra proporcional al maximo -->
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full transition-all duration-500"
+                            th:classappend="${iterStat.index == 0} ? 'bg-yellow-400' : (${iterStat.index == 1} ? 'bg-gray-400' : (${iterStat.index == 2} ? 'bg-amber-500' : 'bg-green-600'))"
+                            th:style="'width:' + (${cultivosAfectados[0].totalAlertas} > 0 ? (${c.totalAlertas} * 100 / ${cultivosAfectados[0].totalAlertas}) : 0) + '%'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TABLA ALERTAS DEL PERIODO ──────────────────── -->
+        <div class="flex items-center gap-2 mb-4">
+            <i class="ph-fill ph-clock-counter-clockwise" style="font-size:16px;color:#16a34a;"></i>
+            <h3 class="text-base font-bold text-gray-900">Detalle de alertas</h3>
+            <span class="text-xs text-gray-400"
+                th:text="'del ' + ${#temporals.format(fechaDesde, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(fechaHasta, 'dd/MM/yyyy')}"></span>
+            <span th:if="${not #lists.isEmpty(alertas)}"
+                class="ml-auto text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full"
+                th:text="${#lists.size(alertas)} + ' registros'"></span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(alertas)}"
+            class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+            <i class="ph-duotone ph-bell-slash" style="font-size:48px;color:#d1d5db;"></i>
+            <p class="text-gray-400 text-sm mt-3">No hay alertas en el periodo seleccionado.</p>
+            <p class="text-gray-300 text-xs mt-1">Ajusta el rango de fechas e intenta de nuevo.</p>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(alertas)}"
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <div class="bg-gradient-to-r from-green-900 to-green-700 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="ph-fill ph-bell" style="font-size:16px;color:#86efac;"></i>
+                    <span class="text-white font-semibold text-sm">Alertas del Periodo</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2">
+                        <div class="w-24 bg-white/20 rounded-full h-1.5">
+                            <div class="bg-green-300 h-1.5 rounded-full transition-all duration-500"
+                                :style="'width:' + progreso + '%'"></div>
+                        </div>
+                        <span class="text-green-300 text-xs" x-text="Math.min(visibles, total) + ' / ' + total"></span>
+                    </div>
+                    <span class="text-green-300 text-xs font-mono"
+                        th:text="${#lists.size(alertas)} + ' registros'"></span>
+                </div>
+            </div>
+
+            <!-- Encabezado tabla -->
+            <div
+                class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                <div class="col-span-2">Agricultor</div>
+                <div class="col-span-2">Cultivo</div>
+                <div class="col-span-1 text-center">Severidad</div>
+                <div class="col-span-2 text-center">Categoria</div>
+                <div class="col-span-2">Tipo</div>
+                <div class="col-span-2">Descripcion</div>
+                <div class="col-span-1 text-center">Fecha</div>
+            </div>
+
+            <!-- Filas con carga progresiva -->
+            <div th:each="a, iterStat : ${alertas}" x-show="[[${iterStat.index}]] < visibles"
+                x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                class="grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-gray-50 items-center hover:bg-gray-50/60 transition text-sm">
+
+                <!-- Agricultor -->
+                <div class="col-span-2 flex items-center gap-2">
+                    <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                        <span class="text-xs font-black text-green-700"
+                            th:text="${#strings.toUpperCase(#strings.substring(a.agricultor, 0, 1))}"></span>
+                    </div>
+                    <span class="text-gray-800 font-medium truncate text-xs" th:text="${a.agricultor}"></span>
+                </div>
+
+                <!-- Cultivo -->
+                <div class="col-span-2">
+                    <span class="text-gray-900 font-semibold text-xs" th:text="${a.cultivo}"></span>
+                    <p class="text-xs text-gray-400 flex items-center gap-0.5 mt-0.5">
+                        <i class="ph-fill ph-map-pin" style="font-size:9px;"></i>
+                        <span th:text="${a.municipio}"></span>
+                    </p>
+                </div>
+
+                <!-- Severidad -->
+                <div class="col-span-1 text-center">
+                    <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full"
+                        th:classappend="${a.severidad == 'ALTA'} ? 'bg-red-100 text-red-600' : (${a.severidad == 'MEDIA'} ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600')"
+                        th:text="${a.severidad}"></span>
+                </div>
+
+                <!-- Categoria -->
+                <div class="col-span-2 text-center">
+                    <span th:if="${a.categoria == 'TRANSITORIO'}"
+                        class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <i class="ph-fill ph-clock-countdown" style="font-size:9px;"></i>
+                        Transitorio
+                    </span>
+                    <span th:if="${a.categoria == 'PERMANENTE'}"
+                        class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <i class="ph-fill ph-tree-evergreen" style="font-size:9px;"></i>
+                        Permanente
+                    </span>
+                </div>
+
+                <!-- Tipo alerta -->
+                <div class="col-span-2">
+                    <span class="text-xs text-gray-600 font-medium" th:text="${a.tipoAlerta}"></span>
+                </div>
+
+                <!-- Descripcion -->
+                <div class="col-span-2">
+                    <p class="text-xs text-gray-500 line-clamp-2" th:text="${a.descripcion}"></p>
+                </div>
+
+                <!-- Fecha -->
+                <div class="col-span-1 text-center">
+                    <span class="text-xs text-gray-400 font-mono"
+                        th:text="${#temporals.format(a.fechaGeneracion, 'dd/MM/yy')}"></span>
+                </div>
+            </div>
+
+            <!-- Ver mas -->
+            <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex items-center gap-4">
+                    <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                        <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                            :style="'width:' + progreso + '%'"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 whitespace-nowrap"
+                        x-text="'Mostrando ' + Math.min(visibles, total) + ' de ' + total"></span>
+                    <button @click="mostrarMas()"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
+                        <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
+                        Ver mas
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="!hayMas && total > 8"
+                class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+                <i class="ph-fill ph-check-circle" style="font-size:14px;color:#16a34a;"></i>
+                Mostrando todas las alertas del periodo
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>

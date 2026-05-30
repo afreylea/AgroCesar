@@ -2,16 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Reportes - Admin Agrocesar', ~{::main})}">
 
 <body>
-    <main class="px-1 pt-2 pb-12" x-data="{
-          visibles: 8,
-          total: [[${#lists.size(alertas)}]],
-          mostrarMas() { this.visibles = Math.min(this.visibles + 8, this.total); },
-          get hayMas() { return this.visibles < this.total; },
-          get progreso() { return this.total === 0 ? 100 : Math.round((this.visibles / this.total) * 100); }
-      }">
+    <main class="px-1 pt-2 pb-12">
 
         <!-- ── HERO ──────────────────────────────────────── -->
-        <div class="relative overflow-hidden mb-8" style="height:160px;
+        <div class="relative overflow-hidden mb-6" style="height:160px;
                 border-radius:2rem;
                 background-image:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&fit=crop');
                 background-size:cover;
@@ -153,7 +147,7 @@
                         <p class="text-xs text-green-600 font-medium">Afectados</p>
                     </div>
                 </div>
-                <div class="w-full bg-green-100 rounded-full h-1.5">
+                <div class="w-full bg-green-100 rounded-full h-1.5 overflow-hidden">
                     <div class="bg-green-500 h-1.5 rounded-full" style="width:100%"></div>
                 </div>
             </div>
@@ -171,7 +165,6 @@
                     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:-translate-y-0.5 transition-all">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-3">
-                            <!-- Posicion -->
                             <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs text-white shrink-0"
                                 th:classappend="${iterStat.index == 0} ? 'bg-yellow-400' : (${iterStat.index == 1} ? 'bg-gray-400' : (${iterStat.index == 2} ? 'bg-amber-600' : 'bg-green-700'))"
                                 th:text="${iterStat.index + 1}"></div>
@@ -188,7 +181,6 @@
                             <p class="text-xs text-gray-400">alertas</p>
                         </div>
                     </div>
-                    <!-- Barra proporcional al maximo -->
                     <div class="w-full bg-gray-100 rounded-full h-1.5">
                         <div class="h-1.5 rounded-full transition-all duration-500"
                             th:classappend="${iterStat.index == 0} ? 'bg-yellow-400' : (${iterStat.index == 1} ? 'bg-gray-400' : (${iterStat.index == 2} ? 'bg-amber-500' : 'bg-green-600'))"
@@ -220,27 +212,18 @@
         <div th:if="${not #lists.isEmpty(alertas)}"
             class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
+            <!-- Banner -->
             <div class="bg-gradient-to-r from-green-900 to-green-700 px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <i class="ph-fill ph-bell" style="font-size:16px;color:#86efac;"></i>
                     <span class="text-white font-semibold text-sm">Alertas del Periodo</span>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="hidden sm:flex items-center gap-2">
-                        <div class="w-24 bg-white/20 rounded-full h-1.5">
-                            <div class="bg-green-300 h-1.5 rounded-full transition-all duration-500"
-                                :style="'width:' + progreso + '%'"></div>
-                        </div>
-                        <span class="text-green-300 text-xs" x-text="Math.min(visibles, total) + ' / ' + total"></span>
-                    </div>
-                    <span class="text-green-300 text-xs font-mono"
-                        th:text="${#lists.size(alertas)} + ' registros'"></span>
-                </div>
+                <span id="infoBannerRep" class="text-green-300 text-xs"></span>
             </div>
 
             <!-- Encabezado tabla -->
             <div
-                class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                class="grid grid-cols-12 gap-3 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
                 <div class="col-span-2">Agricultor</div>
                 <div class="col-span-2">Cultivo</div>
                 <div class="col-span-1 text-center">Severidad</div>
@@ -250,13 +233,10 @@
                 <div class="col-span-1 text-center">Fecha</div>
             </div>
 
-            <!-- Filas con carga progresiva -->
-            <div th:each="a, iterStat : ${alertas}" x-show="[[${iterStat.index}]] < visibles"
-                x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1"
-                x-transition:enter-end="opacity-100 translate-y-0"
-                class="grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-gray-50 items-center hover:bg-gray-50/60 transition text-sm">
+            <!-- Filas -->
+            <div th:each="a, iterStat : ${alertas}" th:attr="data-idx=${iterStat.index}"
+                class="fila-rep grid grid-cols-12 gap-3 px-6 py-3.5 border-b border-gray-50 items-center hover:bg-gray-50/60 transition">
 
-                <!-- Agricultor -->
                 <div class="col-span-2 flex items-center gap-2">
                     <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                         <span class="text-xs font-black text-green-700"
@@ -265,7 +245,6 @@
                     <span class="text-gray-800 font-medium truncate text-xs" th:text="${a.agricultor}"></span>
                 </div>
 
-                <!-- Cultivo -->
                 <div class="col-span-2">
                     <span class="text-gray-900 font-semibold text-xs" th:text="${a.cultivo}"></span>
                     <p class="text-xs text-gray-400 flex items-center gap-0.5 mt-0.5">
@@ -274,14 +253,12 @@
                     </p>
                 </div>
 
-                <!-- Severidad -->
                 <div class="col-span-1 text-center">
                     <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full"
                         th:classappend="${a.severidad == 'ALTA'} ? 'bg-red-100 text-red-600' : (${a.severidad == 'MEDIA'} ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600')"
                         th:text="${a.severidad}"></span>
                 </div>
 
-                <!-- Categoria -->
                 <div class="col-span-2 text-center">
                     <span th:if="${a.categoria == 'TRANSITORIO'}"
                         class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -295,46 +272,95 @@
                     </span>
                 </div>
 
-                <!-- Tipo alerta -->
                 <div class="col-span-2">
                     <span class="text-xs text-gray-600 font-medium" th:text="${a.tipoAlerta}"></span>
                 </div>
 
-                <!-- Descripcion -->
                 <div class="col-span-2">
                     <p class="text-xs text-gray-500 line-clamp-2" th:text="${a.descripcion}"></p>
                 </div>
 
-                <!-- Fecha -->
                 <div class="col-span-1 text-center">
                     <span class="text-xs text-gray-400 font-mono"
                         th:text="${#temporals.format(a.fechaGeneracion, 'dd/MM/yy')}"></span>
                 </div>
             </div>
 
-            <!-- Ver mas -->
-            <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                <div class="flex items-center gap-4">
-                    <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                        <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                            :style="'width:' + progreso + '%'"></div>
-                    </div>
-                    <span class="text-xs text-gray-400 whitespace-nowrap"
-                        x-text="'Mostrando ' + Math.min(visibles, total) + ' de ' + total"></span>
-                    <button @click="mostrarMas()"
-                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
-                        <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
-                        Ver mas
+            <!-- Paginacion -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                <p id="infoPaginaRep" class="text-xs text-gray-400"></p>
+                <div class="flex items-center gap-1">
+                    <button id="btnAntRep"
+                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                        <i class="ph-bold ph-caret-left" style="font-size:12px;color:#6b7280;"></i>
+                    </button>
+                    <div id="numsPageRep" class="flex items-center gap-1"></div>
+                    <button id="btnSigRep"
+                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                        <i class="ph-bold ph-caret-right" style="font-size:12px;color:#6b7280;"></i>
                     </button>
                 </div>
-            </div>
-
-            <div x-show="!hayMas && total > 8"
-                class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-                <i class="ph-fill ph-check-circle" style="font-size:14px;color:#16a34a;"></i>
-                Mostrando todas las alertas del periodo
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <span>Registros por pagina</span>
+                    <span
+                        class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 font-semibold text-gray-700">5</span>
+                </div>
             </div>
         </div>
+
+        <!-- ── SCRIPT ─────────────────────────────────────── -->
+        <script>
+            (function () {
+                const btnAnt = document.getElementById('btnAntRep');
+                const btnSig = document.getElementById('btnSigRep');
+                if (!btnAnt || !btnSig) return;
+
+                let paginaActual = 1;
+                const porPagina = 5;
+                const filas = Array.from(document.querySelectorAll('.fila-rep'));
+                const totalFilas = filas.length;
+                const totalPags = Math.ceil(totalFilas / porPagina);
+
+                function renderPagina() {
+                    const desde = (paginaActual - 1) * porPagina;
+                    const hasta = paginaActual * porPagina;
+
+                    filas.forEach(el => {
+                        el.style.display = (Number(el.dataset.idx) >= desde && Number(el.dataset.idx) < hasta) ? '' : 'none';
+                    });
+
+                    const info = 'Mostrando ' + (desde + 1) + ' a ' + Math.min(hasta, totalFilas) + ' de ' + totalFilas + ' registros';
+                    document.getElementById('infoPaginaRep').textContent = info;
+                    document.getElementById('infoBannerRep').textContent = info;
+
+                    const nums = document.getElementById('numsPageRep');
+                    nums.innerHTML = '';
+                    for (let i = 1; i <= totalPags; i++) {
+                        if (i === 1 || i === totalPags || (i >= paginaActual - 2 && i <= paginaActual + 2)) {
+                            const btn = document.createElement('button');
+                            btn.textContent = i;
+                            btn.className = 'w-8 h-8 rounded-lg text-xs font-semibold transition ' +
+                                (i === paginaActual ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
+                            btn.addEventListener('click', () => { paginaActual = i; renderPagina(); });
+                            nums.appendChild(btn);
+                        } else if ((i === paginaActual - 3 && i > 1) || (i === paginaActual + 3 && i < totalPags)) {
+                            const sep = document.createElement('span');
+                            sep.textContent = '…';
+                            sep.className = 'w-8 h-8 flex items-center justify-center text-xs text-gray-400';
+                            nums.appendChild(sep);
+                        }
+                    }
+
+                    btnAnt.style.opacity = paginaActual === 1 ? '0.4' : '1';
+                    btnSig.style.opacity = paginaActual === totalPags ? '0.4' : '1';
+                }
+
+                btnAnt.addEventListener('click', () => { if (paginaActual > 1) { paginaActual--; renderPagina(); } });
+                btnSig.addEventListener('click', () => { if (paginaActual < totalPags) { paginaActual++; renderPagina(); } });
+
+                renderPagina();
+            })();
+        </script>
 
     </main>
 </body>

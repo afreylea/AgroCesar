@@ -134,6 +134,18 @@ CREATE OR REPLACE PACKAGE PKG_ALERTAS AS
         p_count OUT NUMBER
     );
 
+    PROCEDURE prc_count_activas_por_periodo(
+        p_fecha_desde IN  DATE,
+        p_fecha_hasta IN  DATE,
+        p_count       OUT NUMBER
+    );
+
+    PROCEDURE prc_count_criticas_por_periodo(
+        p_fecha_desde IN  DATE,
+        p_fecha_hasta IN  DATE,
+        p_count       OUT NUMBER
+    );
+
 END PKG_ALERTAS;
 /
 
@@ -327,8 +339,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_ALERTAS AS
     BEGIN
         OPEN p_cursor FOR
             SELECT * FROM V_ALERTAS
-            WHERE FECHA_DIA_PRONOSTICO BETWEEN p_fecha_desde AND p_fecha_hasta
-            ORDER BY FECHA_DIA_PRONOSTICO DESC;
+            WHERE TRUNC(FECHA_GENERACION) BETWEEN p_fecha_desde AND p_fecha_hasta
+            ORDER BY FECHA_GENERACION DESC;
     END prc_find_by_rango_fechas;
 
     PROCEDURE prc_find_cultivos_mas_afectados(
@@ -342,7 +354,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_ALERTAS AS
                    MUNICIPIO,
                    COUNT(*)     AS TOTALALERTAS
             FROM V_ALERTAS
-            WHERE FECHA_DIA_PRONOSTICO BETWEEN p_fecha_desde AND p_fecha_hasta
+            WHERE TRUNC(FECHA_GENERACION) BETWEEN p_fecha_desde AND p_fecha_hasta
             GROUP BY CULTIVO, MUNICIPIO
             ORDER BY COUNT(*) DESC;
     END prc_find_cultivos_mas_afectados;
@@ -365,6 +377,31 @@ CREATE OR REPLACE PACKAGE BODY PKG_ALERTAS AS
         WHERE LEIDA = 0
           AND SEVERIDAD = 'ALTA';
     END prc_count_criticas;
+
+    PROCEDURE prc_count_activas_por_periodo(
+        p_fecha_desde IN  DATE,
+        p_fecha_hasta IN  DATE,
+        p_count       OUT NUMBER
+    ) IS
+    BEGIN
+        SELECT COUNT(*) INTO p_count
+        FROM ALERTAS
+        WHERE LEIDA = 0
+          AND TRUNC(FECHA_GENERACION) BETWEEN p_fecha_desde AND p_fecha_hasta;
+    END prc_count_activas_por_periodo;
+
+    PROCEDURE prc_count_criticas_por_periodo(
+        p_fecha_desde IN  DATE,
+        p_fecha_hasta IN  DATE,
+        p_count       OUT NUMBER
+    ) IS
+    BEGIN
+        SELECT COUNT(*) INTO p_count
+        FROM ALERTAS
+        WHERE LEIDA = 0
+          AND SEVERIDAD = 'ALTA'
+          AND TRUNC(FECHA_GENERACION) BETWEEN p_fecha_desde AND p_fecha_hasta;
+    END prc_count_criticas_por_periodo;
 
 END PKG_ALERTAS;
 /

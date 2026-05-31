@@ -1,113 +1,199 @@
 package com.agrocesar.repository;
 
 import com.agrocesar.model.Municipio;
-import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
-import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.statement.SqlQuery;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.OutParameters;
+import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
-@RegisterRowMapper(MunicipioMapper.class)
-public interface MunicipioRepository {
+@Repository
+public class MunicipioRepository {
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        WHERE ID = :id
-        """)
-    Optional<Municipio> findById(@Bind("id") Long id);
+    private final Jdbi jdbi;
+    private final MunicipioMapper mapper = new MunicipioMapper();
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        WHERE UPPER(NOMBRE) LIKE :nombre
-        """)
-    List<Municipio> findByNombre(@Bind("nombre") String nombre);
+    public MunicipioRepository(Jdbi jdbi) {
+        this.jdbi = jdbi;
+    }
+    
+    // ----------------------------------------------------------------
+    //  CONSULTAS
+    // ----------------------------------------------------------------
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        WHERE UPPER(DEPARTAMENTO) = :departamento
-        ORDER BY NOMBRE
-        """)
-    List<Municipio> findByDepartamento(
-            @Bind("departamento") String departamento
-    );
+    public Optional<Municipio> findById(Long id) {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_by_id(:p_id, :p_cursor) }")
+                .bind("p_id", id)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, Optional<Municipio>>) out -> {
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        if (rs.next()) {
+                            return Optional.of(mapper.map(rs, null));
+                        }
+                        return Optional.<Municipio>empty();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+        );
+    }
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        WHERE ACTIVO = 1
-        ORDER BY NOMBRE
-        """)
-    List<Municipio> findActivos();
+    public List<Municipio> findByNombre(String nombre) {
+        // nombre debe llegar con wildcards desde el servicio: UPPER('%VALLEDUPAR%')
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_by_nombre(:p_nombre, :p_cursor) }")
+                .bind("p_nombre", nombre.toUpperCase())
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<Municipio>>) out -> {
+                    List<Municipio> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        WHERE ACTIVO = 0
-        ORDER BY NOMBRE
-        """)
-    List<Municipio> findInactivos();
+    public List<Municipio> findByDepartamento(String departamento) {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_by_departamento(:p_departamento, :p_cursor) }")
+                .bind("p_departamento", departamento.toUpperCase())
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<Municipio>>) out -> {
+                    List<Municipio> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlQuery("""
-        SELECT ID, NOMBRE, DEPARTAMENTO, LATITUD, LONGITUD,
-               ACTIVO, FECHA_CREACION
-        FROM MUNICIPIOS
-        ORDER BY NOMBRE
-        """)
-    List<Municipio> findAll();
+    public List<Municipio> findActivos() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_activos(:p_cursor) }")
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<Municipio>>) out -> {
+                    List<Municipio> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlUpdate("""
-        INSERT INTO MUNICIPIOS (
-            NOMBRE,
-            DEPARTAMENTO,
-            LATITUD,
-            LONGITUD,
-            ACTIVO,
-            FECHA_CREACION
-        )
-        VALUES (
-            :nombre,
-            :departamento,
-            :latitud,
-            :longitud,
-            :activo,
-            :fechaCreacion
-        )
-        """)
-    void insert(@BindBean Municipio municipio);
+    public List<Municipio> findInactivos() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_inactivos(:p_cursor) }")
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<Municipio>>) out -> {
+                    List<Municipio> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlUpdate("""
-        UPDATE MUNICIPIOS
-        SET NOMBRE = :nombre,
-            DEPARTAMENTO = :departamento,
-            LATITUD = :latitud,
-            LONGITUD = :longitud,
-            ACTIVO = :activo
-        WHERE ID = :id
-        """)
-    int update(@BindBean Municipio municipio);
+    public List<Municipio> findAll() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_MUNICIPIOS.prc_find_all(:p_cursor) }")
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<Municipio>>) out -> {
+                    List<Municipio> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlUpdate("""
-        UPDATE MUNICIPIOS
-        SET ACTIVO = 0
-        WHERE ID = :id
-        """)
-    int desactivar(@Bind("id") Long id);
+    // ----------------------------------------------------------------
+    //  ESCRITURA
+    // ----------------------------------------------------------------
 
-    @SqlUpdate("""
-        UPDATE MUNICIPIOS
-        SET ACTIVO = 1
-        WHERE ID = :id
-        """)
-    int activar(@Bind("id") Long id);
+    public void insert(Municipio municipio) {
+        jdbi.useHandle(handle ->
+            handle.createCall(
+                "{ call PKG_MUNICIPIOS.prc_insert(:p_nombre, :p_departamento, " +
+                ":p_latitud, :p_longitud, :p_activo) }")
+                .bind("p_nombre",       municipio.getNombre())
+                .bind("p_departamento", municipio.getDepartamento())
+                .bind("p_latitud",      municipio.getLatitud())
+                .bind("p_longitud",     municipio.getLongitud())
+                .bind("p_activo",       municipio.getActivo())
+                .invoke()
+        );
+    }
+
+    public int update(Municipio municipio) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_MUNICIPIOS.prc_update(:p_id, :p_nombre, :p_departamento, " +
+                ":p_latitud, :p_longitud, :p_activo, :p_rows_updated) }")
+                .bind("p_id",           municipio.getId())
+                .bind("p_nombre",       municipio.getNombre())
+                .bind("p_departamento", municipio.getDepartamento())
+                .bind("p_latitud",      municipio.getLatitud())
+                .bind("p_longitud",     municipio.getLongitud())
+                .bind("p_activo",       municipio.getActivo())
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
+
+    public int desactivar(Long id) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_MUNICIPIOS.prc_desactivar(:p_id, :p_rows_updated) }")
+                .bind("p_id", id)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
+
+    public int activar(Long id) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_MUNICIPIOS.prc_activar(:p_id, :p_rows_updated) }")
+                .bind("p_id", id)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
 }

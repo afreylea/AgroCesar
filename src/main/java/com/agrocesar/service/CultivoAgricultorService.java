@@ -53,14 +53,14 @@ public class CultivoAgricultorService {
     }
 
     // Registra un nuevo cultivo. La fecha de siembra no puede ser futura.
-    public Long registrar(CultivoAgricultor cultivo) {
+    public void registrar(CultivoAgricultor cultivo) {
         if (cultivo.getFechaSiembra() == null) {
             throw new IllegalArgumentException("La fecha de siembra es obligatoria.");
         }
         if (cultivo.getFechaSiembra().isAfter(java.time.LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de siembra no puede ser futura.");
         }
-        return cultivoRepository.insert(cultivo);
+        cultivoRepository.insert(cultivo);
     }
 
     // Actualiza un cultivo. Verifica que pertenece al usuario antes de modificar.

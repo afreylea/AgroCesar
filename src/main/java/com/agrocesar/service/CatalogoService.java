@@ -29,8 +29,6 @@ public class CatalogoService {
     }
 
     public void crear(CultivoCatalogo catalogo) {
-        Long id = catalogoRepository.nextId();
-        catalogo.setId(id);
         catalogoRepository.insert(catalogo);
     }
 

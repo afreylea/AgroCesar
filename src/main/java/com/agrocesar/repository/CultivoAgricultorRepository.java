@@ -1,47 +1,127 @@
 package com.agrocesar.repository;
 
 import com.agrocesar.model.CultivoAgricultor;
-import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
-import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
-import org.jdbi.v3.sqlobject.statement.SqlQuery;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.OutParameters;
+import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
-// @RegisterBeanMapper mapea automáticamente columnas SQL a campos Java
-// El nombre de columna debe coincidir con el nombre del campo (case-insensitive)
-@RegisterBeanMapper(CultivoAgricultor.class)
-public interface CultivoAgricultorRepository {
+@Repository
+public class CultivoAgricultorRepository {
 
-    // Devuelve todos los cultivos activos de un agricultor
-    @SqlQuery("SELECT * FROM CULTIVOS_AGRICULTOR WHERE USUARIO_ID = :usuarioId AND ACTIVO = 1")
-    List<CultivoAgricultor> findByUsuarioId(@Bind("usuarioId") Long usuarioId);
+    private final Jdbi jdbi;
+    private final CultivoAgricultorMapper mapper = new CultivoAgricultorMapper();
 
-    // Busca un cultivo por ID y verifica que pertenezca al agricultor autenticado
-    @SqlQuery("SELECT * FROM CULTIVOS_AGRICULTOR WHERE ID = :id AND USUARIO_ID = :usuarioId AND ACTIVO = 1")
-    Optional<CultivoAgricultor> findByIdAndUsuarioId(@Bind("id") Long id, @Bind("usuarioId") Long usuarioId);
+    public CultivoAgricultorRepository(Jdbi jdbi) {
+        this.jdbi = jdbi;
+    }
 
-    // Inserta un nuevo cultivo y retorna el ID generado por la secuencia Oracle
-    @SqlUpdate("INSERT INTO CULTIVOS_AGRICULTOR (USUARIO_ID, CATALOGO_ID, MUNICIPIO_ID, HECTAREAS, " +
-            "FECHA_SIEMBRA, LATITUD_CULTIVO, LONGITUD_CULTIVO, TIPO_SUELO, ACTIVO, FECHA_CREACION) " +
-            "VALUES (:usuarioId, :catalogoId, :municipioId, :hectareas, " +
-            ":fechaSiembra, :latitudCultivo, :longitudCultivo, :tipoSuelo, 1, SYSDATE)")
-    @GetGeneratedKeys("ID")
-    Long insert(@BindBean CultivoAgricultor cultivo);
+    // ----------------------------------------------------------------
+    //  CONSULTAS
+    // ----------------------------------------------------------------
 
-    // Actualiza los campos editables de un cultivo existente
-    @SqlUpdate("UPDATE CULTIVOS_AGRICULTOR SET HECTAREAS = :hectareas, " +
-            "TEMP_MIN_OVERRIDE = :tempMinOverride, TEMP_MAX_OVERRIDE = :tempMaxOverride, " +
-            "LLUVIA_MIN_OVERRIDE = :lluviaMinOverride, LLUVIA_MAX_OVERRIDE = :lluviaMaxOverride, " +
-            "HUMEDAD_MIN_OVERRIDE = :humedadMinOverride, HUMEDAD_MAX_OVERRIDE = :humedadMaxOverride, " +
-            "FECHA_ACTUALIZACION = SYSDATE " +
-            "WHERE ID = :id AND USUARIO_ID = :usuarioId")
-    int update(@BindBean CultivoAgricultor cultivo);
+    public List<CultivoAgricultor> findByUsuarioId(Long usuarioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_CULTIVOS_AGRICULTOR.prc_find_by_usuario(:p_usuario_id, :p_cursor) }")
+                .bind("p_usuario_id", usuarioId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<CultivoAgricultor>>) out -> {
+                    List<CultivoAgricultor> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(mapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    // Baja lógica: marca ACTIVO = 0, no borra el registro
-    @SqlUpdate("UPDATE CULTIVOS_AGRICULTOR SET ACTIVO = 0, FECHA_ACTUALIZACION = SYSDATE " +
-            "WHERE ID = :id AND USUARIO_ID = :usuarioId")
-    int deactivate(@Bind("id") Long id, @Bind("usuarioId") Long usuarioId);
+    public Optional<CultivoAgricultor> findByIdAndUsuarioId(Long id, Long usuarioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_CULTIVOS_AGRICULTOR.prc_find_by_id_and_usuario(:p_id, :p_usuario_id, :p_cursor) }")
+                .bind("p_id",         id)
+                .bind("p_usuario_id", usuarioId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, Optional<CultivoAgricultor>>) out -> {
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        if (rs.next()) {
+                            return Optional.of(mapper.map(rs, null));
+                        }
+                        return Optional.<CultivoAgricultor>empty();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+        );
+    }
+
+    // ----------------------------------------------------------------
+    //  ESCRITURA
+    // ----------------------------------------------------------------
+
+    public void insert(CultivoAgricultor cultivo) {
+        jdbi.useHandle(handle ->
+            handle.createCall(
+                "{ call PKG_CULTIVOS_AGRICULTOR.prc_insert(" +
+                ":p_usuario_id, :p_catalogo_id, :p_municipio_id, " +
+                ":p_hectareas, :p_fecha_siembra, " +
+                ":p_latitud_cultivo, :p_longitud_cultivo, :p_tipo_suelo) }")
+                .bind("p_usuario_id",        cultivo.getUsuarioId())
+                .bind("p_catalogo_id",       cultivo.getCatalogoId())
+                .bind("p_municipio_id",      cultivo.getMunicipioId())
+                .bind("p_hectareas",         cultivo.getHectareas())
+                .bind("p_fecha_siembra",     cultivo.getFechaSiembra())
+                .bind("p_latitud_cultivo",   cultivo.getLatitudCultivo())
+                .bind("p_longitud_cultivo",  cultivo.getLongitudCultivo())
+                .bind("p_tipo_suelo",        cultivo.getTipoSuelo())
+                .invoke()
+        );
+    }
+
+    public int update(CultivoAgricultor cultivo) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_CULTIVOS_AGRICULTOR.prc_update(" +
+                ":p_id, :p_usuario_id, :p_hectareas, " +
+                ":p_temp_min_override, :p_temp_max_override, " +
+                ":p_lluvia_min_override, :p_lluvia_max_override, " +
+                ":p_humedad_min_override, :p_humedad_max_override, " +
+                ":p_rows_updated) }")
+                .bind("p_id",                  cultivo.getId())
+                .bind("p_usuario_id",          cultivo.getUsuarioId())
+                .bind("p_hectareas",           cultivo.getHectareas())
+                .bind("p_temp_min_override",   cultivo.getTempMinOverride())
+                .bind("p_temp_max_override",   cultivo.getTempMaxOverride())
+                .bind("p_lluvia_min_override",  cultivo.getLluviaMinOverride())
+                .bind("p_lluvia_max_override",  cultivo.getLluviaMaxOverride())
+                .bind("p_humedad_min_override", cultivo.getHumedadMinOverride())
+                .bind("p_humedad_max_override", cultivo.getHumedadMaxOverride())
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
+
+    public int deactivate(Long id, Long usuarioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_CULTIVOS_AGRICULTOR.prc_deactivate(:p_id, :p_usuario_id, :p_rows_updated) }")
+                .bind("p_id",          id)
+                .bind("p_usuario_id",  usuarioId)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
 }

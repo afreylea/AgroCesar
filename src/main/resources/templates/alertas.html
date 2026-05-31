@@ -3,11 +3,12 @@
 
 <body>
     <main class="min-h-screen px-2 pt-4 pb-12" th:with="
-    alertasActivas=${alertas.?[leida == 0]},
-    historial=${alertas.?[leida == 1]},
-    cultivosAfectados=${alertas.?[leida == 0].![cultivo]},
-    alertasAlta=${alertas.?[leida == 0 and severidad == 'ALTA']},
-    alertasConRec=${alertas.?[leida == 0 and recomendacion != null]}">
+        alertasActivas=${alertas.?[leida == 0]},
+        historial=${alertas.?[leida == 1]},
+        alertasAlta=${alertas.?[leida == 0 and severidad == 'ALTA']},
+        alertasMedia=${alertas.?[leida == 0 and severidad == 'MEDIA']},
+        alertasBaja=${alertas.?[leida == 0 and severidad == 'BAJA']},
+        alertasConRec=${alertas.?[leida == 0 and recomendacion != null]}">
 
         <style>
             @keyframes slideUp {
@@ -44,7 +45,6 @@
                 }
             }
 
-            /* Animacion de entrada para cards */
             .card-in {
                 animation: slideUp 0.45s ease forwards;
                 opacity: 0;
@@ -74,69 +74,64 @@
                 animation-delay: 0.34s;
             }
 
-            /* Borde izquierdo por severidad */
             .sev-alta {
                 background: #fef2f2;
                 border-left: 4px solid #ef4444;
             }
 
             .sev-media {
-                background: #fff7ed;
-                border-left: 4px solid #f97316;
+                background: #f8fafc;
+                border-left: 4px solid #64748b;
             }
 
             .sev-baja {
-                background: #fefce8;
-                border-left: 4px solid #eab308;
+                background: #f8fafc;
+                border-left: 4px solid #94a3b8;
             }
 
-            /* Badges de severidad */
             .badge-alta {
                 background: #fef2f2;
                 color: #dc2626;
             }
 
             .badge-media {
-                background: #fff7ed;
-                color: #ea580c;
+                background: #f1f5f9;
+                color: #475569;
             }
 
             .badge-baja {
-                background: #fefce8;
-                color: #ca8a04;
+                background: #f8fafc;
+                color: #64748b;
             }
 
-            /* Dots de estado */
             .dot-alta {
                 background: #ef4444;
                 animation: pulseRing 2s ease infinite;
             }
 
             .dot-media {
-                background: #f97316;
+                background: #64748b;
             }
 
             .dot-baja {
-                background: #eab308;
+                background: #94a3b8;
             }
 
-            /* Iconos de severidad */
             .icon-alta {
                 background: linear-gradient(135deg, #fee2e2, #fecaca);
                 color: #dc2626;
             }
 
             .icon-media {
-                background: linear-gradient(135deg, #ffedd5, #fed7aa);
-                color: #ea580c;
+                background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+                color: #475569;
             }
 
             .icon-baja {
-                background: linear-gradient(135deg, #fef9c3, #fef08a);
-                color: #ca8a04;
+                background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+                color: #64748b;
             }
 
-            /* Badges de tipo cultivo */
             .tipo-trans {
                 background: linear-gradient(135deg, #dbeafe, #bfdbfe);
                 color: #1d4ed8;
@@ -147,13 +142,11 @@
                 color: #92400e;
             }
 
-            /* Box de recomendacion */
             .rec-box {
                 background: linear-gradient(135deg, #f0fdf4, #dcfce7);
                 border: 1px solid #bbf7d0;
             }
 
-            /* Box de valores */
             .val-box {
                 background: #f8fafc;
                 border: 1px solid #e2e8f0;
@@ -161,7 +154,6 @@
                 padding: 10px 14px;
             }
 
-            /* Boton marcar leida */
             .btn-leida {
                 display: inline-flex;
                 align-items: center;
@@ -182,7 +174,6 @@
                 border-color: #86efac;
             }
 
-            /* Chips de filtro */
             .filter-chip {
                 display: inline-flex;
                 align-items: center;
@@ -204,12 +195,11 @@
             }
 
             .filter-chip.active {
-                background: #111827;
+                background: #052e16;
                 color: #fff;
-                border-color: #111827;
+                border-color: #052e16;
             }
 
-            /* Timeline */
             .timeline-dot {
                 width: 10px;
                 height: 10px;
@@ -226,7 +216,6 @@
                 min-height: 16px;
             }
 
-            /* Stat card */
             .stat-card {
                 background: #fff;
                 border-radius: 16px;
@@ -240,33 +229,36 @@
 
         <!-- ── HERO ──────────────────────────────────────────── -->
         <div class="relative overflow-hidden mb-8" style="height:180px; border-radius:2rem;
-                background:linear-gradient(135deg,#7f1d1d 0%,#991b1b 45%,#b45309 100%);
-                box-shadow:0 24px 64px rgba(127,29,29,0.28);">
+                background:linear-gradient(135deg,#052e16 0%,#14532d 55%,#166534 100%);
+                box-shadow:0 24px 64px rgba(5,46,22,0.28);">
             <div class="absolute inset-0 rounded-[2rem] overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop"
-                    class="w-full h-full object-cover opacity-15" alt="">
+                    class="w-full h-full object-cover opacity-10" alt="">
             </div>
             <div class="absolute -right-20 -top-20 w-72 h-72 rounded-full"
-                style="background:radial-gradient(circle,rgba(251,191,36,0.12),transparent)"></div>
+                style="background:radial-gradient(circle,rgba(134,239,172,0.08),transparent)"></div>
             <div class="relative z-10 h-full flex items-center justify-between px-8 md:px-12">
                 <div class="text-white" style="animation:fadeIn 0.6s ease forwards;">
                     <div class="flex items-center gap-2 mb-3">
                         <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-                            style="background:rgba(255,255,255,0.15);backdrop-filter:blur(12px);">
+                            style="background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);">
                             <i class="ph-fill ph-bell-ringing" style="font-size:18px;color:white;"></i>
                         </div>
-                        <span class="text-red-200 text-xs font-semibold uppercase tracking-[0.18em]">Monitoreo
-                            activo</span>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-green-300 text-xs font-semibold uppercase tracking-[0.18em]">Monitoreo
+                                activo</span>
+                        </div>
                     </div>
                     <h1 class="text-4xl font-black text-white mb-1" style="letter-spacing:-.02em;">Mis Alertas</h1>
-                    <p class="text-red-100/55 text-sm">Alertas climaticas y recomendaciones agronomicas para tus
+                    <p class="text-green-100/55 text-sm">Alertas climaticas y recomendaciones agronomicas para tus
                         cultivos</p>
                 </div>
                 <div class="hidden md:flex items-center gap-3">
                     <div th:if="${not #lists.isEmpty(alertasActivas)}" class="text-center rounded-2xl px-5 py-3"
                         style="background:rgba(255,255,255,0.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);">
                         <p class="text-3xl font-black text-white" th:text="${#lists.size(alertasActivas)}">0</p>
-                        <p class="text-red-200 text-xs mt-0.5">pendientes</p>
+                        <p class="text-green-200 text-xs mt-0.5">pendientes</p>
                     </div>
                 </div>
             </div>
@@ -286,68 +278,53 @@
                     class="text-xs font-bold bg-red-100 text-red-600 px-3 py-1 rounded-full"
                     th:text="${#lists.size(alertasActivas)} + ' pendientes'"></span>
             </div>
-            <!-- Buscador -->
             <div class="hidden md:flex items-center gap-2">
                 <div class="relative">
                     <i class="ph-fill ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2"
                         style="font-size:14px;color:#9ca3af;"></i>
                     <input type="text" placeholder="Buscar alerta o cultivo..." id="buscadorAlertas"
-                        class="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 w-56"
-                        oninput="filtrarAlertas()">
+                        class="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-300 w-56"
+                        oninput="aplicarFiltros()">
                 </div>
             </div>
         </div>
 
         <!-- ── STATS CARDS ───────────────────────────────────── -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-
-            <!-- Alertas activas -->
             <div class="stat-card">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-100">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-50">
                     <i class="ph-fill ph-warning-octagon" style="font-size:20px;color:#dc2626;"></i>
                 </div>
                 <div>
                     <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(alertasActivas)}">0</p>
                     <p class="text-xs text-gray-400 font-medium">Alertas activas</p>
-                    <p class="text-xs text-red-500 font-semibold mt-0.5 flex items-center gap-1">
-                        <i class="ph-fill ph-arrow-up" style="font-size:10px;"></i> Hoy
-                    </p>
                 </div>
             </div>
-
-            <!-- Cultivos afectados -->
             <div class="stat-card">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-orange-100">
-                    <i class="ph-duotone ph-plant" style="font-size:20px;color:#ea580c;"></i>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gray-50">
+                    <i class="ph-duotone ph-plant" style="font-size:20px;color:#16a34a;"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(cultivosAfectados)}">0</p>
+                    <p class="text-2xl font-black text-gray-900" id="statCultivos">—</p>
                     <p class="text-xs text-gray-400 font-medium">Cultivos afectados</p>
-                    <p class="text-xs text-orange-500 font-semibold mt-0.5">Con alertas activas</p>
                 </div>
             </div>
-
-            <!-- Riesgo alto -->
             <div class="stat-card">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-purple-100">
-                    <i class="ph-fill ph-lightning" style="font-size:20px;color:#9333ea;"></i>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-50">
+                    <i class="ph-fill ph-lightning" style="font-size:20px;color:#dc2626;"></i>
                 </div>
                 <div>
                     <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(alertasAlta)}">0</p>
                     <p class="text-xs text-gray-400 font-medium">Riesgo alto</p>
-                    <p class="text-xs text-purple-500 font-semibold mt-0.5">Requieren atencion</p>
                 </div>
             </div>
-
-            <!-- Recomendaciones -->
             <div class="stat-card">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-green-100">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-green-50">
                     <i class="ph-duotone ph-seal-check" style="font-size:20px;color:#16a34a;"></i>
                 </div>
                 <div>
                     <p class="text-2xl font-black text-gray-900" th:text="${#lists.size(alertasConRec)}">0</p>
                     <p class="text-xs text-gray-400 font-medium">Recomendaciones</p>
-                    <p class="text-xs text-green-600 font-semibold mt-0.5">Disponibles</p>
                 </div>
             </div>
         </div>
@@ -356,28 +333,24 @@
         <div th:if="${not #lists.isEmpty(alertasActivas)}" class="flex items-center gap-2 mb-6 flex-wrap"
             x-data="{filtro:'todas'}">
             <button class="filter-chip" :class="filtro=='todas' ? 'active' : ''"
-                @click="filtro='todas'; filtrarTab('todas')">
+                @click="filtro='todas'; setFiltroSev('todas')">
                 <i class="ph-fill ph-funnel" style="font-size:12px;"></i>
                 Todas <span th:text="${#lists.size(alertasActivas)}" class="ml-1 opacity-70"></span>
             </button>
             <button class="filter-chip" :class="filtro=='alta' ? 'active' : ''"
-                @click="filtro='alta'; filtrarTab('alta')">
+                @click="filtro='alta'; setFiltroSev('alta')">
                 <span class="w-2 h-2 rounded-full bg-red-500"></span>
                 Criticas <span th:text="${#lists.size(alertasAlta)}" class="ml-1 opacity-70"></span>
             </button>
             <button class="filter-chip" :class="filtro=='media' ? 'active' : ''"
-                @click="filtro='media'; filtrarTab('media')">
-                <span class="w-2 h-2 rounded-full bg-orange-400"></span>
-                Advertencias
-                <span th:text="${#lists.size(alertas.?[leida == 0 and severidad == 'MEDIA'])}"
-                    class="ml-1 opacity-70"></span>
+                @click="filtro='media'; setFiltroSev('media')">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                Advertencias <span th:text="${#lists.size(alertasMedia)}" class="ml-1 opacity-70"></span>
             </button>
             <button class="filter-chip" :class="filtro=='baja' ? 'active' : ''"
-                @click="filtro='baja'; filtrarTab('baja')">
-                <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
-                Informativas
-                <span th:text="${#lists.size(alertas.?[leida == 0 and severidad == 'BAJA'])}"
-                    class="ml-1 opacity-70"></span>
+                @click="filtro='baja'; setFiltroSev('baja')">
+                <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                Informativas <span th:text="${#lists.size(alertasBaja)}" class="ml-1 opacity-70"></span>
             </button>
         </div>
 
@@ -394,14 +367,12 @@
         <!-- ── CARDS CON TIMELINE ─────────────────────────────── -->
         <div th:if="${not #lists.isEmpty(alertasActivas)}" class="flex gap-4 mb-10">
 
-            <!-- Timeline lateral -->
             <div class="hidden md:flex flex-col items-center pt-2 shrink-0" style="width:48px;">
-                <div class="text-xs font-bold text-gray-500 mb-2">Hoy</div>
-                <div class="timeline-dot bg-green-500 border-green-400"></div>
+                <div class="text-xs font-bold text-gray-400 mb-2">Hoy</div>
+                <div class="timeline-dot" style="background:#16a34a;border-color:#16a34a;"></div>
                 <div class="timeline-line"></div>
             </div>
 
-            <!-- Lista de alertas activas -->
             <div class="flex-1 space-y-3" id="listaAlertas">
                 <div th:each="a : ${alertasActivas}" class="card-in rounded-2xl bg-white overflow-hidden alerta-item"
                     th:attr="data-severidad=${a.severidad}, data-cultivo=${a.cultivo}, data-tipo=${a.tipoAlerta}"
@@ -409,11 +380,9 @@
                     style="box-shadow:0 2px 12px rgba(0,0,0,0.05);">
 
                     <div class="p-5">
-
-                        <!-- Header de la card -->
+                        <!-- Header -->
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
-                                <!-- Icono por severidad -->
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                     th:classappend="${a.severidad == 'ALTA'} ? 'icon-alta' : (${a.severidad == 'MEDIA'} ? 'icon-media' : 'icon-baja')">
                                     <i class="ph-fill ph-warning" style="font-size:20px;"></i>
@@ -429,7 +398,6 @@
                                     </p>
                                 </div>
                             </div>
-                            <!-- Badges tipo y severidad -->
                             <div class="flex items-center gap-2 flex-wrap justify-end">
                                 <span th:if="${a.categoria == 'TRANSITORIO'}"
                                     class="tipo-trans text-xs font-semibold px-2.5 py-1 rounded-xl">Transitorio</span>
@@ -444,7 +412,7 @@
                             </div>
                         </div>
 
-                        <!-- Valores detectados -->
+                        <!-- Valores -->
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             <div class="val-box">
                                 <p class="text-xs text-gray-400 mb-1 flex items-center gap-1">
@@ -458,7 +426,7 @@
                                     <i class="ph-fill ph-chart-line-up" style="font-size:10px;"></i> Valor actual
                                 </p>
                                 <p class="text-sm font-black"
-                                    th:classappend="${a.severidad == 'ALTA'} ? 'text-red-600' : (${a.severidad == 'MEDIA'} ? 'text-orange-500' : 'text-yellow-600')"
+                                    th:classappend="${a.severidad == 'ALTA'} ? 'text-red-600' : 'text-gray-700'"
                                     th:text="${#numbers.formatDecimal(a.valorDetectado, 1, 2)}"></p>
                             </div>
                             <div class="val-box">
@@ -469,6 +437,9 @@
                                     th:text="${#numbers.formatDecimal(a.valorUmbral, 1, 2)}"></p>
                             </div>
                         </div>
+
+                        <!-- Descripcion -->
+                        <p class="text-sm text-gray-500 mb-4 leading-relaxed" th:text="${a.descripcion}"></p>
 
                         <!-- Recomendacion colapsable -->
                         <div th:if="${a.recomendacion != null}" class="mb-4" x-data="{abierto: false}">
@@ -497,7 +468,7 @@
                             </div>
                         </div>
 
-                        <!-- Footer: ID + boton marcar leida -->
+                        <!-- Footer -->
                         <div class="flex items-center justify-between pt-3 border-t border-black/5">
                             <p class="text-xs text-gray-300 font-mono flex items-center gap-1">
                                 <i class="ph-fill ph-hash" style="font-size:11px;"></i>
@@ -516,157 +487,185 @@
             </div>
         </div>
 
-        <!-- ── HISTORIAL CON CARGA PROGRESIVA ────────────────── -->
-        <div x-data="{
-        visibles: 5,
-        total: [[${#lists.size(historial)}]],
-        mostrarMas() { this.visibles = Math.min(this.visibles + 5, this.total); },
-        get hayMas() { return this.visibles < this.total; },
-        get progreso() { return this.total === 0 ? 100 : Math.round((this.visibles / this.total) * 100); }
-    }">
-            <!-- Header historial -->
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-1 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-200"></div>
-                <div>
-                    <h3 class="text-xl font-bold text-gray-600">Historial</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Alertas anteriores revisadas</p>
+        <!-- ── HISTORIAL ──────────────────────────────────────── -->
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-1 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-200"></div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-600">Historial</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Alertas anteriores revisadas</p>
+            </div>
+            <span th:if="${not #lists.isEmpty(historial)}"
+                class="text-xs font-semibold bg-gray-100 text-gray-400 px-3 py-1 rounded-full"
+                th:text="${#lists.size(historial)} + ' registros'"></span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(historial)}" class="bg-white rounded-3xl p-10 text-center"
+            style="border:1.5px dashed #e5e7eb;">
+            <i class="ph-duotone ph-clock-counter-clockwise" style="font-size:36px;color:#d1d5db;"></i>
+            <p class="text-gray-300 text-sm mt-3">No hay alertas en el historial.</p>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(historial)}" class="bg-white rounded-3xl overflow-hidden"
+            style="box-shadow:0 4px 24px rgba(0,0,0,0.05);">
+
+            <!-- Banner -->
+            <div class="px-6 py-4 flex items-center justify-between"
+                style="background:linear-gradient(135deg,#052e16,#14532d);">
+                <div class="flex items-center gap-3">
+                    <i class="ph-fill ph-clock-counter-clockwise" style="font-size:16px;color:#86efac;"></i>
+                    <span class="text-white font-semibold text-sm">Historial de Alertas</span>
                 </div>
-                <span th:if="${not #lists.isEmpty(historial)}"
-                    class="text-xs font-semibold bg-gray-100 text-gray-400 px-3 py-1 rounded-full"
-                    th:text="${#lists.size(historial)} + ' registros'"></span>
+                <span id="infoBannerHist" class="text-green-300 text-xs"></span>
             </div>
 
-            <!-- Historial vacio -->
-            <div th:if="${#lists.isEmpty(historial)}" class="bg-white rounded-3xl p-10 text-center"
-                style="border:1.5px dashed #e5e7eb;">
-                <i class="ph-duotone ph-clock-counter-clockwise" style="font-size:36px;color:#d1d5db;"></i>
-                <p class="text-gray-300 text-sm mt-3">No hay alertas en el historial.</p>
+            <!-- Encabezado tabla -->
+            <div
+                class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 text-xs font-semibold text-gray-300 uppercase tracking-widest">
+                <div class="col-span-3">Cultivo</div>
+                <div class="col-span-2 text-center">Severidad</div>
+                <div class="col-span-2 text-center">Categoria</div>
+                <div class="col-span-3">Descripcion</div>
+                <div class="col-span-2 text-center">Fecha</div>
             </div>
 
-            <!-- Tabla historial -->
-            <div th:if="${not #lists.isEmpty(historial)}" class="bg-white rounded-3xl overflow-hidden"
-                style="box-shadow:0 4px 24px rgba(0,0,0,0.05);">
+            <!-- Filas — paginacion JS pura -->
+            <div th:each="a, iterStat : ${historial}" th:attr="data-idx=${iterStat.index}"
+                class="fila-hist grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50/80 items-center hover:bg-gray-50/50 transition-colors">
 
-                <!-- Banner tabla -->
-                <div class="px-6 py-4 flex items-center justify-between"
-                    style="background:linear-gradient(135deg,#052e16,#14532d);">
-                    <div class="flex items-center gap-3">
-                        <i class="ph-fill ph-clock-counter-clockwise" style="font-size:16px;color:#86efac;"></i>
-                        <span class="text-white font-semibold text-sm">Historial de Alertas</span>
-                    </div>
-                    <!-- Barra progreso historial -->
-                    <div class="flex items-center gap-3">
-                        <div class="hidden sm:flex items-center gap-2">
-                            <div class="w-24 bg-white/20 rounded-full h-1.5">
-                                <div class="bg-green-300 h-1.5 rounded-full transition-all duration-500"
-                                    :style="'width:' + progreso + '%'"></div>
-                            </div>
-                            <span class="text-green-300 text-xs" x-text="visibles + ' / ' + total"></span>
-                        </div>
-                        <span class="text-green-400 text-xs font-mono"
-                            th:text="${#lists.size(historial)} + ' registros'"></span>
-                    </div>
+                <div class="col-span-3">
+                    <p class="font-semibold text-gray-800 text-sm" th:text="${a.cultivo}"></p>
+                    <p class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <i class="ph-fill ph-map-pin" style="font-size:11px;color:#16a34a;"></i>
+                        <span th:text="${a.municipio}"></span>
+                    </p>
                 </div>
-
-                <!-- Encabezado tabla -->
-                <div
-                    class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 text-xs font-semibold text-gray-300 uppercase tracking-widest">
-                    <div class="col-span-3">Cultivo</div>
-                    <div class="col-span-2 text-center">Severidad</div>
-                    <div class="col-span-2 text-center">Categoria</div>
-                    <div class="col-span-3">Descripcion</div>
-                    <div class="col-span-2 text-center">Fecha</div>
+                <div class="col-span-2 text-center">
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-xl"
+                        th:classappend="${a.severidad == 'ALTA'} ? 'badge-alta' : (${a.severidad == 'MEDIA'} ? 'badge-media' : 'badge-baja')"
+                        th:text="${a.severidad}"></span>
                 </div>
-
-                <!-- Filas con carga progresiva y animacion -->
-                <div th:each="a, iterStat : ${historial}" x-show="[[${iterStat.index}]] < visibles"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50/80 items-center hover:bg-gray-50/50 transition-colors">
-
-                    <!-- Cultivo + municipio -->
-                    <div class="col-span-3">
-                        <p class="font-semibold text-gray-800 text-sm" th:text="${a.cultivo}"></p>
-                        <p class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                            <i class="ph-fill ph-map-pin" style="font-size:11px;color:#16a34a;"></i>
-                            <span th:text="${a.municipio}"></span>
-                        </p>
-                    </div>
-
-                    <!-- Severidad -->
-                    <div class="col-span-2 text-center">
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-xl"
-                            th:classappend="${a.severidad == 'ALTA'} ? 'badge-alta' : (${a.severidad == 'MEDIA'} ? 'badge-media' : 'badge-baja')"
-                            th:text="${a.severidad}"></span>
-                    </div>
-
-                    <!-- Categoria -->
-                    <div class="col-span-2 text-center">
-                        <span th:if="${a.categoria == 'TRANSITORIO'}"
-                            class="tipo-trans text-xs font-semibold px-2.5 py-1 rounded-xl">Transitorio</span>
-                        <span th:if="${a.categoria == 'PERMANENTE'}"
-                            class="tipo-perm text-xs font-semibold px-2.5 py-1 rounded-xl">Permanente</span>
-                    </div>
-
-                    <!-- Descripcion -->
-                    <div class="col-span-3">
-                        <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed" th:text="${a.descripcion}"></p>
-                    </div>
-
-                    <!-- Fecha -->
-                    <div class="col-span-2 text-center">
-                        <span class="text-xs text-gray-400 font-mono flex items-center justify-center gap-1">
-                            <i class="ph-fill ph-calendar-blank" style="font-size:11px;color:#9ca3af;"></i>
-                            <span th:text="${#temporals.format(a.fechaGeneracion, 'dd/MM/yyyy')}"></span>
-                        </span>
-                    </div>
+                <div class="col-span-2 text-center">
+                    <span th:if="${a.categoria == 'TRANSITORIO'}"
+                        class="tipo-trans text-xs font-semibold px-2.5 py-1 rounded-xl">Transitorio</span>
+                    <span th:if="${a.categoria == 'PERMANENTE'}"
+                        class="tipo-perm text-xs font-semibold px-2.5 py-1 rounded-xl">Permanente</span>
                 </div>
-
-                <!-- Boton ver mas con barra de progreso -->
-                <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                    <div class="flex items-center gap-4">
-                        <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                            <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                                :style="'width:' + progreso + '%'"></div>
-                        </div>
-                        <span class="text-xs text-gray-400 whitespace-nowrap"
-                            x-text="'Mostrando ' + visibles + ' de ' + total"></span>
-                        <button @click="mostrarMas()"
-                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
-                            <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
-                            Ver mas
-                        </button>
-                    </div>
+                <div class="col-span-3">
+                    <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed" th:text="${a.descripcion}"></p>
                 </div>
+                <div class="col-span-2 text-center">
+                    <span class="text-xs text-gray-400 font-mono flex items-center justify-center gap-1">
+                        <i class="ph-fill ph-calendar-blank" style="font-size:11px;color:#9ca3af;"></i>
+                        <span th:text="${#temporals.format(a.fechaGeneracion, 'dd/MM/yyyy')}"></span>
+                    </span>
+                </div>
+            </div>
 
-                <!-- Todos visibles -->
-                <div x-show="!hayMas && total > 5"
-                    class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-                    <i class="ph-fill ph-check-circle" style="font-size:14px;color:#16a34a;"></i>
-                    Mostrando todos los registros del historial
+            <!-- Paginacion historial -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                <p id="infoPaginaHist" class="text-xs text-gray-400"></p>
+                <div class="flex items-center gap-1">
+                    <button id="btnAntHist"
+                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                        <i class="ph-bold ph-caret-left" style="font-size:12px;color:#6b7280;"></i>
+                    </button>
+                    <div id="numsPageHist" class="flex items-center gap-1"></div>
+                    <button id="btnSigHist"
+                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                        <i class="ph-bold ph-caret-right" style="font-size:12px;color:#6b7280;"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <span>Registros por pagina</span>
+                    <span
+                        class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 font-semibold text-gray-700">5</span>
                 </div>
             </div>
         </div>
 
+        <!-- ── SCRIPTS ────────────────────────────────────────── -->
         <script>
-            /* Filtra alertas activas por severidad */
-            function filtrarTab(severidad) {
+            /* Cultivos afectados únicos */
+            (function () {
+                const items = document.querySelectorAll('.alerta-item');
+                const cultivos = new Set();
+                items.forEach(el => { if (el.dataset.cultivo) cultivos.add(el.dataset.cultivo); });
+                const el = document.getElementById('statCultivos');
+                if (el) el.textContent = cultivos.size;
+            })();
+
+            /* Filtro severidad activo */
+            let filtroSevActivo = 'todas';
+
+            function setFiltroSev(sev) {
+                filtroSevActivo = sev;
+                aplicarFiltros();
+            }
+
+            /* Filtro combinado: severidad + buscador */
+            function aplicarFiltros() {
+                const q = (document.getElementById('buscadorAlertas')?.value || '').toLowerCase();
                 document.querySelectorAll('.alerta-item').forEach(item => {
-                    item.style.display = severidad === 'todas' || item.dataset.severidad === severidad.toUpperCase()
-                        ? '' : 'none';
+                    const sev = (item.dataset.severidad || '').toLowerCase();
+                    const cultivo = (item.dataset.cultivo || '').toLowerCase();
+                    const tipo = (item.dataset.tipo || '').toLowerCase();
+                    const matchSev = filtroSevActivo === 'todas' || sev === filtroSevActivo;
+                    const matchBusc = !q || cultivo.includes(q) || tipo.includes(q);
+                    item.style.display = (matchSev && matchBusc) ? '' : 'none';
                 });
             }
 
-            /* Filtra por texto en cultivo o tipo de alerta */
-            function filtrarAlertas() {
-                const q = document.getElementById('buscadorAlertas').value.toLowerCase();
-                document.querySelectorAll('.alerta-item').forEach(item => {
-                    const cultivo = (item.dataset.cultivo || '').toLowerCase();
-                    const tipo = (item.dataset.tipo || '').toLowerCase();
-                    item.style.display = (cultivo.includes(q) || tipo.includes(q)) ? '' : 'none';
-                });
-            }
+            /* Paginacion historial */
+            (function () {
+                const btnAnt = document.getElementById('btnAntHist');
+                const btnSig = document.getElementById('btnSigHist');
+                if (!btnAnt || !btnSig) return;
+
+                let paginaActual = 1;
+                const porPagina = 5;
+                const filas = Array.from(document.querySelectorAll('.fila-hist'));
+                const totalFilas = filas.length;
+                const totalPags = Math.ceil(totalFilas / porPagina);
+
+                function renderPagina() {
+                    const desde = (paginaActual - 1) * porPagina;
+                    const hasta = paginaActual * porPagina;
+
+                    filas.forEach(el => {
+                        el.style.display = (Number(el.dataset.idx) >= desde && Number(el.dataset.idx) < hasta) ? '' : 'none';
+                    });
+
+                    const info = 'Mostrando ' + (desde + 1) + ' a ' + Math.min(hasta, totalFilas) + ' de ' + totalFilas + ' registros';
+                    document.getElementById('infoPaginaHist').textContent = info;
+                    document.getElementById('infoBannerHist').textContent = info;
+
+                    const nums = document.getElementById('numsPageHist');
+                    nums.innerHTML = '';
+                    for (let i = 1; i <= totalPags; i++) {
+                        if (i === 1 || i === totalPags || (i >= paginaActual - 2 && i <= paginaActual + 2)) {
+                            const btn = document.createElement('button');
+                            btn.textContent = i;
+                            btn.className = 'w-8 h-8 rounded-lg text-xs font-semibold transition ' +
+                                (i === paginaActual ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
+                            btn.addEventListener('click', () => { paginaActual = i; renderPagina(); });
+                            nums.appendChild(btn);
+                        } else if ((i === paginaActual - 3 && i > 1) || (i === paginaActual + 3 && i < totalPags)) {
+                            const sep = document.createElement('span');
+                            sep.textContent = '…';
+                            sep.className = 'w-8 h-8 flex items-center justify-center text-xs text-gray-400';
+                            nums.appendChild(sep);
+                        }
+                    }
+
+                    btnAnt.style.opacity = paginaActual === 1 ? '0.4' : '1';
+                    btnSig.style.opacity = paginaActual === totalPags ? '0.4' : '1';
+                }
+
+                btnAnt.addEventListener('click', () => { if (paginaActual > 1) { paginaActual--; renderPagina(); } });
+                btnSig.addEventListener('click', () => { if (paginaActual < totalPags) { paginaActual++; renderPagina(); } });
+
+                renderPagina();
+            })();
         </script>
 
     </main>

@@ -100,17 +100,26 @@
         this.mapa.setView([lat, lng], 11);
     },
 
-    icono(lluvia, tempMax) {
-        if (lluvia > 15) return '<i class=&quot;ph-fill ph-cloud-lightning&quot; style=&quot;font-size:28px;color:#6366f1;&quot;></i>';
-        if (lluvia > 5)  return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#3b82f6;&quot;></i>';
-        if (lluvia > 0)  return '<i class=&quot;ph-fill ph-cloud-drizzle&quot; style=&quot;font-size:28px;color:#60a5fa;&quot;></i>';
-        if (tempMax > 35) return '<i class=&quot;ph-fill ph-thermometer-hot&quot; style=&quot;font-size:28px;color:#ef4444;&quot;></i>';
-        return '<i class=&quot;ph-fill ph-sun&quot; style=&quot;font-size:28px;color:#f59e0b;&quot;></i>';
-    },
+    icono(code, lluvia) {
+    const ll = parseFloat(lluvia) || 0;
+    if (ll < 0.3)       return '<i class=&quot;ph-fill ph-sun&quot; style=&quot;font-size:28px;color:#f59e0b;&quot;></i>';
+    if (ll < 2)         return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#93c5fd;&quot;></i>';
+    if (ll < 5)         return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#60a5fa;&quot;></i>';
+    if (ll < 15)        return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#3b82f6;&quot;></i>';
+    return '<i class=&quot;ph-fill ph-cloud-lightning&quot; style=&quot;font-size:28px;color:#6366f1;&quot;></i>';
+},
 
+condicion(code, lluvia) {
+    const ll = parseFloat(lluvia) || 0;
+    if (ll < 0.3)   return 'Despejado';
+    if (ll < 2)     return 'Llovizna';
+    if (ll < 5)     return 'Lluvia ligera';
+    if (ll < 15)    return 'Lluvia moderada';
+    return 'Tormenta';
+},
     abrirRanking() {
-        this.rankingAbierto   = true;
-        this.rankingCargando  = true;
+        this.rankingAbierto  = true;
+        this.rankingCargando = true;
         fetch('/dashboard/ranking-cultivos')
             .then(r => r.json())
             .then(data => { this.ranking = data; this.rankingCargando = false; })
@@ -139,7 +148,7 @@
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
-                            <i class="ph-fill ph-trophy" style="font-size:18px; color:#ca8a04;"></i>
+                            <i class="ph-fill ph-trophy" style="font-size:18px;color:#ca8a04;"></i>
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900">Ranking de Cultivos</h3>
@@ -171,8 +180,9 @@
                                     <span
                                         class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0"
                                         :class="index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-gray-300 text-gray-700' :
-                      index === 2 ? 'bg-amber-600 text-white' : 'bg-green-700 text-white'" x-text="index + 1"></span>
+                                                index === 1 ? 'bg-gray-300 text-gray-700' :
+                                                index === 2 ? 'bg-amber-600 text-white' : 'bg-green-700 text-white'"
+                                        x-text="index + 1"></span>
                                     <span class="text-gray-800 font-semibold text-sm" x-text="item.nombre"></span>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -211,8 +221,8 @@
                     </span>
                 </div>
                 <div x-show="climaHoy" class="text-white text-center border border-white/20 rounded-2xl p-4"
-                    style="background:rgba(255,255,255,0.12); backdrop-filter:blur(16px); min-width:150px;">
-                    <div class="mb-1" x-html="climaHoy ? icono(climaHoy.lluviaMm, climaHoy.tempMax) : ''"></div>
+                    style="background:rgba(255,255,255,0.12);backdrop-filter:blur(16px);min-width:150px;">
+                    <div class="mb-1" x-html="climaHoy ? icono(climaHoy.weatherCode, climaHoy.lluviaMm) : ''"></div>
                     <div class="text-4xl font-black" x-text="climaHoy ? climaHoy.tempMax + '°C' : '--'"></div>
                     <div class="text-white/60 text-xs uppercase tracking-wide mt-1">Hoy</div>
                     <div class="mt-2 pt-2 border-t border-white/20 text-xs grid grid-cols-2 gap-1">
@@ -234,7 +244,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                        <i class="ph-duotone ph-plant" style="font-size:18px; color:#16a34a;"></i>
+                        <i class="ph-duotone ph-plant" style="font-size:18px;color:#16a34a;"></i>
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-gray-800">Cultivo activo</p>
@@ -274,6 +284,7 @@
                 </div>
             </div>
 
+            <!-- Fallback estático Thymeleaf -->
             <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}"
                 x-show="pronostico.length === 0 && !cargando"
                 class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -297,8 +308,8 @@
                             style="font-size:28px;color:#6366f1;"></i>
                         <i th:if="${dia.lluviaMm > 5 && dia.lluviaMm <= 15}" class="ph-fill ph-cloud-rain"
                             style="font-size:28px;color:#3b82f6;"></i>
-                        <i th:if="${dia.lluviaMm > 0 && dia.lluviaMm <= 5}" class="ph-fill ph-cloud-drizzle"
-                            style="font-size:28px;color:#60a5fa;"></i>
+                        <i th:if="${dia.lluviaMm > 0 && dia.lluviaMm <= 5}" class="ph-fill ph-cloud-rain"
+                            style="font-size:28px;color:#93c5fd;"></i>
                         <i th:if="${dia.lluviaMm == 0 && dia.tempMax > 35}" class="ph-fill ph-thermometer-hot"
                             style="font-size:28px;color:#ef4444;"></i>
                         <i th:if="${dia.lluviaMm == 0 && dia.tempMax <= 35}" class="ph-fill ph-sun"
@@ -311,23 +322,141 @@
                 </div>
             </div>
 
+            <!-- Cards dinámicas Alpine -->
             <div x-show="pronostico.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <template x-for="(dia, index) in pronostico" :key="index">
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-                        :class="index === 0 ? 'ring-2 ring-green-400 ring-offset-1' : ''">
-                        <div class="h-1 rounded-full mb-3"
-                            :class="['bg-green-400','bg-orange-400','bg-blue-400','bg-purple-400','bg-sky-400','bg-amber-400','bg-yellow-300'][index % 7]">
+                    <div x-data="{ popup: false }" class="relative">
+
+                        <!-- Card -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200"
+                            :class="index === 0 ? 'ring-2 ring-green-400 ring-offset-1' : ''">
+
+                            <!-- Barra color -->
+                            <div class="h-1"
+                                :class="['bg-green-400','bg-orange-400','bg-blue-400','bg-purple-400','bg-sky-400','bg-amber-400','bg-yellow-300'][index % 7]">
+                            </div>
+
+                            <div class="p-3 text-center">
+                                <div x-show="index === 0"
+                                    class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
+                                    Hoy</div>
+                                <p x-show="index !== 0" class="text-xs font-bold text-gray-500 mb-1"
+                                    x-text="dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : ''">
+                                </p>
+
+                                <div class="my-1" x-html="icono(dia.weatherCode, dia.lluviaMm)"></div>
+
+                                <p class="text-xs font-semibold mb-1" :class="{
+                        'text-amber-500':  dia.weatherCode === 0,
+                        'text-orange-400': dia.weatherCode <= 2 && dia.weatherCode > 0,
+                        'text-gray-400':   dia.weatherCode >= 3 && dia.weatherCode <= 48,
+                        'text-blue-400':   dia.weatherCode >= 51 && dia.weatherCode <= 82,
+                        'text-indigo-500': dia.weatherCode >= 95
+                    }" x-text="condicion(dia.weatherCode, dia.lluviaMm)"></p>
+
+                                <div class="flex items-center justify-center gap-1">
+                                    <i class="ph-fill ph-thermometer-hot" style="font-size:13px;color:#ef4444;"></i>
+                                    <p class="text-lg font-black text-gray-900" x-text="dia.tempMax + '°C'"></p>
+                                </div>
+                                <div class="flex items-center justify-center gap-1">
+                                    <i class="ph-fill ph-thermometer-cold" style="font-size:12px;color:#3b82f6;"></i>
+                                    <p class="text-xs text-gray-400" x-text="dia.tempMin + '°C'"></p>
+                                </div>
+
+                                <div class="flex items-center justify-center gap-3 mt-1.5">
+                                    <div class="flex items-center gap-1">
+                                        <i class="ph-fill ph-drop" style="font-size:11px;color:#3b82f6;"></i>
+                                        <span class="text-xs text-blue-500 font-semibold"
+                                            x-text="dia.lluviaMm + 'mm'"></span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <i class="ph-fill ph-waves" style="font-size:11px;color:#0d9488;"></i>
+                                        <span class="text-xs text-teal-500 font-semibold"
+                                            x-text="dia.humedadMax + '%'"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Boton ver detalle -->
+                                <button @click.stop="popup = true"
+                                    class="mt-2 w-full text-xs text-gray-400 hover:text-green-700 hover:bg-green-50 rounded-lg py-1 transition flex items-center justify-center gap-1">
+                                    <i class="ph-fill ph-info" style="font-size:11px;"></i>
+                                    Ver detalle
+                                </button>
+                            </div>
                         </div>
-                        <div x-show="index === 0"
-                            class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
-                            Hoy</div>
-                        <p x-show="index !== 0" class="text-xs text-gray-500 font-medium mb-1"
-                            x-text="dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : ''"></p>
-                        <div class="mb-1" x-html="icono(dia.lluviaMm, dia.tempMax)"></div>
-                        <p class="text-lg font-black text-gray-900" x-text="dia.tempMax + '°C'"></p>
-                        <p class="text-xs text-gray-400 mb-2" x-text="'↓ ' + dia.tempMin + '°C'"></p>
-                        <p class="text-xs text-blue-500" x-text="dia.lluviaMm + ' mm'"></p>
-                        <p class="text-xs text-teal-500" x-text="dia.humedadMax + '%'"></p>
+
+                        <!-- Popup detalle -->
+                        <div x-show="popup" x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            @click.away="popup = false"
+                            class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
+                            style="display:none;">
+
+                            <!-- Puntita -->
+                            <div
+                                class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45">
+                            </div>
+
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-bold text-gray-700"
+                                    x-text="index === 0 ? 'Hoy' : (dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : '')">
+                                </p>
+                                <button @click="popup = false"
+                                    class="w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                                    <i class="ph-bold ph-x" style="font-size:9px;color:#6b7280;"></i>
+                                </button>
+                            </div>
+
+                            <div class="space-y-2">
+                                <!-- Lluvia -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-5 h-5 bg-blue-50 rounded-md flex items-center justify-center">
+                                            <i class="ph-fill ph-drop" style="font-size:11px;color:#3b82f6;"></i>
+                                        </div>
+                                        <span class="text-xs text-gray-400">Lluvia</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-blue-500" x-text="dia.lluviaMm + ' mm'"></span>
+                                </div>
+
+                                <!-- Humedad max -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-5 h-5 bg-teal-50 rounded-md flex items-center justify-center">
+                                            <i class="ph-fill ph-waves" style="font-size:11px;color:#0d9488;"></i>
+                                        </div>
+                                        <span class="text-xs text-gray-400">Hum. max</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-teal-500" x-text="dia.humedadMax + '%'"></span>
+                                </div>
+
+                                <!-- Humedad min -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-5 h-5 bg-gray-50 rounded-md flex items-center justify-center">
+                                            <i class="ph-fill ph-waves" style="font-size:11px;color:#94a3b8;"></i>
+                                        </div>
+                                        <span class="text-xs text-gray-400">Hum. min</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-400" x-text="dia.humedadMin + '%'"></span>
+                                </div>
+
+                                <!-- Resumen -->
+                                <div class="bg-green-50 rounded-xl px-2 py-1.5 mt-1">
+                                    <div class="flex items-start gap-1.5">
+                                        <i class="ph-fill ph-leaf"
+                                            style="font-size:12px;color:#16a34a;margin-top:1px;"></i>
+                                        <p class="text-xs text-green-700 leading-snug" x-text="
+    dia.lluviaMm === 0  ? 'Condiciones favorables para tus cultivos.' :
+    dia.lluviaMm < 2    ? 'Llovizna esperada. Monitorea humedad.' :
+    dia.lluviaMm < 5    ? 'Lluvia ligera. Revisa drenajes.' :
+    dia.lluviaMm < 15   ? 'Lluvia moderada. Protege cultivos sensibles.' :
+                          'Tormenta esperada. Protege tus cultivos.'
+"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -348,11 +477,11 @@
                         <span class="text-sm font-semibold text-gray-800">Ubicacion de cultivos</span>
                     </div>
                     <span class="text-xs text-gray-400 flex items-center gap-1.5">
-                        <i class="ph-fill ph-map-trifold" style="font-size:13px; color:#9ca3af;"></i>
+                        <i class="ph-fill ph-map-trifold" style="font-size:13px;color:#9ca3af;"></i>
                         Todos tus cultivos
                     </span>
                 </div>
-                <div id="mapa-cultivo" style="height:320px; width:100%;"></div>
+                <div id="mapa-cultivo" style="height:320px;width:100%;"></div>
                 <div
                     class="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
                     <span class="flex items-center gap-1.5">
@@ -368,7 +497,6 @@
             </div>
 
             <div>
-                <!-- Header con boton ranking visible -->
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-lg font-bold text-gray-900">Mis Cultivos</h3>
                     <div class="flex items-center gap-2">
@@ -387,7 +515,7 @@
 
                 <div th:if="${#lists.isEmpty(cultivos)}"
                     class="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center">
-                    <i class="ph-duotone ph-plant" style="font-size:36px; color:#86efac;"></i>
+                    <i class="ph-duotone ph-plant" style="font-size:36px;color:#86efac;"></i>
                     <p class="text-gray-400 text-sm mt-2 mb-3">Sin cultivos registrados</p>
                     <a th:href="@{/cultivos/nuevo}"
                         class="inline-flex items-center gap-1.5 bg-green-700 text-white text-xs px-4 py-2 rounded-xl font-medium hover:bg-green-800 transition">
@@ -412,7 +540,7 @@
                                     alt="Imagen cultivo">
                                 <div th:if="${c.imagenUrl == null || #strings.isEmpty(c.imagenUrl)}"
                                     class="w-full h-full bg-green-50 flex items-center justify-center">
-                                    <i class="ph-duotone ph-plant" style="font-size:28px; color:#86efac;"></i>
+                                    <i class="ph-duotone ph-plant" style="font-size:28px;color:#86efac;"></i>
                                 </div>
                                 <div x-show="cultivoActivo === $el.closest('[data-nombre]').dataset.nombre"
                                     class="absolute inset-0 bg-green-900/40 flex items-center justify-center">
@@ -430,7 +558,7 @@
                                             class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">Permanente</span>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                                        <i class="ph-fill ph-map-pin" style="font-size:11px; color:#9ca3af;"></i>
+                                        <i class="ph-fill ph-map-pin" style="font-size:11px;color:#9ca3af;"></i>
                                         <span th:text="${c.municipio}"></span>
                                     </p>
                                 </div>

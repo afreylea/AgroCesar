@@ -105,4 +105,35 @@ public interface UsuarioRepository {
 
     @SqlUpdate("UPDATE USUARIOS SET ACTIVO = 1 WHERE ID = :id")
     int activar(@Bind("id") Long id);
+
+    @SqlUpdate("""
+    UPDATE USUARIOS SET 
+        RESET_TOKEN = :token,
+        RESET_TOKEN_EXPIRY = :expiry
+    WHERE EMAIL = :email AND ACTIVO = 1
+    """)
+    int guardarResetToken(@Bind("email") String email,
+                          @Bind("token") String token,
+                          @Bind("expiry") java.time.LocalDateTime expiry);
+
+    @SqlQuery("""
+    SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+           MUNICIPIO_ID, TELEFONO, ACTIVO,
+           FECHA_CREACION, ULTIMO_LOGIN
+    FROM USUARIOS
+    WHERE RESET_TOKEN = :token
+      AND RESET_TOKEN_EXPIRY > SYSDATE
+      AND ACTIVO = 1
+    """)
+    Optional<Usuario> findByResetToken(@Bind("token") String token);
+
+    @SqlUpdate("""
+    UPDATE USUARIOS SET 
+        PASSWORD_HASH = :passwordHash,
+        RESET_TOKEN = NULL,
+        RESET_TOKEN_EXPIRY = NULL
+    WHERE ID = :id
+    """)
+    int actualizarPassword(@Bind("id") Long id,
+                           @Bind("passwordHash") String passwordHash);
 }

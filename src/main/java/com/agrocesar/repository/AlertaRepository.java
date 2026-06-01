@@ -1,175 +1,294 @@
 package com.agrocesar.repository;
 
 import com.agrocesar.dto.AlertaVistaDTO;
-import com.agrocesar.model.Alerta;
-import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
-import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.statement.SqlQuery;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import com.agrocesar.dto.CultivoMasAfectadoDTO;
+import com.agrocesar.model.Alerta;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.OutParameters;
+import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
-@RegisterRowMapper(AlertaVistaDTOMapper.class)
-@RegisterRowMapper(CultivoMasAfectadoMapper.class)
+@Repository
+public class AlertaRepository {
 
-public interface AlertaRepository {
+    private final Jdbi jdbi;
+    private final AlertaVistaDTOMapper alertaMapper       = new AlertaVistaDTOMapper();
+    private final CultivoMasAfectadoMapper afectadoMapper = new CultivoMasAfectadoMapper();
 
-    // Escritura (tabla ALERTAS)
+    public AlertaRepository(Jdbi jdbi) {
+        this.jdbi = jdbi;
+    }
 
-    @SqlUpdate("""
-            INSERT INTO ALERTAS (
-                CULTIVO_AGRICULTOR_ID, TIPO_ALERTA, SEVERIDAD, DESCRIPCION,
-                RECOMENDACION, FECHA_DIA_PRONOSTICO, VALOR_DETECTADO, VALOR_UMBRAL
-            ) VALUES (
-                :cultivoAgricultorId, :tipoAlerta, :severidad, :descripcion,
-                :recomendacion, :fechaDiaPronostico, :valorDetectado, :valorUmbral
-            )
-            """)
-    void insert(@BindBean Alerta alerta);
+    // ----------------------------------------------------------------
+    //  ESCRITURA (tabla ALERTAS)
+    // ----------------------------------------------------------------
 
-    @SqlUpdate("""
-            UPDATE ALERTAS SET RECOMENDACION = :recomendacion
-            WHERE ID = :id
-            """)
-    int actualizarRecomendacion(@Bind("id") Long id,
-            @Bind("recomendacion") String recomendacion);
+    public void insert(Alerta alerta) {
+        jdbi.useHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_insert(" +
+                ":p_cultivo_agricultor_id, :p_tipo_alerta, :p_severidad, " +
+                ":p_descripcion, :p_recomendacion, :p_fecha_dia_pronostico, " +
+                ":p_valor_detectado, :p_valor_umbral) }")
+                .bind("p_cultivo_agricultor_id", alerta.getCultivoAgricultorId())
+                .bind("p_tipo_alerta",           alerta.getTipoAlerta())
+                .bind("p_severidad",             alerta.getSeveridad())
+                .bind("p_descripcion",           alerta.getDescripcion())
+                .bind("p_recomendacion",         alerta.getRecomendacion())
+                .bind("p_fecha_dia_pronostico",  alerta.getFechaDiaPronostico())
+                .bind("p_valor_detectado",       alerta.getValorDetectado())
+                .bind("p_valor_umbral",          alerta.getValorUmbral())
+                .invoke()
+        );
+    }
 
-    @SqlUpdate("UPDATE ALERTAS SET LEIDA = 1 WHERE ID = :id")
-    int marcarLeida(@Bind("id") Long id);
+    public int actualizarRecomendacion(Long id, String recomendacion) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_actualizar_recomendacion(:p_id, :p_recomendacion, :p_rows_updated) }")
+                .bind("p_id",            id)
+                .bind("p_recomendacion", recomendacion)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
 
-    // Lectura (vista V_ALERTAS)
+    public int marcarLeida(Long id) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_marcar_leida(:p_id, :p_rows_updated) }")
+                .bind("p_id", id)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE ALERTA_ID = :id
-            """)
-    Optional<AlertaVistaDTO> findById(@Bind("id") Long id);
+    // ----------------------------------------------------------------
+    //  LECTURA (vista V_ALERTAS)
+    // ----------------------------------------------------------------
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE USUARIO_ID = :usuarioId
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByUsuarioId(@Bind("usuarioId") Long usuarioId);
+    public Optional<AlertaVistaDTO> findById(Long id) {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_ALERTAS.prc_find_by_id(:p_id, :p_cursor) }")
+                .bind("p_id", id)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, Optional<AlertaVistaDTO>>) out -> {
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        if (rs.next()) {
+                            return Optional.of(alertaMapper.map(rs, null));
+                        }
+                        return Optional.<AlertaVistaDTO>empty();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE USUARIO_ID = :usuarioId AND LEIDA = 0
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findNoLeidasByUsuarioId(@Bind("usuarioId") Long usuarioId);
+    public List<AlertaVistaDTO> findByUsuarioId(Long usuarioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_ALERTAS.prc_find_by_usuario(:p_usuario_id, :p_cursor) }")
+                .bind("p_usuario_id", usuarioId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE MUNICIPIO_ID = :municipioId
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByMunicipioId(@Bind("municipioId") Long municipioId);
+    public List<AlertaVistaDTO> findNoLeidasByUsuarioId(Long usuarioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_no_leidas_by_usuario(:p_usuario_id, :p_cursor) }")
+                .bind("p_usuario_id", usuarioId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE CATALOGO_ID = :catalogoId
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByCatalogoId(@Bind("catalogoId") Long catalogoId);
+    public List<AlertaVistaDTO> findByMunicipioId(Long municipioId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_municipio(:p_municipio_id, :p_cursor) }")
+                .bind("p_municipio_id", municipioId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE CULTIVO_AGRICULTOR_ID = :cultivoId
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByCultivoId(@Bind("cultivoId") Long cultivoId);
+    public List<AlertaVistaDTO> findByCatalogoId(Long catalogoId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_catalogo(:p_catalogo_id, :p_cursor) }")
+                .bind("p_catalogo_id", catalogoId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE USUARIO_ID = :usuarioId AND CULTIVO_AGRICULTOR_ID = :cultivoId
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByUsuarioIdAndCultivoId(@Bind("usuarioId") Long usuarioId,
-            @Bind("cultivoId") Long cultivoId);
+    public List<AlertaVistaDTO> findByCultivoId(Long cultivoId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_cultivo(:p_cultivo_id, :p_cursor) }")
+                .bind("p_cultivo_id", cultivoId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE TIPO_ALERTA = :tipoAlerta
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByTipo(@Bind("tipoAlerta") String tipoAlerta);
+    public List<AlertaVistaDTO> findByUsuarioIdAndCultivoId(Long usuarioId, Long cultivoId) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_usuario_and_cultivo(:p_usuario_id, :p_cultivo_id, :p_cursor) }")
+                .bind("p_usuario_id",  usuarioId)
+                .bind("p_cultivo_id",  cultivoId)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE USUARIO_ID = :usuarioId AND TIPO_ALERTA = :tipoAlerta
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByUsuarioIdAndTipo(@Bind("usuarioId") Long usuarioId,
-            @Bind("tipoAlerta") String tipoAlerta);
+    public List<AlertaVistaDTO> findByTipo(String tipoAlerta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_tipo(:p_tipo_alerta, :p_cursor) }")
+                .bind("p_tipo_alerta", tipoAlerta)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE SEVERIDAD = :severidad
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findBySeveridad(@Bind("severidad") String severidad);
+    public List<AlertaVistaDTO> findByUsuarioIdAndTipo(Long usuarioId, String tipoAlerta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_usuario_and_tipo(:p_usuario_id, :p_tipo_alerta, :p_cursor) }")
+                .bind("p_usuario_id",  usuarioId)
+                .bind("p_tipo_alerta", tipoAlerta)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE USUARIO_ID = :usuarioId AND SEVERIDAD = :severidad
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByUsuarioIdAndSeveridad(@Bind("usuarioId") Long usuarioId,
-            @Bind("severidad") String severidad);
+    public List<AlertaVistaDTO> findBySeveridad(String severidad) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_severidad(:p_severidad, :p_cursor) }")
+                .bind("p_severidad", severidad)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findAll();
+    public List<AlertaVistaDTO> findByUsuarioIdAndSeveridad(Long usuarioId, String severidad) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_usuario_and_severidad(:p_usuario_id, :p_severidad, :p_cursor) }")
+                .bind("p_usuario_id", usuarioId)
+                .bind("p_severidad",  severidad)
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT * FROM V_ALERTAS
-            WHERE TRUNC(FECHA_GENERACION) BETWEEN :fechaDesde AND :fechaHasta
-            ORDER BY FECHA_GENERACION DESC
-            """)
-    List<AlertaVistaDTO> findByRangoFechas(
-            @Bind("fechaDesde") LocalDate fechaDesde,
-            @Bind("fechaHasta") LocalDate fechaHasta);
+    public List<AlertaVistaDTO> findAll() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_ALERTAS.prc_find_all(:p_cursor) }")
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT CULTIVO AS nombreCultivo, MUNICIPIO, COUNT(*) AS totalAlertas
-            FROM V_ALERTAS
-            WHERE TRUNC(FECHA_GENERACION) BETWEEN :fechaDesde AND :fechaHasta
-            GROUP BY CULTIVO, MUNICIPIO
-            ORDER BY COUNT(*) DESC
-            """)
-    List<CultivoMasAfectadoDTO> findCultivosMasAfectados(
-            @Bind("fechaDesde") LocalDate fechaDesde,
-            @Bind("fechaHasta") LocalDate fechaHasta);
+    public List<AlertaVistaDTO> findByRangoFechas(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_by_rango_fechas(:p_fecha_desde, :p_fecha_hasta, :p_cursor) }")
+                .bind("p_fecha_desde", java.sql.Date.valueOf(fechaDesde))
+                .bind("p_fecha_hasta", java.sql.Date.valueOf(fechaHasta))
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<AlertaVistaDTO>>) out -> mapAlertaList(out))
+        );
+    }
 
-    @SqlQuery("SELECT COUNT(*) FROM ALERTAS WHERE LEIDA = 0")
-    int countActivas();
+    public List<CultivoMasAfectadoDTO> findCultivosMasAfectados(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_find_cultivos_mas_afectados(:p_fecha_desde, :p_fecha_hasta, :p_cursor) }")
+                .bind("p_fecha_desde", java.sql.Date.valueOf(fechaDesde))
+                .bind("p_fecha_hasta", java.sql.Date.valueOf(fechaHasta))
+                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
+                .invoke((Function<OutParameters, List<CultivoMasAfectadoDTO>>) out -> {
+                    List<CultivoMasAfectadoDTO> list = new ArrayList<>();
+                    try {
+                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
+                        while (rs.next()) {
+                            list.add(afectadoMapper.map(rs, null));
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return list;
+                })
+        );
+    }
 
-    @SqlQuery("SELECT COUNT(*) FROM ALERTAS WHERE LEIDA = 0 AND SEVERIDAD IN ('ALTA', 'CRITICA')")
-    int countCriticas();
+    public int countActivas() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_ALERTAS.prc_count_activas(:p_count) }")
+                .registerOutParameter("p_count", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_count"))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT COUNT(*) FROM ALERTAS A
-            JOIN CULTIVOS_AGRICULTOR CA ON A.CULTIVO_AGRICULTOR_ID = CA.ID
-            WHERE A.LEIDA = 0
-            AND TRUNC(A.FECHA_GENERACION) BETWEEN :fechaDesde AND :fechaHasta
-            """)
-    int countActivasPorPeriodo(
-            @Bind("fechaDesde") LocalDate fechaDesde,
-            @Bind("fechaHasta") LocalDate fechaHasta);
+    public int countCriticas() {
+        return jdbi.withHandle(handle ->
+            handle.createCall("{ call PKG_ALERTAS.prc_count_criticas(:p_count) }")
+                .registerOutParameter("p_count", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_count"))
+        );
+    }
 
-    @SqlQuery("""
-            SELECT COUNT(*) FROM ALERTAS A
-            WHERE A.LEIDA = 0
-            AND A.SEVERIDAD IN ('ALTA', 'CRITICA')
-            AND TRUNC(A.FECHA_GENERACION) BETWEEN :fechaDesde AND :fechaHasta
-            """)
-    int countCriticasPorPeriodo(
-            @Bind("fechaDesde") LocalDate fechaDesde,
-            @Bind("fechaHasta") LocalDate fechaHasta);
+    public int countActivasPorPeriodo(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_count_activas_por_periodo(:p_fecha_desde, :p_fecha_hasta, :p_count) }")
+                .bind("p_fecha_desde", java.sql.Date.valueOf(fechaDesde))
+                .bind("p_fecha_hasta", java.sql.Date.valueOf(fechaHasta))
+                .registerOutParameter("p_count", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_count"))
+        );
+    }
+
+    public int countCriticasPorPeriodo(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return jdbi.withHandle(handle ->
+            handle.createCall(
+                "{ call PKG_ALERTAS.prc_count_criticas_por_periodo(:p_fecha_desde, :p_fecha_hasta, :p_count) }")
+                .bind("p_fecha_desde", java.sql.Date.valueOf(fechaDesde))
+                .bind("p_fecha_hasta", java.sql.Date.valueOf(fechaHasta))
+                .registerOutParameter("p_count", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_count"))
+        );
+    }
+
+    // ----------------------------------------------------------------
+    //  HELPER PRIVADO
+    // ----------------------------------------------------------------
+
+    // Extrae la lógica repetida de iterar un REF_CURSOR y mapear AlertaVistaDTO
+    private List<AlertaVistaDTO> mapAlertaList(OutParameters out) {
+        List<AlertaVistaDTO> list = new ArrayList<>();
+        try {
+            ResultSet rs = (ResultSet) out.getObject("p_cursor");
+            while (rs.next()) {
+                list.add(alertaMapper.map(rs, null));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
 }

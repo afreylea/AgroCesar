@@ -1,14 +1,16 @@
 package com.agrocesar.repository;
 
 import com.agrocesar.model.Usuario;
-import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
-import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.statement.SqlQuery;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.OutParameters;
+import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @RegisterRowMapper(UsuarioMapper.class)
 public interface UsuarioRepository {

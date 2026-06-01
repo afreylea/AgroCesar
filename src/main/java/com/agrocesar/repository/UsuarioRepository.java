@@ -12,224 +12,130 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-@Repository
-public class UsuarioRepository {
+@RegisterRowMapper(UsuarioMapper.class)
+public interface UsuarioRepository {
 
-    private final Jdbi jdbi;
-    private final UsuarioMapper mapper = new UsuarioMapper();
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE EMAIL = :email AND ACTIVO = 1
+        """)
+    Optional<Usuario> findByEmailAndActivo(@Bind("email") String email);
 
-    public UsuarioRepository(Jdbi jdbi) {
-        this.jdbi = jdbi;
-    }
+    @SqlUpdate("""
+        UPDATE USUARIOS SET ULTIMO_LOGIN = SYSDATE
+        WHERE EMAIL = :email AND ACTIVO = 1
+        """)
+    void actualizarUltimoLogin(@Bind("email") String email);
 
-    // ----------------------------------------------------------------
-    //  CONSULTAS
-    // ----------------------------------------------------------------
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ID = :id
+        """)
+    Optional<Usuario> findById(@Bind("id") Long id);
 
-    public Optional<Usuario> findById(Long id) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_by_id(:p_id, :p_cursor) }")
-                .bind("p_id", id)
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, Optional<Usuario>>) out -> {
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        if (rs.next()) {
-                            return Optional.of(mapper.map(rs, null));
-                        }
-                        return Optional.<Usuario>empty();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-        );
-    }
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE EMAIL = :email
+        """)
+    Optional<Usuario> findByEmail(@Bind("email") String email);
 
-    public Optional<Usuario> findByEmail(String email) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_by_email(:p_email, :p_cursor) }")
-                .bind("p_email", email)
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, Optional<Usuario>>) out -> {
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        if (rs.next()) {
-                            return Optional.of(mapper.map(rs, null));
-                        }
-                        return Optional.<Usuario>empty();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-        );
-    }
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ACTIVO = 1
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findActivos();
 
-    // Usado por CustomUserDetailsService — solo devuelve usuarios activos
-    public Optional<Usuario> findByEmailAndActivo(String email) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_by_email_activo(:p_email, :p_cursor) }")
-                .bind("p_email", email)
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, Optional<Usuario>>) out -> {
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        if (rs.next()) {
-                            return Optional.of(mapper.map(rs, null));
-                        }
-                        return Optional.<Usuario>empty();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-        );
-    }
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ACTIVO = 0
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findInactivos();
 
-    public List<Usuario> findActivos() {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_activos(:p_cursor) }")
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, List<Usuario>>) out -> {
-                    List<Usuario> list = new ArrayList<>();
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        while (rs.next()) {
-                            list.add(mapper.map(rs, null));
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return list;
-                })
-        );
-    }
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findAll();
 
-    public List<Usuario> findInactivos() {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_inactivos(:p_cursor) }")
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, List<Usuario>>) out -> {
-                    List<Usuario> list = new ArrayList<>();
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        while (rs.next()) {
-                            list.add(mapper.map(rs, null));
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return list;
-                })
-        );
-    }
+    @SqlQuery("""
+        SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+               MUNICIPIO_ID, TELEFONO, ACTIVO,
+               FECHA_CREACION, ULTIMO_LOGIN
+        FROM USUARIOS
+        WHERE ROL = :rol AND ACTIVO = 1
+        ORDER BY NOMBRE
+        """)
+    List<Usuario> findByRol(@Bind("rol") String rol);
 
-    public List<Usuario> findAll() {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_all(:p_cursor) }")
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, List<Usuario>>) out -> {
-                    List<Usuario> list = new ArrayList<>();
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        while (rs.next()) {
-                            list.add(mapper.map(rs, null));
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return list;
-                })
-        );
-    }
+    @SqlUpdate("""
+        INSERT INTO USUARIOS (NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL, 
+                              MUNICIPIO_ID, TELEFONO)
+        VALUES (:nombre, :apellido, :email, :passwordHash, :rol, 
+                :municipioId, :telefono)
+        """)
+    void insert(@BindBean Usuario usuario);
 
-    public List<Usuario> findByRol(String rol) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_find_by_rol(:p_rol, :p_cursor) }")
-                .bind("p_rol", rol)
-                .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
-                .invoke((Function<OutParameters, List<Usuario>>) out -> {
-                    List<Usuario> list = new ArrayList<>();
-                    try {
-                        ResultSet rs = (ResultSet) out.getObject("p_cursor");
-                        while (rs.next()) {
-                            list.add(mapper.map(rs, null));
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return list;
-                })
-        );
-    }
+    @SqlUpdate("""
+        UPDATE USUARIOS SET NOMBRE = :nombre, APELLIDO = :apellido, EMAIL = :email,
+                            MUNICIPIO_ID = :municipioId, TELEFONO = :telefono
+        WHERE ID = :id
+        """)
+    int update(@BindBean Usuario usuario);
 
-    // ----------------------------------------------------------------
-    //  ESCRITURA
-    // ----------------------------------------------------------------
+    @SqlUpdate("UPDATE USUARIOS SET ACTIVO = 0 WHERE ID = :id")
+    int desactivar(@Bind("id") Long id);
 
-    public void insert(Usuario usuario) {
-        jdbi.useHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_insert(:p_nombre, :p_apellido, :p_email, " +
-                ":p_password_hash, :p_rol, :p_municipio_id, :p_telefono) }")
-                .bind("p_nombre",        usuario.getNombre())
-                .bind("p_apellido",      usuario.getApellido())
-                .bind("p_email",         usuario.getEmail())
-                .bind("p_password_hash", usuario.getPasswordHash())
-                .bind("p_rol",           usuario.getRol())
-                .bind("p_municipio_id",  usuario.getMunicipioId())
-                .bind("p_telefono",      usuario.getTelefono())
-                .invoke()
-        );
-    }
+    @SqlUpdate("UPDATE USUARIOS SET ACTIVO = 1 WHERE ID = :id")
+    int activar(@Bind("id") Long id);
 
-    public int update(Usuario usuario) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_update(:p_id, :p_nombre, :p_apellido, " +
-                ":p_email, :p_municipio_id, :p_telefono, :p_rows_updated) }")
-                .bind("p_id",           usuario.getId())
-                .bind("p_nombre",       usuario.getNombre())
-                .bind("p_apellido",     usuario.getApellido())
-                .bind("p_email",        usuario.getEmail())
-                .bind("p_municipio_id", usuario.getMunicipioId())
-                .bind("p_telefono",     usuario.getTelefono())
-                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
-                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
-        );
-    }
+    @SqlUpdate("""
+    UPDATE USUARIOS SET 
+        RESET_TOKEN = :token,
+        RESET_TOKEN_EXPIRY = :expiry
+    WHERE EMAIL = :email AND ACTIVO = 1
+    """)
+    int guardarResetToken(@Bind("email") String email,
+                          @Bind("token") String token,
+                          @Bind("expiry") java.time.LocalDateTime expiry);
 
-    public void actualizarUltimoLogin(String email) {
-        jdbi.useHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_actualizar_ultimo_login(:p_email) }")
-                .bind("p_email", email) 
-                .invoke()
-        );
-    }
+    @SqlQuery("""
+    SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+           MUNICIPIO_ID, TELEFONO, ACTIVO,
+           FECHA_CREACION, ULTIMO_LOGIN
+    FROM USUARIOS
+    WHERE RESET_TOKEN = :token
+      AND RESET_TOKEN_EXPIRY > SYSDATE
+      AND ACTIVO = 1
+    """)
+    Optional<Usuario> findByResetToken(@Bind("token") String token);
 
-    public int desactivar(Long id) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_desactivar(:p_id, :p_rows_updated) }")
-                .bind("p_id", id)
-                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
-                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
-        );
-    }
-
-    public int activar(Long id) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
-                "{ call PKG_USUARIOS.prc_activar(:p_id, :p_rows_updated) }")
-                .bind("p_id", id)
-                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
-                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
-        );
-    }
+    @SqlUpdate("""
+    UPDATE USUARIOS SET 
+        PASSWORD_HASH = :passwordHash,
+        RESET_TOKEN = NULL,
+        RESET_TOKEN_EXPIRY = NULL
+    WHERE ID = :id
+    """)
+    int actualizarPassword(@Bind("id") Long id,
+                           @Bind("passwordHash") String passwordHash);
 }

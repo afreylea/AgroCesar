@@ -48,6 +48,7 @@ public class SecurityConfig {
                         // Rutas publicas: login, registro, recursos estaticos
                         .requestMatchers(
                                 "/", "/login", "/registro",
+                                "/forgot-password", "/reset-password",
                                 "/css/**", "/js/**", "/images/**", "/imagenes/**",
                                 "/error", "/access-denied")
                         .permitAll()

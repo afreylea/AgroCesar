@@ -96,6 +96,7 @@
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
 
+
     <!-- == JDBI 3 == -->
     <dependency>
       <groupId>org.jdbi</groupId>
@@ -148,6 +149,12 @@
       <artifactId>lombok</artifactId>
       <optional>true</optional>
     </dependency>
+
+      <!-- == JAVA MAIL SENDER == -->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-mail</artifactId>
+      </dependency>
     
       <!--Dependencias de la API de Twilio-->
   <dependency>

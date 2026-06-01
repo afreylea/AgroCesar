@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: base('Catálogo - Admin Agrocesar', ~{::main})}">
 
 <body>
-    <main class="px-1 pt-2">
+    <main class="px-1 pt-2 pb-12">
 
-        <!-- Hero isla -->
-        <div class="relative overflow-hidden mb-8" style="height:160px;
+        <!-- Hero -->
+        <div class="relative overflow-hidden mb-6" style="height:160px;
                 border-radius:2rem;
                 background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop');
                 background-size:cover;
@@ -26,7 +26,7 @@
                 </div>
                 <a th:href="@{/admin/catalogo/nuevo}"
                     class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition border border-white/30 text-white"
-                    style="background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);">
+                    style="background:rgba(255,255,255,0.15);backdrop-filter:blur(12px);">
                     <i class="ph-bold ph-plus" style="font-size:14px;"></i>
                     Nuevo Cultivo
                 </a>
@@ -48,7 +48,7 @@
         <!-- Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
                 <div class="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
                     <i class="ph-duotone ph-books" style="font-size:22px;color:#16a34a;"></i>
                 </div>
@@ -59,7 +59,7 @@
                 </div>
             </div>
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
                 <div class="w-11 h-11 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
                     <i class="ph-fill ph-thermometer-hot" style="font-size:22px;color:#ea580c;"></i>
                 </div>
@@ -70,7 +70,7 @@
                 </div>
             </div>
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
                 <div class="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
                     <i class="ph-fill ph-drop-half" style="font-size:22px;color:#7c3aed;"></i>
                 </div>
@@ -81,7 +81,7 @@
                 </div>
             </div>
             <div
-                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200">
+                class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
                 <div class="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center shrink-0">
                     <i class="ph-fill ph-cloud-rain" style="font-size:22px;color:#0284c7;"></i>
                 </div>
@@ -93,28 +93,22 @@
             </div>
         </div>
 
-        <!-- Buscador + Filtros + Grid con carga progresiva -->
+        <!-- Filtros + Grid -->
         <div x-data="{
             busqueda: '',
             filtroCategoria: 'todas',
+            filtroEstado: 'todos',
             visibles: 6,
-            get cultivosFiltrados() {
-                return Array.from(document.querySelectorAll('[data-card]')).filter(el => {
-                    const nombre    = (el.dataset.nombre    || '').toLowerCase();
-                    const categoria = (el.dataset.categoria || '').toLowerCase();
-                    const matchBusq = nombre.includes(this.busqueda.toLowerCase());
-                    const matchCat  = this.filtroCategoria === 'todas' || categoria === this.filtroCategoria.toLowerCase();
-                    return matchBusq && matchCat;
-                });
-            },
             aplicarFiltros() {
                 const todos = Array.from(document.querySelectorAll('[data-card]'));
                 todos.forEach(el => {
                     const nombre    = (el.dataset.nombre    || '').toLowerCase();
                     const categoria = (el.dataset.categoria || '').toLowerCase();
+                    const estado    = (el.dataset.estado    || '');
                     const matchBusq = nombre.includes(this.busqueda.toLowerCase());
                     const matchCat  = this.filtroCategoria === 'todas' || categoria === this.filtroCategoria.toLowerCase();
-                    el.style.display = (matchBusq && matchCat) ? '' : 'none';
+                    const matchEst  = this.filtroEstado === 'todos' || estado === this.filtroEstado;
+                    el.style.display = (matchBusq && matchCat && matchEst) ? '' : 'none';
                 });
                 this.visibles = 6;
                 this.actualizarVisibilidad();
@@ -136,11 +130,9 @@
             }
         }" x-init="$nextTick(() => actualizarVisibilidad())">
 
-            <!-- Barra de busqueda + filtros -->
+            <!-- Barra busqueda + filtros -->
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-
-                    <!-- Buscador -->
                     <div class="relative flex-1">
                         <i class="ph-fill ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2"
                             style="font-size:16px;color:#9ca3af;"></i>
@@ -148,42 +140,62 @@
                             @input="aplicarFiltros()"
                             class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-gray-300 transition">
                     </div>
-
-                    <!-- Filtro categoria -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Categoria -->
                         <button @click="filtroCategoria = 'todas'; aplicarFiltros()"
                             :class="filtroCategoria === 'todas' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="ph-fill ph-funnel" style="font-size:13px;"></i>
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition">
                             Todos
                         </button>
                         <button @click="filtroCategoria = 'transitorio'; aplicarFiltros()"
                             :class="filtroCategoria === 'transitorio' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="ph-fill ph-clock-countdown" style="font-size:13px;"></i>
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="ph-fill ph-clock-countdown" style="font-size:12px;"></i>
                             Transitorio
                         </button>
                         <button @click="filtroCategoria = 'permanente'; aplicarFiltros()"
                             :class="filtroCategoria === 'permanente' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="ph-fill ph-tree-evergreen" style="font-size:13px;"></i>
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="ph-fill ph-tree-evergreen" style="font-size:12px;"></i>
                             Permanente
+                        </button>
+                        <!-- Divisor -->
+                        <div style="width:1px;height:20px;background:#e5e7eb;"></div>
+                        <!-- Estado -->
+                        <button @click="filtroEstado = 'todos'; aplicarFiltros()"
+                            :class="filtroEstado === 'todos' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition">
+                            Activos e inactivos
+                        </button>
+                        <button @click="filtroEstado = '1'; aplicarFiltros()"
+                            :class="filtroEstado === '1' ? 'bg-green-700 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100'"
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                            Activos
+                        </button>
+                        <button @click="filtroEstado = '0'; aplicarFiltros()"
+                            :class="filtroEstado === '0' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                            Inactivos
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Grid de cards -->
             <style>
                 .card-oculta {
                     display: none !important;
                 }
             </style>
 
+            <!-- Grid cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
-                <div th:each="c : ${catalogos}" x-data="{ confirmar: false }" data-card="true"
-                    th:attr="data-nombre=${c.nombre}, data-categoria=${c.categoria}"
-                    class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                <div th:each="c : ${catalogos}" x-data="{ modalDesactivar: false, modalActivar: false }"
+                    data-card="true"
+                    th:attr="data-nombre=${c.nombre}, data-categoria=${c.categoria}, data-estado=${c.activo}"
+                    class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                    th:classappend="${c.activo == 0} ? 'opacity-70' : ''">
 
                     <!-- Imagen -->
                     <div class="relative h-44 overflow-hidden">
@@ -194,19 +206,18 @@
                             class="w-full h-full bg-gradient-to-br from-green-500 to-green-800 flex items-center justify-center">
                             <i class="ph-duotone ph-plant" style="font-size:56px;color:rgba(255,255,255,0.35);"></i>
                         </div>
-
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
                         <!-- Badge categoria -->
                         <span th:if="${c.categoria == 'TRANSITORIO'}"
                             class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-semibold text-white flex items-center gap-1"
-                            style="background:rgba(59,130,246,0.85); backdrop-filter:blur(4px);">
+                            style="background:rgba(59,130,246,0.85);backdrop-filter:blur(4px);">
                             <i class="ph-fill ph-clock-countdown" style="font-size:11px;"></i>
                             Transitorio
                         </span>
                         <span th:if="${c.categoria == 'PERMANENTE'}"
                             class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-semibold text-white flex items-center gap-1"
-                            style="background:rgba(245,158,11,0.85); backdrop-filter:blur(4px);">
+                            style="background:rgba(245,158,11,0.85);backdrop-filter:blur(4px);">
                             <i class="ph-fill ph-tree-evergreen" style="font-size:11px;"></i>
                             Permanente
                         </span>
@@ -214,12 +225,12 @@
                         <!-- Badge estado -->
                         <span th:if="${c.activo == 1}"
                             class="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-white"
-                            style="background:rgba(34,197,94,0.85); backdrop-filter:blur(4px);">
+                            style="background:rgba(34,197,94,0.85);backdrop-filter:blur(4px);">
                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>Activo
                         </span>
                         <span th:if="${c.activo == 0}"
                             class="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-white"
-                            style="background:rgba(107,114,128,0.85); backdrop-filter:blur(4px);">
+                            style="background:rgba(107,114,128,0.85);backdrop-filter:blur(4px);">
                             <span class="w-1.5 h-1.5 rounded-full bg-white"></span>Inactivo
                         </span>
 
@@ -235,32 +246,24 @@
                     <!-- Metricas -->
                     <div class="p-4 flex-1 flex flex-col">
                         <div class="grid grid-cols-4 gap-2 mb-4">
-
-                            <!-- Temperatura -->
                             <div class="bg-orange-50 rounded-xl p-2.5 text-center">
                                 <i class="ph-fill ph-thermometer-hot" style="font-size:16px;color:#ea580c;"></i>
                                 <p class="text-xs font-bold text-orange-700 mt-0.5" th:text="${c.tempMin} + '°'"></p>
                                 <p class="text-xs font-bold text-orange-700" th:text="${c.tempMax} + '°'"></p>
                                 <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Temp<br>Min/Max</p>
                             </div>
-
-                            <!-- Lluvia -->
                             <div class="bg-sky-50 rounded-xl p-2.5 text-center">
                                 <i class="ph-fill ph-cloud-rain" style="font-size:16px;color:#0284c7;"></i>
                                 <p class="text-xs font-bold text-sky-700 mt-0.5" th:text="${c.lluviaMin} + 'mm'"></p>
                                 <p class="text-xs font-bold text-sky-700" th:text="${c.lluviaMax} + 'mm'"></p>
                                 <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Lluvia<br>Min/Max</p>
                             </div>
-
-                            <!-- Humedad -->
                             <div class="bg-purple-50 rounded-xl p-2.5 text-center">
                                 <i class="ph-fill ph-drop-half" style="font-size:16px;color:#7c3aed;"></i>
                                 <p class="text-xs font-bold text-purple-700 mt-0.5" th:text="${c.humedadMin} + '%'"></p>
                                 <p class="text-xs font-bold text-purple-700" th:text="${c.humedadMax} + '%'"></p>
                                 <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Humedad<br>Min/Max</p>
                             </div>
-
-                            <!-- Cosecha -->
                             <div class="bg-green-50 rounded-xl p-2.5 text-center">
                                 <i class="ph-fill ph-calendar-check" style="font-size:16px;color:#16a34a;"></i>
                                 <p class="text-xs font-bold text-green-700 mt-0.5" th:text="${c.diasCosechaMin} + 'd'">
@@ -280,40 +283,49 @@
                         <div class="flex-1"></div>
 
                         <!-- Acciones -->
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                            <!-- Editar — siempre visible -->
                             <a th:href="@{/admin/catalogo/editar/{id}(id=${c.id})}"
-                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition">
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition flex-1 justify-center">
                                 <i class="ph-bold ph-pencil-simple" style="font-size:13px;"></i>
                                 Editar
                             </a>
-                            <button @click="confirmar = true"
-                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition">
+
+                            <!-- Desactivar — solo si activo -->
+                            <button th:if="${c.activo == 1}" @click="modalDesactivar = true"
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition flex-1 justify-center">
                                 <i class="ph-bold ph-prohibit" style="font-size:13px;"></i>
                                 Desactivar
+                            </button>
+
+                            <!-- Activar — solo si inactivo -->
+                            <button th:if="${c.activo == 0}" @click="modalActivar = true"
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition flex-1 justify-center">
+                                <i class="ph-bold ph-check-circle" style="font-size:13px;"></i>
+                                Activar
                             </button>
                         </div>
                     </div>
 
-                    <!-- Modal confirmacion -->
-                    <div x-show="confirmar"
+                    <!-- Modal desactivar -->
+                    <div x-show="modalDesactivar"
                         class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
                         style="display:none">
-                        <div @click.away="confirmar = false"
+                        <div @click.away="modalDesactivar = false"
                             class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-sm mx-4">
                             <div
                                 class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="ph-fill ph-warning" style="font-size:24px;color:#ef4444;"></i>
                             </div>
-                            <h4 class="text-base font-bold text-gray-900 text-center mb-1">Desactivar cultivo?</h4>
+                            <h4 class="text-base font-bold text-gray-900 text-center mb-1">¿Desactivar cultivo?</h4>
                             <p class="text-sm text-gray-500 text-center mb-1">
-                                Vas a desactivar
-                                <span class="font-semibold text-gray-700" th:text="${c.nombre}"></span>.
+                                Vas a desactivar <span class="font-semibold text-gray-700"
+                                    th:text="${c.nombre}"></span>.
                             </p>
-                            <p class="text-xs text-gray-400 text-center mb-5">
-                                No se eliminara, solo dejara de estar disponible para los agricultores.
-                            </p>
+                            <p class="text-xs text-gray-400 text-center mb-5">No se eliminara, solo dejara de estar
+                                disponible para los agricultores.</p>
                             <div class="flex gap-3">
-                                <button @click="confirmar = false"
+                                <button @click="modalDesactivar = false"
                                     class="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
                                     Cancelar
                                 </button>
@@ -328,16 +340,47 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal activar -->
+                    <div x-show="modalActivar"
+                        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+                        style="display:none">
+                        <div @click.away="modalActivar = false"
+                            class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-sm mx-4">
+                            <div
+                                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="ph-fill ph-check-circle" style="font-size:24px;color:#16a34a;"></i>
+                            </div>
+                            <h4 class="text-base font-bold text-gray-900 text-center mb-1">¿Activar cultivo?</h4>
+                            <p class="text-sm text-gray-500 text-center mb-1">
+                                Vas a activar <span class="font-semibold text-gray-700" th:text="${c.nombre}"></span>.
+                            </p>
+                            <p class="text-xs text-gray-400 text-center mb-5">Estara disponible nuevamente para los
+                                agricultores del sistema.</p>
+                            <div class="flex gap-3">
+                                <button @click="modalActivar = false"
+                                    class="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
+                                    Cancelar
+                                </button>
+                                <form th:action="@{/admin/catalogo/{id}/activar(id=${c.id})}" method="post"
+                                    class="flex-1">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit"
+                                        class="w-full py-2.5 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-medium transition">
+                                        Si, activar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Barra de progreso + Ver mas -->
+            <!-- Ver mas -->
             <div x-ref="btnVerMas" class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 mb-6">
                 <div class="flex items-center gap-4">
                     <div class="flex-1 bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                            :style="'width:' + Math.round((visibles / (cultivosFiltrados.length || 1)) * 100) + '%'">
-                        </div>
+                        <div class="bg-green-500 h-1.5 rounded-full" style="width:50%"></div>
                     </div>
                     <span class="text-xs text-gray-400 whitespace-nowrap">
                         Mostrando <span x-ref="contadorVisible">6</span> de <span x-ref="totalVisible">0</span>
@@ -350,7 +393,6 @@
                 </div>
             </div>
 
-            <!-- Todos visibles -->
             <div x-ref="todosVisibles" style="display:none"
                 class="text-center text-xs text-gray-400 flex items-center justify-center gap-2 mb-6">
                 <i class="ph-fill ph-check-circle" style="font-size:14px;color:#16a34a;"></i>
@@ -358,7 +400,6 @@
             </div>
 
         </div>
-
     </main>
 </body>
 

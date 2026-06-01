@@ -2,7 +2,6 @@ package com.agrocesar.service;
 
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.UsuarioRepository;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

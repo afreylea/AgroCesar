@@ -97,6 +97,24 @@ CREATE OR REPLACE PACKAGE PKG_USUARIOS AS
         p_rows_updated OUT NUMBER
     );
 
+    PROCEDURE prc_guardar_reset_token(
+        p_email        IN  USUARIOS.EMAIL%TYPE,
+        p_token        IN  USUARIOS.RESET_TOKEN%TYPE,
+        p_expiry       IN  USUARIOS.RESET_TOKEN_EXPIRY%TYPE,
+        p_rows_updated OUT NUMBER
+    );
+
+    PROCEDURE prc_find_by_reset_token(
+        p_token  IN  USUARIOS.RESET_TOKEN%TYPE,
+        p_cursor OUT SYS_REFCURSOR
+    );
+
+    PROCEDURE prc_actualizar_password(
+        p_id           IN  USUARIOS.ID%TYPE,
+        p_password_hash IN  USUARIOS.PASSWORD_HASH%TYPE,
+        p_rows_updated OUT NUMBER
+    );
+
 END PKG_USUARIOS;
 /
 
@@ -254,6 +272,49 @@ CREATE OR REPLACE PACKAGE BODY PKG_USUARIOS AS
         UPDATE USUARIOS SET ACTIVO = 1 WHERE ID = p_id;
         p_rows_updated := SQL%ROWCOUNT;
     END prc_activar;
+
+    PROCEDURE prc_guardar_reset_token(
+        p_email        IN  USUARIOS.EMAIL%TYPE,
+        p_token        IN  USUARIOS.RESET_TOKEN%TYPE,
+        p_expiry       IN  USUARIOS.RESET_TOKEN_EXPIRY%TYPE,
+        p_rows_updated OUT NUMBER
+    ) IS
+    BEGIN
+        UPDATE USUARIOS
+        SET RESET_TOKEN        = p_token,
+            RESET_TOKEN_EXPIRY = p_expiry
+        WHERE EMAIL  = p_email
+          AND ACTIVO = 1;
+        p_rows_updated := SQL%ROWCOUNT;
+    END prc_guardar_reset_token;
+
+    PROCEDURE prc_find_by_reset_token(
+        p_token  IN  USUARIOS.RESET_TOKEN%TYPE,
+        p_cursor OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN p_cursor FOR
+            SELECT ID, NOMBRE, APELLIDO, EMAIL, PASSWORD_HASH, ROL,
+                   MUNICIPIO_ID, TELEFONO, ACTIVO, FECHA_CREACION, ULTIMO_LOGIN
+            FROM USUARIOS
+            WHERE RESET_TOKEN        = p_token
+              AND RESET_TOKEN_EXPIRY > SYSTIMESTAMP
+              AND ACTIVO             = 1;
+    END prc_find_by_reset_token;
+
+    PROCEDURE prc_actualizar_password(
+        p_id            IN  USUARIOS.ID%TYPE,
+        p_password_hash IN  USUARIOS.PASSWORD_HASH%TYPE,
+        p_rows_updated  OUT NUMBER
+    ) IS
+    BEGIN
+        UPDATE USUARIOS
+        SET PASSWORD_HASH      = p_password_hash,
+            RESET_TOKEN        = NULL,
+            RESET_TOKEN_EXPIRY = NULL
+        WHERE ID = p_id;
+        p_rows_updated := SQL%ROWCOUNT;
+    END prc_actualizar_password;
 
 END PKG_USUARIOS;
 /

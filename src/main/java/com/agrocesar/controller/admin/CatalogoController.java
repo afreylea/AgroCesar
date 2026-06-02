@@ -126,15 +126,20 @@ public class CatalogoController {
         return "redirect:/admin/catalogo";
     }
 
-    @PostMapping("/desactivar/{id}")
+    @PostMapping("/{id}/desactivar")
     public String desactivar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        boolean resultado = catalogoService.desactivar(id);
-        redirectAttributes.addFlashAttribute(resultado ? "exito" : "error",
-                resultado ? "Cultivo desactivado correctamente." : "No se encontró el cultivo.");
+        try {
+            boolean resultado = catalogoService.desactivar(id);
+            redirectAttributes.addFlashAttribute(resultado ? "exito" : "error",
+                    resultado ? "Cultivo desactivado correctamente." : "No se encontró el cultivo.");
+        } catch (Exception e) {
+            log.error("Error al desactivar cultivo {}: {}", id, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error al desactivar: " + e.getMessage());
+        }
         return "redirect:/admin/catalogo";
     }
 
-    @PostMapping("/activar/{id}")
+    @PostMapping("/{id}/activar")
     public String activar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         boolean resultado = catalogoService.activar(id);
         redirectAttributes.addFlashAttribute(resultado ? "exito" : "error",

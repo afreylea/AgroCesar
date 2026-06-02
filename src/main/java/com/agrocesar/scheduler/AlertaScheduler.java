@@ -44,7 +44,7 @@ public class AlertaScheduler {
         ejecutarCiclo();
     }
 
-    @Scheduled(cron = " 0 31 22 * * *", zone = "America/Bogota")
+    @Scheduled(cron = " 0 0 18 * * *", zone = "America/Bogota")
     public void ejecutarTarde() {
         log.info("[Scheduler] Ejecucion vespertina 6PM");
         ejecutarCiclo();

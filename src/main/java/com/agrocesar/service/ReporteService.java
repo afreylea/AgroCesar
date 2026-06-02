@@ -25,11 +25,11 @@ public class ReporteService {
         return alertaRepository.findCultivosMasAfectados(fechaDesde, fechaHasta);
     }
 
-    public int totalAlertasActivas() {
-        return alertaRepository.countActivas();
+    public int totalAlertasActivas(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return alertaRepository.countActivasPorPeriodo(fechaDesde, fechaHasta);
     }
 
-    public int totalAlertasCriticas() {
-        return alertaRepository.countCriticas();
+    public int totalAlertasCriticas(LocalDate fechaDesde, LocalDate fechaHasta) {
+        return alertaRepository.countCriticasPorPeriodo(fechaDesde, fechaHasta);
     }
 }

@@ -22,6 +22,25 @@ import com.agrocesar.repository.CultivoConUmbralesRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controlador principal del agricultor.
+ *
+ * <p>
+ * Responsabilidades:
+ * <ul>
+ * <li>Renderizar el dashboard con pronostico climatico inicial y lista de
+ * cultivos.</li>
+ * <li>Exponer el endpoint REST {@code GET /api/pronostico/{municipioId}} usado
+ * por
+ * Alpine.js en el frontend para actualizar el pronostico al seleccionar un
+ * cultivo.</li>
+ * </ul>
+ *
+ * <p>
+ * Patron aplicado: MVC — este controller actua como intermediario entre los
+ * servicios
+ * de dominio (WeatherService, CultivoAgricultorService) y las vistas Thymeleaf.
+ */
 @Controller
 public class DashboardController {
 
@@ -33,11 +52,11 @@ public class DashboardController {
     private final CultivoConUmbralesRepository cultivoConUmbralesRepository;
 
     public DashboardController(WeatherService weatherService,
-                               MunicipioRepository municipioRepository,
-                               UsuarioService usuarioService,
-                               CultivoAgricultorService cultivoService,
-                               CatalogoRepository catalogoRepository,
-                               CultivoConUmbralesRepository cultivoConUmbralesRepository) {
+            MunicipioRepository municipioRepository,
+            UsuarioService usuarioService,
+            CultivoAgricultorService cultivoService,
+            CatalogoRepository catalogoRepository,
+            CultivoConUmbralesRepository cultivoConUmbralesRepository) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
         this.usuarioService = usuarioService;
@@ -46,6 +65,19 @@ public class DashboardController {
         this.cultivoConUmbralesRepository = cultivoConUmbralesRepository;
     }
 
+    /**
+     * Endpoint REST consumido por Alpine.js via fetch cuando el agricultor
+     * selecciona un cultivo diferente en el dashboard.
+     *
+     * <p>
+     * Retorna 404 si el municipio no existe en BD.
+     * Retorna 204 si Open-Meteo no devuelve datos (error de red o timeout).
+     * Retorna 200 con la lista de 7 dias si todo va bien.
+     *
+     * @param municipioId ID del municipio cuyas coordenadas se usaran para la
+     *                    consulta
+     * @return lista de {@link DailyForecast} con el pronostico de 7 dias
+     */
     @GetMapping("/api/pronostico/{municipioId}")
     @ResponseBody
     public ResponseEntity<List<DailyForecast>> getPronostico(@PathVariable Long municipioId) {
@@ -61,31 +93,66 @@ public class DashboardController {
                 : ResponseEntity.ok(pronostico);
     }
 
+    /**
+     * Renderiza el dashboard principal del agricultor.
+     *
+     * <p>
+     * Flujo:
+     * <ol>
+     * <li>Carga los cultivos del agricultor autenticado.</li>
+     * <li>Construye {@link CultivoResumen} combinando datos de catalogo, municipio
+     * e imagen. Las coordenadas priorizan las del cultivo; si son null, usan
+     * las del municipio como fallback.</li>
+     * <li>Carga el pronostico inicial del primer cultivo para que la vista tenga
+     * datos desde el primer render, antes de cualquier interaccion Alpine.</li>
+     * </ol>
+     *
+     * <p>
+     * Atributos enviados al modelo:
+     * <ul>
+     * <li>{@code cultivos} — lista de {@link CultivoResumen} del agricultor</li>
+     * <li>{@code pronostico} — lista de {@link DailyForecast} del primer
+     * cultivo</li>
+     * <li>{@code municipio} — nombre del municipio del primer cultivo</li>
+     * <li>{@code latInicial} / {@code lngInicial} — coordenadas para inicializar
+     * Leaflet</li>
+     * <li>{@code usuario} — objeto {@link Usuario} del agricultor autenticado</li>
+     * </ul>
+     *
+     * @param userDetails usuario autenticado inyectado por Spring Security
+     * @param model       modelo Thymeleaf
+     * @return nombre de la vista {@code dashboard}
+     */
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
         List<CultivoAgricultor> cultivos = cultivoService.listarPorUsuario(usuario.getId());
+
         List<CultivoResumen> cultivosView = cultivos.stream().map(c -> {
             var cat = catalogoRepository.findById(c.getCatalogoId());
             String nombreCultivo = cat.map(x -> x.getNombre()).orElse("Sin nombre");
             String categoria = cat.map(x -> x.getCategoria()).orElse("");
+            String imagenUrl = cat.map(x -> x.getImagenUrl()).orElse(null);
 
-            // Busca municipio una sola vez y extrae todo lo necesario
+            // Municipio consultado una sola vez para nombre y coordenadas
             Optional<Municipio> mun = municipioRepository.findById(c.getMunicipioId());
             String municipioNombre = mun.map(Municipio::getNombre).orElse("Sin municipio");
 
-            // Prioriza coordenadas del cultivo si existen, si no usa las del municipio
-            Double lat = c.getLatitudCultivo() != null ? c.getLatitudCultivo()
+            // Coordenadas: prioriza las del cultivo, cae al municipio si son null
+            Double lat = c.getLatitudCultivo() != null
+                    ? c.getLatitudCultivo()
                     : mun.map(Municipio::getLatitud).orElse(null);
-            Double lng = c.getLongitudCultivo() != null ? c.getLongitudCultivo()
+            Double lng = c.getLongitudCultivo() != null
+                    ? c.getLongitudCultivo()
                     : mun.map(Municipio::getLongitud).orElse(null);
 
             return new CultivoResumen(c.getId(), nombreCultivo, categoria,
                     municipioNombre, c.getHectareas(), c.getFechaSiembra(),
-                    c.getMunicipioId(), lat, lng);
+                    c.getMunicipioId(), lat, lng, imagenUrl);
         }).toList();
 
-        // Pronóstico inicial: primer cultivo con municipio válido
+        // Pronostico inicial: se carga desde el primer cultivo para evitar
+        // que la vista quede vacia en el primer render antes de interaccion Alpine
         if (!cultivosView.isEmpty()) {
             CultivoResumen primero = cultivosView.get(0);
             if (primero.getMunicipioId() != null) {
@@ -106,7 +173,7 @@ public class DashboardController {
         return "dashboard";
     }
 
-    @GetMapping("/dashboard/ranking-cultivos")
+    @GetMapping(value = "/dashboard/ranking-cultivos", produces = "application/json")
     @ResponseBody
     public ResponseEntity<List<RankingCultivoDTO>> getRankingCultivos() {
         List<RankingCultivoDTO> ranking = cultivoConUmbralesRepository.findRankingCultivos();

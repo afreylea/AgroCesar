@@ -6,6 +6,7 @@ import com.agrocesar.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
@@ -84,8 +85,32 @@ public class UsuarioService {
         return Pattern.compile("^\\+?(57)?[0-9]{10}$").matcher(telefono.trim()).matches();
     }
 
+    public Usuario findById(Long id) {
+        return usuarioRepository.findById(id).orElse(null);
+    }
+
     //Busca un usuario por email - usado por el controller de cultivos para obtener el di del autenticado
     public Usuario buscarPorEmail(String email){
         return usuarioRepository.findByEmail(email).orElseThrow(()-> new IllegalArgumentException("Usuario no encontrado: "+email));
+    }
+
+    public List<Usuario> listarActivos() {
+        return usuarioRepository.findActivos();
+    }
+
+    public List<Usuario> listarInactivos() {
+        return usuarioRepository.findInactivos();
+    }
+
+    public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
+
+    public boolean activar(Long id) {
+        return usuarioRepository.activar(id) > 0;
+    }
+
+    public boolean desactivar(Long id) {
+        return usuarioRepository.desactivar(id) > 0;
     }
 }

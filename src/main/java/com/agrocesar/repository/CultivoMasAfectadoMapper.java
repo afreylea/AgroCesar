@@ -12,9 +12,9 @@ public class CultivoMasAfectadoMapper implements RowMapper<CultivoMasAfectadoDTO
     @Override
     public CultivoMasAfectadoDTO map(ResultSet rs, StatementContext ctx) throws SQLException {
         return new CultivoMasAfectadoDTO(
-                rs.getString("nombreCultivo"),
-                rs.getString("municipio"),
-                rs.getInt("totalAlertas")
+                rs.getString("NOMBRECULTIVO"),
+                rs.getString("MUNICIPIO"),
+                rs.getInt("TOTALALERTAS")
         );
     }
 }

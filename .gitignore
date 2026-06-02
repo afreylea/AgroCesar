@@ -40,3 +40,4 @@ replay_pid*
 
 ### Database properties ###
 src/main/resources/application-local.properties
+/imagenes/

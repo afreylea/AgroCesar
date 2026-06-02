@@ -241,13 +241,26 @@
                         th:text="${u.ultimoLogin != null ? #temporals.format(u.ultimoLogin, 'dd/MM/yy HH:mm') : '—'}"></span>
                 </div>
 
-                <!-- Accion -->
-                <div class="col-span-2 text-center">
+                <!--Accion-->
+                <div class="col-span-2 text-center flex items-center justify-center gap-2">
+
+                    <!-- Ver detalle — solo agricultores, espacio invisible para admin -->
+                    <a th:if="${u.rol == 'AGRICULTOR'}" th:href="@{/admin/usuarios/{id}(id=${u.id})}"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold transition">
+                        <i class="ph-bold ph-eye" style="font-size:12px;"></i>
+                        Ver
+                    </a>
+                    <!-- Espaciador para admin — mismo ancho que el boton Ver -->
+                    <span th:if="${u.rol == 'ADMIN'}" class="inline-block" style="width:52px;"></span>
+
+                    <!-- Desactivar -->
                     <button th:if="${u.activo == 1}" @click="confirmar = true; accion = 'desactivar'"
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition">
                         <i class="ph-bold ph-prohibit" style="font-size:12px;"></i>
                         Desactivar
                     </button>
+
+                    <!-- Activar -->
                     <button th:if="${u.activo == 0}" @click="confirmar = true; accion = 'activar'"
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold transition">
                         <i class="ph-bold ph-check-circle" style="font-size:12px;"></i>

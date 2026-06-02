@@ -21,16 +21,16 @@ import java.util.List;
 @RequestMapping("/admin/usuarios")
 public class UsuarioController {
 
-    private final UsuarioService           usuarioService;
+    private final UsuarioService usuarioService;
     private final CultivoAgricultorService cultivoService;
-    private final AlertaService            alertaService;
+    private final AlertaService alertaService;
 
     public UsuarioController(UsuarioService usuarioService,
-                             CultivoAgricultorService cultivoService,
-                             AlertaService alertaService) {
-        this.usuarioService  = usuarioService;
-        this.cultivoService  = cultivoService;
-        this.alertaService   = alertaService;
+            CultivoAgricultorService cultivoService,
+            AlertaService alertaService) {
+        this.usuarioService = usuarioService;
+        this.cultivoService = cultivoService;
+        this.alertaService = alertaService;
     }
 
     // Listar
@@ -41,17 +41,18 @@ public class UsuarioController {
             Model model) {
 
         List<Usuario> usuarios = switch (filtro) {
-            case 1  -> usuarioService.listarActivos();
-            case 2  -> usuarioService.listarInactivos();
+            case 1 -> usuarioService.listarActivos();
+            case 2 -> usuarioService.listarInactivos();
             default -> usuarioService.listarTodos();
         };
 
         model.addAttribute("usuarios", usuarios);
         model.addAttribute("filtro", filtro);
+
         return "admin/usuarios";
     }
 
-    // Detalle 
+    // Detalle
 
     @GetMapping("/{id}")
     public String detalle(@PathVariable Long id, Model model,
@@ -71,33 +72,35 @@ public class UsuarioController {
             return "redirect:/admin/usuarios";
         }
 
-        List<CultivoResumen>  cultivos = cultivoService.listarResumenPorUsuario(id);
-        List<AlertaVistaDTO>  alertas  = alertaService.findByUsuarioId(id);
+        List<CultivoResumen> cultivos = cultivoService.listarResumenPorUsuario(id);
+        List<AlertaVistaDTO> alertas = alertaService.findByUsuarioId(id);
 
-        double totalHectareas   = cultivos.stream()
+        double totalHectareas = cultivos.stream()
                 .mapToDouble(CultivoResumen::getHectareas).sum();
-        long   alertasNoLeidas  = alertas.stream()
+        long alertasNoLeidas = alertas.stream()
                 .filter(a -> !a.isLeida()).count();
-        long   alertasAlta      = alertas.stream()
+        long alertasAlta = alertas.stream()
                 .filter(a -> "ALTA".equals(a.getSeveridad())).count();
-        long   alertasMedia     = alertas.stream()
+        long alertasMedia = alertas.stream()
                 .filter(a -> "MEDIA".equals(a.getSeveridad())).count();
-        long   alertasBaja      = alertas.stream()
+        long alertasBaja = alertas.stream()
                 .filter(a -> "BAJA".equals(a.getSeveridad())).count();
 
-        model.addAttribute("usuario",         usuario);
-        model.addAttribute("totalCultivos",   cultivos.size());
-        model.addAttribute("totalHectareas",  totalHectareas);
-        model.addAttribute("totalAlertas",    alertas.size());
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("totalCultivos", cultivos.size());
+        model.addAttribute("totalHectareas", totalHectareas);
+        model.addAttribute("totalAlertas", alertas.size());
         model.addAttribute("alertasNoLeidas", alertasNoLeidas);
-        model.addAttribute("alertasAlta",     alertasAlta);
-        model.addAttribute("alertasMedia",    alertasMedia);
-        model.addAttribute("alertasBaja",     alertasBaja);
+        model.addAttribute("alertasAlta", alertasAlta);
+        model.addAttribute("alertasMedia", alertasMedia);
+        model.addAttribute("alertasBaja", alertasBaja);
+        model.addAttribute("alertas", alertas);
+        model.addAttribute("cultivos", cultivos);
 
         return "admin/usuario-detalle";
     }
 
-    // Activar 
+    // Activar
 
     @PostMapping("/{id}/activar")
     public String activar(@PathVariable Long id,
@@ -115,7 +118,7 @@ public class UsuarioController {
         return "redirect:/admin/usuarios";
     }
 
-    // Desactivar 
+    // Desactivar
 
     @PostMapping("/{id}/desactivar")
     public String desactivar(@PathVariable Long id, RedirectAttributes redirectAttributes) {

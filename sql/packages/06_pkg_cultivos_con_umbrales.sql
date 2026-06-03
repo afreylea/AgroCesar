@@ -115,20 +115,25 @@ CREATE OR REPLACE PACKAGE BODY PKG_CULTIVOS_UMBRALES AS
     END prc_find_by_usuario;
 
     PROCEDURE prc_ranking_cultivos(
-        p_cursor OUT SYS_REFCURSOR
-    ) IS
-    BEGIN
-        -- Alias en MAYÚSCULAS para que coincidan con los campos
-        -- de RankingCultivoDTO en Java (NOMBRE, TOTAL_AGRICULTORES, TOTAL_HECTAREAS).
-        OPEN p_cursor FOR
-            SELECT CULTIVO                        AS NOMBRE,
-                   COUNT(DISTINCT USUARIO_ID)     AS TOTAL_AGRICULTORES,
-                   SUM(HECTAREAS)                 AS TOTAL_HECTAREAS
-            FROM V_CULTIVOS_CON_UMBRALES
-            WHERE ACTIVO = 1
-            GROUP BY CULTIVO
-            ORDER BY TOTAL_AGRICULTORES DESC;
-    END prc_ranking_cultivos;
+    p_cursor OUT SYS_REFCURSOR
+) IS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT CULTIVO                    AS NOMBRE,
+               COUNT(DISTINCT USUARIO_ID) AS TOTAL_AGRICULTORES,
+               SUM(HECTAREAS)             AS TOTAL_HECTAREAS,
+               (SELECT v2.MUNICIPIO
+                FROM V_CULTIVOS_CON_UMBRALES v2
+                WHERE v2.CULTIVO = v.CULTIVO
+                  AND v2.ACTIVO  = 1
+                GROUP BY v2.MUNICIPIO
+                ORDER BY SUM(v2.HECTAREAS) DESC
+                FETCH FIRST 1 ROW ONLY)  AS MUNICIPIO_PRINCIPAL
+        FROM V_CULTIVOS_CON_UMBRALES v
+        WHERE ACTIVO = 1
+        GROUP BY CULTIVO
+        ORDER BY TOTAL_AGRICULTORES DESC;
+END prc_ranking_cultivos;
 
 END PKG_CULTIVOS_UMBRALES;
 /

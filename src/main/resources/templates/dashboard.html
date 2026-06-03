@@ -24,12 +24,14 @@
                 primero.dataset.nombre,
                 primero.dataset.municipio,
                 primero.dataset.lat,
-                primero.dataset.lng
+                primero.dataset.lng,
+                primero.dataset.hectareas,
+                primero.dataset.fechaSiembra
             );
         }
     },
 
-    seleccionar(municipioId, nombre, municipio, lat, lng) {
+    seleccionar(municipioId, nombre, municipio, lat, lng, hectareas, fechaSiembra) {
         this.cultivoActivo   = nombre;
         this.municipioActivo = municipio;
         this.latActiva       = parseFloat(lat);
@@ -47,6 +49,14 @@
                 this.actualizarMapa(this.latActiva, this.lngActiva, nombre, municipio);
             })
             .catch(() => { this.cargando = false; });
+
+        /* Dispara evento para que la card de recomendacion lo escuche */
+        this.$dispatch('cultivo-seleccionado', {
+            municipioId,
+            cultivoNombre: nombre,
+            hectareas:     hectareas || '',
+            fechaSiembra:  fechaSiembra || ''
+        });
     },
 
     actualizarMapa(lat, lng, nombre, municipio) {
@@ -101,22 +111,23 @@
     },
 
     icono(code, lluvia) {
-    const ll = parseFloat(lluvia) || 0;
-    if (ll < 0.3)       return '<i class=&quot;ph-fill ph-sun&quot; style=&quot;font-size:28px;color:#f59e0b;&quot;></i>';
-    if (ll < 2)         return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#93c5fd;&quot;></i>';
-    if (ll < 5)         return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#60a5fa;&quot;></i>';
-    if (ll < 15)        return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#3b82f6;&quot;></i>';
-    return '<i class=&quot;ph-fill ph-cloud-lightning&quot; style=&quot;font-size:28px;color:#6366f1;&quot;></i>';
-},
+        const ll = parseFloat(lluvia) || 0;
+        if (ll < 0.3)  return '<i class=&quot;ph-fill ph-sun&quot; style=&quot;font-size:28px;color:#f59e0b;&quot;></i>';
+        if (ll < 2)    return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#93c5fd;&quot;></i>';
+        if (ll < 5)    return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#60a5fa;&quot;></i>';
+        if (ll < 15)   return '<i class=&quot;ph-fill ph-cloud-rain&quot; style=&quot;font-size:28px;color:#3b82f6;&quot;></i>';
+        return '<i class=&quot;ph-fill ph-cloud-lightning&quot; style=&quot;font-size:28px;color:#6366f1;&quot;></i>';
+    },
 
-condicion(code, lluvia) {
-    const ll = parseFloat(lluvia) || 0;
-    if (ll < 0.3)   return 'Despejado';
-    if (ll < 2)     return 'Llovizna';
-    if (ll < 5)     return 'Lluvia ligera';
-    if (ll < 15)    return 'Lluvia moderada';
-    return 'Tormenta';
-},
+    condicion(code, lluvia) {
+        const ll = parseFloat(lluvia) || 0;
+        if (ll < 0.3)  return 'Despejado';
+        if (ll < 2)    return 'Llovizna';
+        if (ll < 5)    return 'Lluvia ligera';
+        if (ll < 15)   return 'Lluvia moderada';
+        return 'Tormenta';
+    },
+
     abrirRanking() {
         this.rankingAbierto  = true;
         this.rankingCargando = true;
@@ -144,7 +155,6 @@ condicion(code, lluvia) {
             <div @click.away="rankingAbierto = false" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                 class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
-
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
@@ -152,7 +162,7 @@ condicion(code, lluvia) {
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900">Ranking de Cultivos</h3>
-                            <p class="text-xs text-gray-400">Por hectareas cultivadas en el Cesar</p>
+                            <p class="text-xs text-gray-400">Cultivos mas sembrados en el Cesar</p>
                         </div>
                     </div>
                     <button @click="rankingAbierto = false"
@@ -160,12 +170,10 @@ condicion(code, lluvia) {
                         <i class="ph-bold ph-x" style="font-size:14px;"></i>
                     </button>
                 </div>
-
                 <div x-show="rankingCargando" class="flex items-center justify-center py-10 gap-3 text-gray-400">
                     <div class="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
                     <span class="text-sm">Cargando ranking...</span>
                 </div>
-
                 <div x-show="!rankingCargando">
                     <div x-show="ranking.length === 0"
                         class="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
@@ -180,10 +188,16 @@ condicion(code, lluvia) {
                                     <span
                                         class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0"
                                         :class="index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                                                index === 1 ? 'bg-gray-300 text-gray-700' :
-                                                index === 2 ? 'bg-amber-600 text-white' : 'bg-green-700 text-white'"
+                                              index === 1 ? 'bg-gray-300 text-gray-700' :
+                                              index === 2 ? 'bg-amber-600 text-white' : 'bg-green-700 text-white'"
                                         x-text="index + 1"></span>
-                                    <span class="text-gray-800 font-semibold text-sm" x-text="item.nombre"></span>
+                                    <div>
+                                        <span class="text-gray-800 font-semibold text-sm" x-text="item.nombre"></span>
+                                        <p class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                            <i class="ph-fill ph-map-pin" style="font-size:10px;color:#9ca3af;"></i>
+                                            <span x-text="item.municipio || '—'"></span>
+                                        </p>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span
@@ -200,13 +214,13 @@ condicion(code, lluvia) {
             </div>
         </div>
 
-        <!-- ── HERO ─────────────────────────────────────────── -->
+        <!-- ── HERO ──────────────────────────────────────────── -->
         <div class="relative overflow-hidden mb-8" style="height:240px;
-                    border-radius:2rem;
-                    background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop');
-                    background-size:cover;
-                    background-position:center;
-                    box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+                border-radius:2rem;
+                background-image:url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1400&fit=crop');
+                background-size:cover;
+                background-position:center;
+                box-shadow:0 20px 60px rgba(0,0,0,0.25);">
             <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-green-900/30"></div>
             <div class="relative z-10 h-full flex items-center justify-between px-10">
                 <div class="text-white">
@@ -239,7 +253,7 @@ condicion(code, lluvia) {
             </div>
         </div>
 
-        <!-- ── SELECTOR DE CULTIVO ─────────────────────────── -->
+        <!-- ── SELECTOR DE CULTIVO ────────────────────────────── -->
         <div th:if="${not #lists.isEmpty(cultivos)}" class="mb-6">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                 <div class="flex items-center gap-3 mb-3">
@@ -252,13 +266,21 @@ condicion(code, lluvia) {
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <!-- data-hectareas y data-fecha-siembra agregados para el dispatch -->
                     <button th:each="c : ${cultivos}" th:data-cultivo="'true'" th:data-municipio-id="${c.municipioId}"
                         th:data-nombre="${c.nombreCultivo}" th:data-municipio="${c.municipio}"
-                        th:data-lat="${c.latitud}" th:data-lng="${c.longitud}"
-                        @click="seleccionar($el.dataset.municipioId, $el.dataset.nombre, $el.dataset.municipio, $el.dataset.lat, $el.dataset.lng)"
-                        :class="cultivoActivo === $el.dataset.nombre
-                                ? 'bg-green-700 text-white border-green-700 shadow-md'
-                                : 'bg-white text-gray-700 border-gray-200 hover:border-green-400 hover:text-green-700'"
+                        th:data-lat="${c.latitud}" th:data-lng="${c.longitud}" th:data-hectareas="${c.hectareas}"
+                        th:data-fecha-siembra="${c.fechaSiembra}" @click="seleccionar(
+                            $el.dataset.municipioId,
+                            $el.dataset.nombre,
+                            $el.dataset.municipio,
+                            $el.dataset.lat,
+                            $el.dataset.lng,
+                            $el.dataset.hectareas,
+                            $el.dataset.fechaSiembra
+                        )" :class="cultivoActivo === $el.dataset.nombre
+                            ? 'bg-green-700 text-white border-green-700 shadow-md'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-green-400 hover:text-green-700'"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200">
                         <i class="ph-fill ph-map-pin" style="font-size:13px;"></i>
                         <span th:text="${c.nombreCultivo}"></span>
@@ -268,7 +290,146 @@ condicion(code, lluvia) {
             </div>
         </div>
 
-        <!-- ── PRONÓSTICO 7 DÍAS ────────────────────────────── -->
+        <!-- ── RECOMENDACION IA ───────────────────────────────── -->
+        <div class="mb-6" x-data="{
+             tabActivo: 'cultivo',
+             recCultivo: null,
+             recGeneral: null,
+             cargandoCultivo: false,
+             cargandoGeneral: false,
+             errorCultivo: false,
+             errorGeneral: false,
+
+             cargarRecCultivo(municipioId, cultivoNombre, hectareas, fechaSiembra) {
+                 this.cargandoCultivo = true;
+                 this.recCultivo      = null;
+                 this.errorCultivo    = false;
+                 const params = new URLSearchParams({ municipioId, cultivoNombre, hectareas, fechaSiembra });
+                 fetch('/api/recomendacion/cultivo?' + params)
+                     .then(r => r.ok ? r.json() : null)
+                     .then(data => {
+                         this.recCultivo      = data ? data.recomendacion : null;
+                         this.cargandoCultivo = false;
+                         if (!data) this.errorCultivo = true;
+                     })
+                     .catch(() => { this.cargandoCultivo = false; this.errorCultivo = true; });
+             },
+
+             cargarRecGeneral() {
+                 if (this.recGeneral !== null) return;
+                 this.cargandoGeneral = true;
+                 this.errorGeneral    = false;
+                 fetch('/api/recomendacion/general')
+                     .then(r => r.ok ? r.json() : null)
+                     .then(data => {
+                         this.recGeneral      = data ? data.recomendacion : null;
+                         this.cargandoGeneral = false;
+                         if (!data) this.errorGeneral = true;
+                     })
+                     .catch(() => { this.cargandoGeneral = false; this.errorGeneral = true; });
+             }
+         }" x-init="cargarRecGeneral()" @cultivo-seleccionado.window="cargarRecCultivo(
+             $event.detail.municipioId,
+             $event.detail.cultivoNombre,
+             $event.detail.hectareas,
+             $event.detail.fechaSiembra
+         )">
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+                <!-- Header con tabs -->
+                <div class="px-5 pt-4 pb-0 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                            <i class="ph-duotone ph-sparkle" style="font-size:18px;color:#16a34a;"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">Recomendacion</p>
+                            <p class="text-xs text-gray-400">Generada con Groq · Llama 3.3</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                        <button @click="tabActivo = 'cultivo'" :class="tabActivo === 'cultivo'
+                                ? 'bg-white text-green-700 shadow-sm font-bold'
+                                : 'text-gray-500 hover:text-gray-700'"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="ph-fill ph-plant" style="font-size:12px;"></i>
+                            Este cultivo
+                        </button>
+                        <button @click="tabActivo = 'general'; cargarRecGeneral()" :class="tabActivo === 'general'
+                                ? 'bg-white text-green-700 shadow-sm font-bold'
+                                : 'text-gray-500 hover:text-gray-700'"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="ph-fill ph-globe" style="font-size:12px;"></i>
+                            General
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab: Este cultivo -->
+                <div x-show="tabActivo === 'cultivo'" class="p-5">
+                    <div x-show="!cultivoActivo" class="flex items-center gap-3 text-gray-400 text-xs py-2">
+                        <i class="ph-duotone ph-cursor-click" style="font-size:20px;"></i>
+                        Selecciona un cultivo para ver la recomendacion especifica.
+                    </div>
+                    <div x-show="cultivoActivo && cargandoCultivo"
+                        class="flex items-center gap-3 text-gray-400 text-xs py-2">
+                        <div
+                            class="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin shrink-0">
+                        </div>
+                        Generando recomendacion para
+                        <span class="font-semibold text-gray-600" x-text="cultivoActivo"></span>...
+                    </div>
+                    <div x-show="cultivoActivo && !cargandoCultivo && errorCultivo"
+                        class="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+                        <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+                        No se pudo generar la recomendacion. Intenta mas tarde.
+                    </div>
+                    <div x-show="cultivoActivo && !cargandoCultivo && recCultivo && !errorCultivo"
+                        class="flex items-start gap-3">
+                        <div class="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="ph-fill ph-leaf" style="font-size:18px;color:#16a34a;"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-xs font-bold text-green-700" x-text="cultivoActivo"></p>
+                                <span class="text-xs text-gray-400 flex items-center gap-1">
+                                    <i class="ph-fill ph-map-pin" style="font-size:10px;"></i>
+                                    <span x-text="municipioActivo"></span>
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-700 leading-relaxed" x-text="recCultivo"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: General -->
+                <div x-show="tabActivo === 'general'" class="p-5">
+                    <div x-show="cargandoGeneral" class="flex items-center gap-3 text-gray-400 text-xs py-2">
+                        <div
+                            class="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin shrink-0">
+                        </div>
+                        Generando recomendacion general para todos tus cultivos...
+                    </div>
+                    <div x-show="!cargandoGeneral && errorGeneral"
+                        class="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+                        <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+                        No se pudo generar la recomendacion. Intenta mas tarde.
+                    </div>
+                    <div x-show="!cargandoGeneral && recGeneral && !errorGeneral" class="flex items-start gap-3">
+                        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="ph-fill ph-globe" style="font-size:18px;color:#3b82f6;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-blue-700 mb-1">Todos tus cultivos · Cesar</p>
+                            <p class="text-sm text-gray-700 leading-relaxed" x-text="recGeneral"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PRONÓSTICO 7 DÍAS ──────────────────────────────── -->
         <div class="mb-6">
             <div class="flex items-center justify-between mb-3">
                 <div>
@@ -284,19 +445,19 @@ condicion(code, lluvia) {
                 </div>
             </div>
 
-            <!-- Fallback estático Thymeleaf -->
+            <!-- Fallback estatico Thymeleaf -->
             <div th:if="${pronostico != null && !#lists.isEmpty(pronostico)}"
                 x-show="pronostico.length === 0 && !cargando"
                 class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <div th:each="dia, iterStat : ${pronostico}"
                     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200">
                     <div th:class="'h-1 rounded-full mb-3 ' +
-                        (${iterStat.index == 0} ? 'bg-green-400' :
-                        (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
-                        (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
-                        (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
-                        (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
-                        (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300'))))))"></div>
+                    (${iterStat.index == 0} ? 'bg-green-400' :
+                    (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
+                    (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
+                    (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
+                    (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
+                    (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300'))))))"></div>
                     <div th:if="${iterStat.index == 0}"
                         class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
                         Hoy</div>
@@ -322,20 +483,15 @@ condicion(code, lluvia) {
                 </div>
             </div>
 
-            <!-- Cards dinámicas Alpine -->
+            <!-- Cards dinamicas Alpine -->
             <div x-show="pronostico.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <template x-for="(dia, index) in pronostico" :key="index">
                     <div x-data="{ popup: false }" class="relative">
-
-                        <!-- Card -->
                         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200"
                             :class="index === 0 ? 'ring-2 ring-green-400 ring-offset-1' : ''">
-
-                            <!-- Barra color -->
                             <div class="h-1"
                                 :class="['bg-green-400','bg-orange-400','bg-blue-400','bg-purple-400','bg-sky-400','bg-amber-400','bg-yellow-300'][index % 7]">
                             </div>
-
                             <div class="p-3 text-center">
                                 <div x-show="index === 0"
                                     class="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold mb-1">
@@ -343,17 +499,14 @@ condicion(code, lluvia) {
                                 <p x-show="index !== 0" class="text-xs font-bold text-gray-500 mb-1"
                                     x-text="dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : ''">
                                 </p>
-
                                 <div class="my-1" x-html="icono(dia.weatherCode, dia.lluviaMm)"></div>
-
                                 <p class="text-xs font-semibold mb-1" :class="{
-                        'text-amber-500':  dia.weatherCode === 0,
-                        'text-orange-400': dia.weatherCode <= 2 && dia.weatherCode > 0,
-                        'text-gray-400':   dia.weatherCode >= 3 && dia.weatherCode <= 48,
-                        'text-blue-400':   dia.weatherCode >= 51 && dia.weatherCode <= 82,
-                        'text-indigo-500': dia.weatherCode >= 95
-                    }" x-text="condicion(dia.weatherCode, dia.lluviaMm)"></p>
-
+                                   'text-amber-500':  dia.weatherCode === 0,
+                                   'text-orange-400': dia.weatherCode <= 2 && dia.weatherCode > 0,
+                                   'text-gray-400':   dia.weatherCode >= 3 && dia.weatherCode <= 48,
+                                   'text-blue-400':   dia.weatherCode >= 51 && dia.weatherCode <= 82,
+                                   'text-indigo-500': dia.weatherCode >= 95
+                               }" x-text="condicion(dia.weatherCode, dia.lluviaMm)"></p>
                                 <div class="flex items-center justify-center gap-1">
                                     <i class="ph-fill ph-thermometer-hot" style="font-size:13px;color:#ef4444;"></i>
                                     <p class="text-lg font-black text-gray-900" x-text="dia.tempMax + '°C'"></p>
@@ -362,7 +515,6 @@ condicion(code, lluvia) {
                                     <i class="ph-fill ph-thermometer-cold" style="font-size:12px;color:#3b82f6;"></i>
                                     <p class="text-xs text-gray-400" x-text="dia.tempMin + '°C'"></p>
                                 </div>
-
                                 <div class="flex items-center justify-center gap-3 mt-1.5">
                                     <div class="flex items-center gap-1">
                                         <i class="ph-fill ph-drop" style="font-size:11px;color:#3b82f6;"></i>
@@ -375,8 +527,6 @@ condicion(code, lluvia) {
                                             x-text="dia.humedadMax + '%'"></span>
                                     </div>
                                 </div>
-
-                                <!-- Boton ver detalle -->
                                 <button @click.stop="popup = true"
                                     class="mt-2 w-full text-xs text-gray-400 hover:text-green-700 hover:bg-green-50 rounded-lg py-1 transition flex items-center justify-center gap-1">
                                     <i class="ph-fill ph-info" style="font-size:11px;"></i>
@@ -391,12 +541,9 @@ condicion(code, lluvia) {
                             @click.away="popup = false"
                             class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
                             style="display:none;">
-
-                            <!-- Puntita -->
                             <div
                                 class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45">
                             </div>
-
                             <div class="flex items-center justify-between mb-3">
                                 <p class="text-xs font-bold text-gray-700"
                                     x-text="index === 0 ? 'Hoy' : (dia.fecha ? dia.fecha.substring(8,10) + '/' + dia.fecha.substring(5,7) : '')">
@@ -406,9 +553,7 @@ condicion(code, lluvia) {
                                     <i class="ph-bold ph-x" style="font-size:9px;color:#6b7280;"></i>
                                 </button>
                             </div>
-
                             <div class="space-y-2">
-                                <!-- Lluvia -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
                                         <div class="w-5 h-5 bg-blue-50 rounded-md flex items-center justify-center">
@@ -418,8 +563,6 @@ condicion(code, lluvia) {
                                     </div>
                                     <span class="text-xs font-bold text-blue-500" x-text="dia.lluviaMm + ' mm'"></span>
                                 </div>
-
-                                <!-- Humedad max -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
                                         <div class="w-5 h-5 bg-teal-50 rounded-md flex items-center justify-center">
@@ -429,8 +572,6 @@ condicion(code, lluvia) {
                                     </div>
                                     <span class="text-xs font-bold text-teal-500" x-text="dia.humedadMax + '%'"></span>
                                 </div>
-
-                                <!-- Humedad min -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
                                         <div class="w-5 h-5 bg-gray-50 rounded-md flex items-center justify-center">
@@ -440,19 +581,17 @@ condicion(code, lluvia) {
                                     </div>
                                     <span class="text-xs font-bold text-gray-400" x-text="dia.humedadMin + '%'"></span>
                                 </div>
-
-                                <!-- Resumen -->
                                 <div class="bg-green-50 rounded-xl px-2 py-1.5 mt-1">
                                     <div class="flex items-start gap-1.5">
                                         <i class="ph-fill ph-leaf"
                                             style="font-size:12px;color:#16a34a;margin-top:1px;"></i>
                                         <p class="text-xs text-green-700 leading-snug" x-text="
-    dia.lluviaMm === 0  ? 'Condiciones favorables para tus cultivos.' :
-    dia.lluviaMm < 2    ? 'Llovizna esperada. Monitorea humedad.' :
-    dia.lluviaMm < 5    ? 'Lluvia ligera. Revisa drenajes.' :
-    dia.lluviaMm < 15   ? 'Lluvia moderada. Protege cultivos sensibles.' :
-                          'Tormenta esperada. Protege tus cultivos.'
-"></p>
+                                        dia.lluviaMm === 0  ? 'Condiciones favorables para tus cultivos.' :
+                                        dia.lluviaMm < 2    ? 'Llovizna esperada. Monitorea humedad.' :
+                                        dia.lluviaMm < 5    ? 'Lluvia ligera. Revisa drenajes.' :
+                                        dia.lluviaMm < 15   ? 'Lluvia moderada. Protege cultivos sensibles.' :
+                                                              'Tormenta esperada. Protege tus cultivos.'
+                                    "></p>
                                     </div>
                                 </div>
                             </div>
@@ -467,7 +606,7 @@ condicion(code, lluvia) {
             </div>
         </div>
 
-        <!-- ── MAPA + CULTIVOS ─────────────────────────────── -->
+        <!-- ── MAPA + CULTIVOS ────────────────────────────────── -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -527,11 +666,18 @@ condicion(code, lluvia) {
                 <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1" th:if="${not #lists.isEmpty(cultivos)}">
                     <div th:each="c : ${cultivos}" th:data-cultivo="'true'" th:data-municipio-id="${c.municipioId}"
                         th:data-nombre="${c.nombreCultivo}" th:data-municipio="${c.municipio}"
-                        th:data-lat="${c.latitud}" th:data-lng="${c.longitud}"
-                        @click="seleccionar($el.dataset.municipioId, $el.dataset.nombre, $el.dataset.municipio, $el.dataset.lat, $el.dataset.lng)"
-                        :class="cultivoActivo === $el.dataset.nombre
-                             ? 'ring-2 ring-green-500 bg-green-50/50'
-                             : 'hover:shadow-md hover:-translate-y-0.5'"
+                        th:data-lat="${c.latitud}" th:data-lng="${c.longitud}" th:data-hectareas="${c.hectareas}"
+                        th:data-fecha-siembra="${c.fechaSiembra}" @click="seleccionar(
+                         $el.dataset.municipioId,
+                         $el.dataset.nombre,
+                         $el.dataset.municipio,
+                         $el.dataset.lat,
+                         $el.dataset.lng,
+                         $el.dataset.hectareas,
+                         $el.dataset.fechaSiembra
+                     )" :class="cultivoActivo === $el.dataset.nombre
+                         ? 'ring-2 ring-green-500 bg-green-50/50'
+                         : 'hover:shadow-md hover:-translate-y-0.5'"
                         class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer transition-all duration-200">
                         <div class="flex h-24">
                             <div class="w-24 relative overflow-hidden shrink-0">

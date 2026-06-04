@@ -59,7 +59,7 @@ public class WeatherService {
                             .queryParam("daily", "relative_humidity_2m_max")
                             .queryParam("daily", "relative_humidity_2m_min")
                             .queryParam("daily", "weathercode")
-                            .queryParam("forecast_days", 7)
+                            .queryParam("forecast_days", 16)
                             .queryParam("timezone", "America/Bogota")
                             .build())
                     .retrieve()

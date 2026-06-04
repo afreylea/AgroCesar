@@ -25,9 +25,22 @@
                     <p class="text-green-100/70 text-sm">Analiza si las condiciones climaticas son favorables para
                         sembrar tus cultivos</p>
                 </div>
-                <div class="hidden md:flex items-center justify-center w-16 h-16 rounded-2xl"
-                    style="background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);">
-                    <i class="ph-duotone ph-calendar-check" style="font-size:32px;color:#86efac;"></i>
+                <!-- Clima hoy en el hero -->
+                <div th:if="${resultado != null && not #lists.isEmpty(resultado.pronostico())}"
+                    class="hidden md:block text-white text-center border border-white/20 rounded-2xl p-4"
+                    style="background:rgba(255,255,255,0.12);backdrop-filter:blur(16px);min-width:150px;">
+                    <div class="text-3xl font-black" th:text="${resultado.pronostico()[0].tempMax} + '°C'"></div>
+                    <div class="text-white/60 text-xs uppercase tracking-wide mt-1">HOY</div>
+                    <div class="mt-2 pt-2 border-t border-white/20 text-xs grid grid-cols-2 gap-1">
+                        <div>
+                            <div class="text-white/50">Lluvia</div>
+                            <div class="font-semibold" th:text="${resultado.pronostico()[0].lluviaMm} + ' mm'"></div>
+                        </div>
+                        <div>
+                            <div class="text-white/50">Hum.</div>
+                            <div class="font-semibold" th:text="${resultado.pronostico()[0].humedadMax} + '%'"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,7 +84,7 @@
                 </div>
             </div>
 
-            <!-- Sin resultado (fallo de pronostico) -->
+            <!-- Sin resultado -->
             <div th:if="${resultado == null}"
                 class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
                 <i class="ph-duotone ph-cloud-slash" style="font-size:48px;color:#d1d5db;"></i>
@@ -79,89 +92,253 @@
                 <p class="text-gray-400 text-sm">Verifica tu conexion o intenta de nuevo en unos minutos.</p>
             </div>
 
-            <!-- Resultado del analisis -->
+            <!-- ── RESULTADO ──────────────────────────────────── -->
             <div th:if="${resultado != null}">
 
-                <!-- Card principal: veredicto -->
-                <div class="rounded-2xl p-6 mb-6 shadow-sm"
-                    th:classappend="${resultado.esOptima()} ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
-                    <div class="flex items-start gap-5">
-                        <!-- Icono -->
-                        <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0"
-                            th:classappend="${resultado.esOptima()} ? 'bg-green-100' : 'bg-red-100'">
-                            <i th:classappend="${resultado.esOptima()} ? 'ph-fill ph-check-circle' : 'ph-fill ph-warning-octagon'"
-                                th:style="${resultado.esOptima()} ? 'font-size:36px;color:#16a34a;' : 'font-size:36px;color:#dc2626;'"></i>
-                        </div>
-                        <!-- Texto -->
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-1">
-                                <h3 class="text-xl font-black"
-                                    th:classappend="${resultado.esOptima()} ? 'text-green-800' : 'text-red-800'"
-                                    th:text="${resultado.esOptima()} ? 'Ventana optima para sembrar' : 'No es buen momento para sembrar'">
-                                </h3>
-                                <span class="text-xs font-bold px-3 py-1 rounded-full"
-                                    th:classappend="${resultado.esOptima()} ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'"
-                                    th:text="${resultado.esOptima()} ? 'FAVORABLE' : 'RIESGO'"></span>
+                <!-- Fila superior: veredicto + indice + proxima ventana -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+
+                    <!-- Veredicto -->
+                    <div class="lg:col-span-1 rounded-2xl p-5 shadow-sm flex flex-col justify-between"
+                        th:classappend="${resultado.esOptima()} ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                th:classappend="${resultado.esOptima()} ? 'bg-green-100' : 'bg-red-100'">
+                                <i th:classappend="${resultado.esOptima()} ? 'ph-fill ph-check-circle' : 'ph-fill ph-warning-octagon'"
+                                    th:style="${resultado.esOptima()} ? 'font-size:28px;color:#16a34a;' : 'font-size:28px;color:#dc2626;'"></i>
                             </div>
-                            <p class="text-sm mb-3"
-                                th:classappend="${resultado.esOptima()} ? 'text-green-700' : 'text-red-700'">
-                                <span th:text="${resultado.cultivo()}"></span>
-                                <span> · </span>
-                                <i class="ph-fill ph-map-pin" style="font-size:11px;"></i>
-                                <span th:text="${resultado.municipio()}"></span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <h3 class="text-base font-black"
+                                        th:classappend="${resultado.esOptima()} ? 'text-green-800' : 'text-red-800'"
+                                        th:text="${resultado.esOptima()} ? 'Ventana optima para sembrar' : 'No es buen momento para sembrar'">
+                                    </h3>
+                                </div>
+                                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                                    th:classappend="${resultado.esOptima()} ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'"
+                                    th:text="${resultado.esOptima()} ? 'FAVORABLE' : 'RIESGO ALTO'"></span>
+                                <p class="text-xs mt-2"
+                                    th:classappend="${resultado.esOptima()} ? 'text-green-600' : 'text-red-600'"
+                                    th:text="${resultado.cultivo()} + ' · ' + ${resultado.municipio()}"></p>
+                            </div>
+                        </div>
+                        <!-- Barra riesgo -->
+                        <div class="mt-4">
+                            <div class="flex-1 h-2 rounded-full mb-1"
+                                th:classappend="${resultado.esOptima()} ? 'bg-green-200' : 'bg-red-200'">
+                                <div class="h-2 rounded-full"
+                                    th:classappend="${resultado.esOptima()} ? 'bg-green-500' : 'bg-red-500'"
+                                    th:style="'width:' + (${resultado.diasEnRiesgo()} * 100 / ${resultado.totalDias()}) + '%'">
+                                </div>
+                            </div>
+                            <p class="text-xs font-semibold text-right"
+                                th:classappend="${resultado.esOptima()} ? 'text-green-700' : 'text-red-700'"
+                                th:text="${resultado.diasEnRiesgo()} + ' de ' + ${resultado.totalDias()} + ' dias con riesgo'">
                             </p>
-                            <!-- Barra de riesgo -->
-                            <div class="flex items-center gap-3">
-                                <div class="flex-1 h-2 rounded-full"
-                                    th:classappend="${resultado.esOptima()} ? 'bg-green-200' : 'bg-red-200'">
-                                    <div class="h-2 rounded-full transition-all duration-700"
-                                        th:classappend="${resultado.esOptima()} ? 'bg-green-500' : 'bg-red-500'"
-                                        th:style="'width:' + (${resultado.diasEnRiesgo()} * 100 / ${resultado.totalDias()}) + '%'">
+                        </div>
+                    </div>
+
+                    <!-- Indice de viabilidad -->
+                    <div
+                        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col items-center justify-center">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Indice de viabilidad</p>
+                        <!-- Score calculado: (diasSeguros / totalDias) * 100 -->
+                        <div
+                            th:with="score=${(resultado.totalDias() - resultado.diasEnRiesgo()) * 100 / resultado.totalDias()}">
+                            <div class="relative w-28 h-28 mx-auto mb-3">
+                                <svg class="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="10" />
+                                    <circle cx="50" cy="50" r="40" fill="none"
+                                        th:style="'stroke:' + (${score} >= 70 ? '#16a34a' : (${score} >= 40 ? '#f59e0b' : '#dc2626')) + ';stroke-width:10;stroke-linecap:round;stroke-dasharray:' + (${score} * 2.51) + ' 251;stroke-dashoffset:0'" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-2xl font-black text-gray-900" th:text="${score}"></span>
+                                    <span class="text-xs text-gray-400">/100</span>
+                                </div>
+                            </div>
+                            <p class="text-xs font-bold text-center"
+                                th:classappend="${score >= 70} ? 'text-green-600' : (${score >= 40} ? 'text-amber-500' : 'text-red-500')"
+                                th:text="${score >= 70} ? 'Riesgo bajo' : (${score >= 40} ? 'Riesgo medio' : 'Riesgo alto')">
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Proxima ventana -->
+                    <div
+                        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-fill ph-calendar-check" style="font-size:18px;color:#16a34a;"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-800">Proxima ventana recomendada</p>
+                        </div>
+
+                        <!-- Si hay ventana calculada -->
+                        <div th:if="${resultado.proximaVentana() != null}">
+                            <p class="text-xl font-black text-green-700 mb-1" th:text="${resultado.proximaVentana()}">
+                            </p>
+                            <p class="text-xs text-gray-400">Primer bloque de dias sin condiciones adversas detectado en
+                                el pronostico extendido.</p>
+                        </div>
+
+                        <!-- Si es optima ahora -->
+                        <div th:if="${resultado.proximaVentana() == null && resultado.esOptima()}">
+                            <p class="text-sm font-bold text-green-700 mb-1">Ahora mismo</p>
+                            <p class="text-xs text-gray-400">Las condiciones actuales son favorables. Es buen momento
+                                para sembrar.</p>
+                        </div>
+
+                        <!-- Si no hay ventana en el periodo -->
+                        <div th:if="${resultado.proximaVentana() == null && !resultado.esOptima()}">
+                            <p class="text-sm font-semibold text-gray-500 mb-1">Sin ventana en los proximos 16 dias</p>
+                            <p class="text-xs text-gray-400">No se detectaron condiciones favorables en el periodo
+                                analizado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila media: factores + riesgos + guia + comparacion -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+
+                    <!-- Factores evaluados -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-sliders" style="font-size:16px;color:#16a34a;"></i>
+                            <p class="text-sm font-bold text-gray-800">Factores evaluados</p>
+                        </div>
+                        <div class="space-y-3">
+
+                            <!-- Temperatura -->
+                            <div th:with="hoy=${resultado.pronostico()[0]},
+                                          umbralTempMax=${resultado.umbrales().getTempMaxEfectiva()},
+                                          umbralTempMin=${resultado.umbrales().getTempMinEfectiva()}">
+                                <div th:with="esFavorable=${hoy.tempMax <= umbralTempMax && hoy.tempMin >= umbralTempMin}"
+                                    class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-fill ph-thermometer" style="font-size:18px;"
+                                            th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"></i>
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-700">Temperatura</p>
+                                            <p class="text-xs text-gray-400" th:text="${hoy.tempMax} + '°C hoy'"></p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Lluvia -->
+                            <div th:with="hoy=${resultado.pronostico()[0]},
+                                          umbralLluviaMax=${resultado.umbrales().getLluviaMaxEfectiva()},
+                                          umbralLluviaMin=${resultado.umbrales().getLluviaMinEfectiva()}">
+                                <div th:with="esFavorable=${hoy.lluviaMm <= umbralLluviaMax && hoy.lluviaMm >= umbralLluviaMin}"
+                                    class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                                    <div class="flex items-center gap-2">
+                                        <i th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"
+                                            class="ph-fill ph-drop"></i>
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-700">Lluvia</p>
+                                            <p class="text-xs text-gray-400" th:text="${hoy.lluviaMm} + ' mm hoy'"></p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Humedad -->
+                            <div th:with="hoy=${resultado.pronostico()[0]},
+                                          umbralHumMax=${resultado.umbrales().getHumedadMaxEfectiva()},
+                                          umbralHumMin=${resultado.umbrales().getHumedadMinEfectiva()}">
+                                <div th:with="esFavorable=${hoy.humedadMax <= umbralHumMax && hoy.humedadMin >= umbralHumMin}"
+                                    class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                                    <div class="flex items-center gap-2">
+                                        <i th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"
+                                            class="ph-fill ph-waves"></i>
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-700">Humedad</p>
+                                            <p class="text-xs text-gray-400" th:text="${hoy.humedadMax} + '% hoy'"></p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guia de accion -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-lightbulb" style="font-size:16px;color:#16a34a;"></i>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">Guia de accion</p>
+                                <p class="text-xs text-gray-400">Generada por IA agronomica</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-3 border border-gray-100"
+                            th:text="${resultado.guia()}"></p>
+                    </div>
+
+                    <!-- Comparacion con otros cultivos -->
+                    <div class="md:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-chart-bar" style="font-size:16px;color:#16a34a;"></i>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">Comparacion con tus cultivos</p>
+                                <p class="text-xs text-gray-400">Condiciones de siembra hoy por cultivo</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div th:each="c, iterStat : ${cultivos}"
+                                class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-green-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shrink-0 text-white"
+                                        th:classappend="${iterStat.index == 0} ? 'bg-green-700' : 'bg-gray-400'"
+                                        th:text="${iterStat.index + 1}"></span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800" th:text="${c.cultivo}"></p>
+                                        <p class="text-xs text-gray-400" th:text="${c.municipio}"></p>
                                     </div>
                                 </div>
-                                <span class="text-xs font-bold whitespace-nowrap"
-                                    th:classappend="${resultado.esOptima()} ? 'text-green-700' : 'text-red-700'"
-                                    th:text="${resultado.diasEnRiesgo()} + ' de ' + ${resultado.totalDias()} + ' dias con riesgo'">
-                                </span>
+                                <!-- Estado simple basado en si es el seleccionado o no -->
+                                <span th:if="${c.id == cultivoId}" class="text-xs font-bold px-2.5 py-1 rounded-full"
+                                    th:classappend="${resultado.esOptima()} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                    th:text="${resultado.esOptima()} ? 'Favorable' : 'Riesgo alto'"></span>
+                                <a th:if="${c.id != cultivoId}" th:href="@{/siembra-optima(cultivoId=${c.id})}"
+                                    class="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700 transition">
+                                    Ver analisis
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Guia de accion de Groq -->
-                <div th:if="${resultado.guia() != null}"
-                    class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                            <i class="ph-fill ph-lightbulb" style="font-size:18px;color:#16a34a;"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-900">Guia de accion</p>
-                            <p class="text-xs text-gray-400">Generada por IA agronomica especializada en el Caribe
-                                colombiano</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-4 border border-gray-100"
-                        th:text="${resultado.guia()}"></p>
-                </div>
-
-                <!-- Pronostico 7 dias -->
-                <div class="mb-4">
+                <!-- Pronostico extendido -->
+                <div class="mb-2">
                     <div class="flex items-center gap-2 mb-4">
                         <i class="ph-fill ph-cloud-sun" style="font-size:16px;color:#16a34a;"></i>
-                        <h3 class="text-base font-bold text-gray-900">Pronostico de los proximos 7 dias</h3>
+                        <h3 class="text-base font-bold text-gray-900">Pronostico extendido</h3>
+                        <span class="text-xs text-gray-400" th:text="'· ' + ${resultado.totalDias()} + ' dias'"></span>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                         <div th:each="dia, iterStat : ${resultado.pronostico()}"
                             class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200">
 
                             <!-- Barra color -->
                             <div class="h-1 rounded-full mb-3" th:classappend="${iterStat.index == 0} ? 'bg-green-400' :
-                                     (${iterStat.index == 1} ? 'bg-orange-400' :
-                                     (${iterStat.index == 2} ? 'bg-blue-400' :
-                                     (${iterStat.index == 3} ? 'bg-purple-400' :
-                                     (${iterStat.index == 4} ? 'bg-sky-400' :
-                                     (${iterStat.index == 5} ? 'bg-amber-400' : 'bg-yellow-300')))))">
+                                     (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
+                                     (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
+                                     (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
+                                     (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
+                                     (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300')))))">
                             </div>
 
                             <!-- Fecha -->
@@ -172,18 +349,18 @@
                                 th:text="${#strings.substring(dia.fecha,8,10)} + '/' + ${#strings.substring(dia.fecha,5,7)}">
                             </p>
 
-                            <!-- Icono clima basado en lluvia -->
+                            <!-- Icono -->
                             <div class="mb-1">
                                 <i th:if="${dia.lluviaMm < 0.3}" class="ph-fill ph-sun"
-                                    style="font-size:24px;color:#f59e0b;"></i>
+                                    style="font-size:22px;color:#f59e0b;"></i>
                                 <i th:if="${dia.lluviaMm >= 0.3 && dia.lluviaMm < 2}" class="ph-fill ph-cloud-rain"
-                                    style="font-size:24px;color:#93c5fd;"></i>
+                                    style="font-size:22px;color:#93c5fd;"></i>
                                 <i th:if="${dia.lluviaMm >= 2 && dia.lluviaMm < 5}" class="ph-fill ph-cloud-rain"
-                                    style="font-size:24px;color:#60a5fa;"></i>
+                                    style="font-size:22px;color:#60a5fa;"></i>
                                 <i th:if="${dia.lluviaMm >= 5 && dia.lluviaMm < 15}" class="ph-fill ph-cloud-rain"
-                                    style="font-size:24px;color:#3b82f6;"></i>
+                                    style="font-size:22px;color:#3b82f6;"></i>
                                 <i th:if="${dia.lluviaMm >= 15}" class="ph-fill ph-cloud-lightning"
-                                    style="font-size:24px;color:#6366f1;"></i>
+                                    style="font-size:22px;color:#6366f1;"></i>
                             </div>
 
                             <!-- Temp -->
@@ -211,6 +388,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Footer informativo -->
+                <div class="flex items-center gap-2 mt-4 px-1">
+                    <i class="ph-fill ph-info" style="font-size:13px;color:#9ca3af;"></i>
+                    <p class="text-xs text-gray-400">La informacion se actualiza diariamente con datos del modelo
+                        climatico Open-Meteo y los umbrales del catalogo de cultivos del Cesar.</p>
                 </div>
 
             </div>

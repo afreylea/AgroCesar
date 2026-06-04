@@ -164,7 +164,11 @@ public class DashboardController {
                 mun.ifPresent(m -> {
                     List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
                             m.getLatitud(), m.getLongitud());
-                    model.addAttribute("pronostico", pronostico);
+                    // Limita a 7 dias para el dashboard — el metodo ahora devuelve 16
+                    List<DailyForecast> pronostico7 = pronostico.size() > 7
+                            ? pronostico.subList(0, 7)
+                            : pronostico;
+                    model.addAttribute("pronostico", pronostico7);
                     model.addAttribute("municipio", m.getNombre());
                     model.addAttribute("latInicial", m.getLatitud());
                     model.addAttribute("lngInicial", m.getLongitud());

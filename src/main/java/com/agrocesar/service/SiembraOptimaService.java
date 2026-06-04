@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +84,9 @@ public class SiembraOptimaService {
             String guia,
             String cultivo,
             String municipio,
-            List<DailyForecast> pronostico) {
+            List<DailyForecast> pronostico,
+            String proximaVentana,
+            CultivoConUmbralesDTO umbrales) {
     }
 
     /**
@@ -107,7 +111,7 @@ public class SiembraOptimaService {
         int diasEnRiesgo = contarDiasEnRiesgo(pronostico, cultivo);
         int totalDias = pronostico.size();
         boolean esOptima = (diasEnRiesgo / (double) totalDias) <= UMBRAL_RIESGO;
-
+        String proximaVentana = esOptima ? null : calcularProximaVentana(pronostico, cultivo);
         String guia = generarGuia(cultivo, pronostico, esOptima, diasEnRiesgo, totalDias);
 
         return new ResultadoSiembra(
@@ -117,7 +121,9 @@ public class SiembraOptimaService {
                 guia,
                 cultivo.getCultivo(),
                 cultivo.getMunicipio(),
-                pronostico);
+                pronostico,
+                proximaVentana,
+                cultivo);
     }
 
     /**
@@ -295,6 +301,48 @@ public class SiembraOptimaService {
         if (message == null)
             return null;
         return (String) message.get("content");
+    }
+
+    /**
+     * Busca el primer bloque de al menos 2 dias consecutivos sin riesgo
+     * en el pronostico extendido, a partir del dia 2 (omite hoy).
+     * Retorna una cadena con el rango de fechas en formato dd/MM,
+     * o null si no encuentra ninguna ventana favorable en el periodo.
+     *
+     * @param pronostico lista de dias pronosticados (hasta 16 dias)
+     * @param cultivo    DTO con los umbrales efectivos
+     * @return rango de fechas de la proxima ventana, o null si no hay
+     */
+    private String calcularProximaVentana(List<DailyForecast> pronostico,
+            CultivoConUmbralesDTO cultivo) {
+        // Omite el dia 0 (hoy) para buscar ventanas futuras
+        for (int i = 1; i < pronostico.size() - 1; i++) {
+            DailyForecast diaActual = pronostico.get(i);
+            DailyForecast diaSiguiente = pronostico.get(i + 1);
+
+            if (!diaEsAdverso(diaActual, cultivo) && !diaEsAdverso(diaSiguiente, cultivo)) {
+                LocalDate inicio = LocalDate.parse(diaActual.getFecha(),
+                        DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate fin = LocalDate.parse(diaSiguiente.getFecha(),
+                        DateTimeFormatter.ISO_LOCAL_DATE);
+
+                // Extiende la ventana si los dias siguientes tambien son favorables
+                int j = i + 2;
+                while (j < pronostico.size()
+                        && !diaEsAdverso(pronostico.get(j), cultivo)) {
+                    fin = LocalDate.parse(pronostico.get(j).getFecha(),
+                            DateTimeFormatter.ISO_LOCAL_DATE);
+                    j++;
+                }
+
+                return inicio.getDayOfMonth() + "/" +
+                        String.format("%02d", inicio.getMonthValue()) +
+                        " — " +
+                        fin.getDayOfMonth() + "/" +
+                        String.format("%02d", fin.getMonthValue());
+            }
+        }
+        return null;
     }
 
     /**

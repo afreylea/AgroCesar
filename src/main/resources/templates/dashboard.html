@@ -43,8 +43,8 @@
         fetch('/api/pronostico/' + municipioId)
             .then(r => r.json())
             .then(data => {
-                this.pronostico = data;
-                this.climaHoy   = data[0];
+            this.pronostico = data.slice(0, 7);
+            this.climaHoy   = data[0];
                 this.cargando   = false;
                 this.actualizarMapa(this.latActiva, this.lngActiva, nombre, municipio);
             })

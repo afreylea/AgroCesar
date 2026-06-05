@@ -19,7 +19,7 @@ import java.util.Map;
 public class RecomendacionService {
 
     private static final Logger log = LoggerFactory.getLogger(RecomendacionService.class);
-    private static final int MAX_CHARS = 1000;
+    private static final int MAX_CHARS = 500;
 
     private final WebClient webClient;
 

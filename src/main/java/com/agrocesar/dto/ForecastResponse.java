@@ -40,6 +40,9 @@ public class ForecastResponse {
         @JsonProperty("relative_humidity_2m_min")
         private List<Double> humidityMin;
 
+        @JsonProperty("relative_humidity_2m_mean")
+        private List<Double> humidityMean;
+
         @JsonProperty("weathercode")
         private List<Integer> weatherCode;
 
@@ -50,6 +53,7 @@ public class ForecastResponse {
         public List<Double> getPrecipitationSum() { return precipitationSum; }
         public List<Double> getHumidityMax() { return humidityMax; }
         public List<Double> getHumidityMin() { return humidityMin; }
+        public List<Double> getHumidityMean() { return humidityMean; }
         public List<Integer> getWeatherCode() { return weatherCode; }
     }
 }

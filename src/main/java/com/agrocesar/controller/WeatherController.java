@@ -36,7 +36,7 @@ public class WeatherController {
         }
 
         List<DailyForecast> forecast = weatherService
-                .obtenerPronostico7Dias(municipio.getLatitud(), municipio.getLongitud());
+                .obtenerPronostico(municipio.getLatitud(), municipio.getLongitud(), 7);
 
         if (forecast.isEmpty()) {
             return ResponseEntity.noContent().build();

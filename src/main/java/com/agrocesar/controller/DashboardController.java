@@ -89,9 +89,10 @@ public class DashboardController {
         if (municipio.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
                 municipio.get().getLatitud(),
-                municipio.get().getLongitud());
+                municipio.get().getLongitud(), 
+                7);
         return pronostico.isEmpty()
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.ok(pronostico);
@@ -162,13 +163,9 @@ public class DashboardController {
             if (primero.getMunicipioId() != null) {
                 Optional<Municipio> mun = municipioRepository.findById(primero.getMunicipioId());
                 mun.ifPresent(m -> {
-                    List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                            m.getLatitud(), m.getLongitud());
-                    // Limita a 7 dias para el dashboard — el metodo ahora devuelve 16
-                    List<DailyForecast> pronostico7 = pronostico.size() > 7
-                            ? pronostico.subList(0, 7)
-                            : pronostico;
-                    model.addAttribute("pronostico", pronostico7);
+                    List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                            m.getLatitud(), m.getLongitud(), 7);
+                    model.addAttribute("pronostico", pronostico);
                     model.addAttribute("municipio", m.getNombre());
                     model.addAttribute("latInicial", m.getLatitud());
                     model.addAttribute("lngInicial", m.getLongitud());
@@ -206,8 +203,8 @@ public class DashboardController {
         if (municipio.isEmpty())
             return ResponseEntity.notFound().build();
 
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                municipio.get().getLatitud(), municipio.get().getLongitud());
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                municipio.get().getLatitud(), municipio.get().getLongitud(), 7);
 
         String texto = recomendacionService.generarRecomendacionCultivo(
                 cultivoNombre, municipio.get().getNombre(),
@@ -255,8 +252,8 @@ public class DashboardController {
         if (mun.isEmpty())
             return ResponseEntity.noContent().build();
 
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                mun.get().getLatitud(), mun.get().getLongitud());
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                mun.get().getLatitud(), mun.get().getLongitud(), 7);
 
         List<RankingCultivoDTO> ranking = cultivoConUmbralesRepository.findRankingCultivos();
 

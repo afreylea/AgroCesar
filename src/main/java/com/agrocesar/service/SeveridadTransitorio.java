@@ -22,12 +22,44 @@ import org.springframework.stereotype.Component;
 public class SeveridadTransitorio extends SeveridadStrategy {
 
     @Override
-    public String calcular(int diasRestantes, int diasCosechaProm) {
+    public String calcularSeveridad(int diasRestantes, int diasCosechaProm) {
         int diasTranscurridos = diasCosechaProm - diasRestantes;
         double pct = calcularPorcentaje(diasTranscurridos, diasCosechaProm);
 
         if      (pct <= UMBRAL_ESTABLECIMIENTO) return "ALTA";
         else if (pct <= UMBRAL_VEGETATIVO)      return "MEDIA";
         else                                    return "BAJA";
+    }
+
+    @Override
+    public String calcularSeveridadLluviaExtrema(int diasRestantes, int diasCosechaProm) {
+        int diasTranscurridos = diasCosechaProm - diasRestantes;
+        double pct = calcularPorcentaje(diasTranscurridos, diasCosechaProm);
+
+        // Establecimiento y vegetativo: ALTA — plántula frágil o en desarrollo,
+        // encharcamiento puede ser letal o causar daño mecánico severo.
+        // Reproducción: MEDIA — planta madura, impacto solo en rendimiento.
+        return (pct <= UMBRAL_VEGETATIVO) ? "ALTA" : "MEDIA";
+    }               
+
+    /**
+     * Para TRANSITORIO el umbral es por ciclo completo.
+     * Se pondera según la etapa actual: la reproducción concentra
+     * el 50% del requerimiento hídrico aunque represente el 40% del tiempo.
+     */
+    @Override
+    public double normalizarLluvia(double lluviaUmbral, int diasCiclo,
+                                   int diasAcumulados, int diasRestantes) {
+        int diasTranscurridos = diasCiclo - diasRestantes;
+        double pct = calcularPorcentaje(diasTranscurridos, diasCiclo);
+        double peso = pesoPorEtapa(pct);
+
+        // Lluvia asignada a esta etapa, distribuida en sus días proporcionales
+        double diasEtapa = diasCiclo * (pct <= UMBRAL_ESTABLECIMIENTO ? UMBRAL_ESTABLECIMIENTO
+                         : pct <= UMBRAL_VEGETATIVO ? (UMBRAL_VEGETATIVO - UMBRAL_ESTABLECIMIENTO)
+                         : (1.0 - UMBRAL_VEGETATIVO));
+
+        double lluviaDiariaEtapa = (lluviaUmbral * peso) / diasEtapa;
+        return lluviaDiariaEtapa * diasAcumulados;
     }
 }

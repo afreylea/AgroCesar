@@ -76,6 +76,11 @@
                           ubicacionObtenida: false,
                           cargandoUbicacion: false,
                           errorUbicacion: false,
+                          cultivoSeleccionado: null,
+                            get infoCultivo() {
+                                if (!this.cultivoSeleccionado) return null;
+                                return catalogoData.find(c => c.id == this.cultivoSeleccionado) || null;
+                            },
                           obtenerUbicacion() {
                               if (!navigator.geolocation) {
                                   this.errorUbicacion = true;
@@ -102,6 +107,11 @@
                     <input type="hidden" id="latitudCultivo" th:field="*{latitudCultivo}">
                     <input type="hidden" id="longitudCultivo" th:field="*{longitudCultivo}">
 
+                    <!-- Datos del catalogo inyectados para Alpine.js -->
+                    <script th:inline="javascript">
+                        const catalogoData = /*[[${catalogo}]]*/[];
+                    </script>
+
                     <!-- Cultivo + Municipio -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
@@ -113,7 +123,7 @@
                                     class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center pointer-events-none z-10">
                                     <i class="ph-duotone ph-plant" style="font-size:18px; color:#16a34a;"></i>
                                 </div>
-                                <select th:field="*{catalogoId}" required
+                                <select th:field="*{catalogoId}" required x-model="cultivoSeleccionado"
                                     class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none appearance-none bg-white text-gray-700 text-sm hover:border-gray-300 transition cursor-pointer">
                                     <option value="">Selecciona un cultivo</option>
                                     <option th:each="c : ${catalogo}" th:value="${c.id}" th:text="${c.nombre}"></option>
@@ -135,6 +145,85 @@
                                     <option th:each="m : ${municipios}" th:value="${m.id}" th:text="${m.nombre}">
                                     </option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card informacion del cultivo seleccionado -->
+                    <div x-show="infoCultivo" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="rounded-2xl border border-green-100 bg-green-50/50 overflow-hidden">
+
+                        <div class="flex gap-0">
+                            <!-- Imagen -->
+                            <div class="w-32 shrink-0 relative overflow-hidden">
+                                <img x-show="infoCultivo && infoCultivo.imagenUrl"
+                                    :src="infoCultivo ? '/imagenes/' + infoCultivo.imagenUrl : ''"
+                                    class="w-full h-full object-cover absolute inset-0" alt="Imagen cultivo">
+                                <div x-show="!infoCultivo || !infoCultivo.imagenUrl"
+                                    class="w-full h-full bg-green-100 flex items-center justify-center absolute inset-0">
+                                    <i class="ph-duotone ph-plant" style="font-size:36px;color:#86efac;"></i>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div class="flex-1 p-4">
+                                <!-- Header -->
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="text-sm font-black text-gray-900"
+                                        x-text="infoCultivo ? infoCultivo.nombre : ''"></h4>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full" :class="infoCultivo && infoCultivo.categoria === 'TRANSITORIO'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-amber-100 text-amber-700'"
+                                        x-text="infoCultivo ? infoCultivo.categoria : ''"></span>
+                                </div>
+
+                                <!-- Descripcion -->
+                                <p class="text-xs text-gray-600 leading-relaxed mb-3"
+                                    x-text="infoCultivo && infoCultivo.descripcion ? infoCultivo.descripcion : 'Sin descripcion disponible.'">
+                                </p>
+
+                                <!-- Metricas -->
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div class="bg-white rounded-xl p-2 text-center border border-orange-100">
+                                        <i class="ph-fill ph-thermometer-hot" style="font-size:14px;color:#ea580c;"></i>
+                                        <p class="text-xs font-bold text-orange-700 mt-0.5"
+                                            x-text="infoCultivo ? infoCultivo.tempMin + '° / ' + infoCultivo.tempMax + '°' : ''">
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 leading-tight">Temp Min/Max</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-2 text-center border border-sky-100">
+                                        <i class="ph-fill ph-cloud-rain" style="font-size:14px;color:#0284c7;"></i>
+                                        <p class="text-xs font-bold text-sky-700 mt-0.5"
+                                            x-text="infoCultivo ? infoCultivo.lluviaMin + ' / ' + infoCultivo.lluviaMax + 'mm' : ''">
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 leading-tight">Lluvia Min/Max</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-2 text-center border border-purple-100">
+                                        <i class="ph-fill ph-drop-half" style="font-size:14px;color:#7c3aed;"></i>
+                                        <p class="text-xs font-bold text-purple-700 mt-0.5"
+                                            x-text="infoCultivo ? infoCultivo.humedadMin + ' / ' + infoCultivo.humedadMax + '%' : ''">
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 leading-tight">Humedad Min/Max</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-2 text-center border border-green-100">
+                                        <i class="ph-fill ph-calendar-check" style="font-size:14px;color:#16a34a;"></i>
+                                        <p class="text-xs font-bold text-green-700 mt-0.5"
+                                            x-text="infoCultivo ? infoCultivo.diasCosechaMin + ' / ' + infoCultivo.diasCosechaMax + 'd' : ''">
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 leading-tight">Cosecha Min/Max</p>
+                                    </div>
+                                </div>
+
+                                <!-- Tipo suelo -->
+                                <div x-show="infoCultivo && infoCultivo.tipoSuelo"
+                                    class="flex items-center gap-1.5 mt-2.5 text-xs text-gray-500">
+                                    <i class="ph-fill ph-mountains" style="font-size:12px;color:#9ca3af;"></i>
+                                    <span>Suelo recomendado: </span>
+                                    <span class="font-semibold text-gray-700"
+                                        x-text="infoCultivo ? infoCultivo.tipoSuelo : ''"></span>
+                                </div>
                             </div>
                         </div>
                     </div>

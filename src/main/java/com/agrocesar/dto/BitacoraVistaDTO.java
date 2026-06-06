@@ -28,7 +28,7 @@ public class BitacoraVistaDTO {
     }
 
     /**
-     * Constructor completo — usado internamente por el Builder.
+     * Constructor completo — usado internamente por el Builder.update constructor and builder to include fechaCreacion
      *
      * @param id                  identificador unico de la entrada
      * @param cultivoAgricultorId FK al cultivo del agricultor

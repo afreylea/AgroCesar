@@ -479,7 +479,7 @@
                     <p class="text-lg font-black text-gray-900" th:text="${dia.tempMax} + '°C'"></p>
                     <p class="text-xs text-gray-400 mb-2" th:text="'↓ ' + ${dia.tempMin} + '°C'"></p>
                     <p class="text-xs text-blue-500" th:text="${dia.lluviaMm} + ' mm'"></p>
-                    <p class="text-xs text-teal-500" th:text="${dia.humedadMax} + '%'"></p>
+                    <p class="text-xs text-teal-500" th:text="${dia.humedadMedia} + '%'"></p>
                 </div>
             </div>
 
@@ -524,7 +524,7 @@
                                     <div class="flex items-center gap-1">
                                         <i class="ph-fill ph-waves" style="font-size:11px;color:#0d9488;"></i>
                                         <span class="text-xs text-teal-500 font-semibold"
-                                            x-text="dia.humedadMax + '%'"></span>
+                                            x-text="dia.humedadMedia + '%'"></span>
                                     </div>
                                 </div>
                                 <button @click.stop="popup = true"

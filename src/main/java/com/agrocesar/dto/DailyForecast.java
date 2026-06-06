@@ -8,6 +8,8 @@ public class DailyForecast {
     private Double lluviaMm;
     private Double humedadMax;
     private Double humedadMin;
+    private Double humedadMedia;
+
     private Integer weatherCode;
 
     // Getters originales
@@ -17,18 +19,22 @@ public class DailyForecast {
     public Double getLluviaMm() { return lluviaMm; }
     public Double getHumedadMax() { return humedadMax; }
     public Double getHumedadMin() { return humedadMin; }
+    public Double getHumedadMedia() { return humedadMedia; }
     public Integer getWeatherCode() { return weatherCode; }
 
     //ALIAS para la vista (dashboard.html usa estos nombres)
     public Double getLluvia() { return lluviaMm; }
-    public Double getHumedad() { return humedadMax; }
+    public Double getHumedad() { 
+        if (humedadMax == null || humedadMin == null) return null;
+        return (humedadMax + humedadMin) / 2.0; 
+    }
 
     // Builder manual
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
         private String fecha;
-        private Double tempMax, tempMin, lluviaMm, humedadMax, humedadMin;
+        private Double tempMax, tempMin, lluviaMm, humedadMax, humedadMin, humedadMedia;
         private Integer weatherCode;
 
         public Builder fecha(String v) { this.fecha = v; return this; }
@@ -37,6 +43,7 @@ public class DailyForecast {
         public Builder lluviaMm(Double v) { this.lluviaMm = v; return this; }
         public Builder humedadMax(Double v) { this.humedadMax = v; return this; }
         public Builder humedadMin(Double v) { this.humedadMin = v; return this; }
+        public Builder humedadMedia(Double v) { this.humedadMedia = v; return this; }
         public Builder weatherCode(Integer v) { this.weatherCode = v; return this; }
 
         public DailyForecast build() {
@@ -47,6 +54,7 @@ public class DailyForecast {
             d.lluviaMm = this.lluviaMm;
             d.humedadMax = this.humedadMax;
             d.humedadMin = this.humedadMin;
+            d.humedadMedia = this.humedadMedia;
             d.weatherCode = this.weatherCode;
             return d;
         }

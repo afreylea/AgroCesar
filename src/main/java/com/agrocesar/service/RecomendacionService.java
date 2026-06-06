@@ -19,7 +19,7 @@ import java.util.Map;
 public class RecomendacionService {
 
     private static final Logger log = LoggerFactory.getLogger(RecomendacionService.class);
-    private static final int MAX_CHARS = 1000;
+    private static final int MAX_CHARS = 500;
 
     private final WebClient webClient;
 
@@ -40,32 +40,16 @@ public class RecomendacionService {
      * Retorna null si la llamada falla (RNF05: no interrumpe el motor).
      */
     public String generar(String tipoAlerta, String cultivo, double valorDetectado,
-            String severidad, int diasRestantes, int diasCosechaProm) {
+        String severidad, int diasRestantes, int diasCosechaProm, String categoria) {
         try {
             String prompt = construirPrompt(tipoAlerta, cultivo, valorDetectado,
-                    severidad, diasRestantes, diasCosechaProm);
+                    severidad, diasRestantes, diasCosechaProm, categoria);
 
-            Map<?, ?> body = Map.of(
-                    "model", model,
-                    "max_tokens", 300,
-                    "messages", List.of(
-                            Map.of("role", "user", "content", prompt)));
+            String recomendacion = llamarGroq(prompt, 300);
 
-            Map<String, Object> respuesta = webClient.post()
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-                    })
-                    .timeout(Duration.ofSeconds(10))
-                    .block();
-
-            String texto = extraerTexto(respuesta);
-
-            if (texto != null && texto.length() > MAX_CHARS)
-                texto = texto.substring(0, MAX_CHARS);
-            return texto;
+            if (recomendacion != null && recomendacion.length() > MAX_CHARS)
+                recomendacion = recomendacion.substring(0, MAX_CHARS);
+            return recomendacion;
 
         } catch (Exception e) {
             log.warn("Groq no disponible para alerta {}/{}: {}", tipoAlerta, cultivo, e.getMessage());
@@ -75,17 +59,39 @@ public class RecomendacionService {
 
     private String construirPrompt(String tipoAlerta, String cultivo,
             double valorDetectado, String severidad,
-            int diasRestantes, int diasCosechaProm) {
+            int diasRestantes, int diasCosechaProm, String categoria) {
+        
         int diasTranscurridos = diasCosechaProm - diasRestantes;
-        int pctCiclo = (int) ((diasTranscurridos / (double) diasCosechaProm) * 100);
+        int diasEfectivos = "PERMANENTE".equals(categoria)
+                ? diasTranscurridos % 365
+                : diasTranscurridos;
+        int cicloEfectivo = "PERMANENTE".equals(categoria) ? 365 : diasCosechaProm;
+        int pctCiclo = (int) ((diasEfectivos / (double) cicloEfectivo) * 100);
+
+        String etapa = pctCiclo <= 20 ? "establecimiento"
+                    : pctCiclo <= 60 ? "crecimiento vegetativo"
+                    : "reproduccion y maduracion";
+
+        String contextoAlerta = switch (tipoAlerta) {
+            case "TEMPERATURA_ALTA"    -> String.format("temperatura maxima de %.1f°C, superando el umbral del cultivo", valorDetectado);
+            case "TEMPERATURA_BAJA"    -> String.format("temperatura minima de %.1f°C, por debajo del umbral del cultivo", valorDetectado);
+            case "LLUVIA_EXCESIVA"     -> String.format("evento de lluvia extrema de %.0f mm en un dia", valorDetectado);
+            case "LLUVIA_INSUFICIENTE" -> String.format("deficit hidrico: solo %.0f mm acumulados en 15 dias", valorDetectado);
+            case "HUMEDAD_EXCESIVA"    -> String.format("humedad relativa media de %.0f%%, favoreciendo hongos y enfermedades", valorDetectado);
+            case "HUMEDAD_INSUFICIENTE"-> String.format("humedad relativa media de %.0f%%, generando estres hidrico foliar", valorDetectado);
+            default                    -> String.format("valor registrado de %.2f", valorDetectado);
+        };
 
         return String.format(
-                "Eres un agrónomo experto en cultivos del Caribe colombiano. " +
-                        "Se detectó una alerta de tipo %s (severidad %s) en el cultivo de %s. " +
-                        "Valor registrado: %.2f. " +
-                        "El cultivo lleva %d%% de su ciclo completado (%d días restantes). " +
-                        "En máximo 2 oraciones concretas y directas, indica qué debe hacer el agricultor ahora mismo.",
-                tipoAlerta, severidad, cultivo, valorDetectado, pctCiclo, diasRestantes);
+                "Eres un agronomo experto en cultivos del Caribe colombiano, " +
+                "con conocimiento en las guias tecnicas del ICA y Agronet. " +
+                "Alerta de severidad %s en cultivo de %s. " +
+                "Situacion: %s. " +
+                "El cultivo esta en etapa de %s (%d%% del ciclo completado, %d dias restantes para cosecha). " +
+                "Considerando el clima tropical humedo del Cesar, " +
+                "indica en exactamente 500 caracteres con oraciones cortas y directas " +
+                "que debe hacer el agricultor en las proximas 24-48 horas. ",
+                severidad, cultivo, contextoAlerta, etapa, pctCiclo, diasRestantes);
     }
 
     private String extraerTexto(Map<String, Object> respuesta) {

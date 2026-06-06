@@ -99,8 +99,8 @@ public class SiembraOptimaService {
      *         falla
      */
     public ResultadoSiembra analizar(CultivoConUmbralesDTO cultivo) {
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                cultivo.getLatitud(), cultivo.getLongitud());
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                cultivo.getLatitud(), cultivo.getLongitud(), 16);
 
         if (pronostico == null || pronostico.isEmpty()) {
             log.warn("[SiembraOptima] Sin pronostico para cultivo={} municipio={}",

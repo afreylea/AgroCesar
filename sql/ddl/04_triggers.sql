@@ -1,132 +1,127 @@
 -- ============================================================
---  AGROCESAR — Sistema de Monitoreo de Cultivos
---  Script DDL: 04_triggers.sql
---  Motor: Oracle XE 18c / 21c
+--  AGROCESAR — SISTEMA DE MONITOREO DE CULTIVOS
+--  SCRIPT DDL: 04_TRIGGERS.SQL
+--  MOTOR: ORACLE XE 18C / 21C
 -- ============================================================
 
-
 -- ============================================================
---  Municipios
+--  MUNICIPIOS
 -- ============================================================
 
-create or replace trigger trg_municipios_pk before
-   insert on municipios
-   for each row
-begin
-   :new.id := seq_municipios.nextval;
-end;
+CREATE OR REPLACE TRIGGER TRG_MUNICIPIOS_PK BEFORE
+   INSERT ON MUNICIPIOS
+   FOR EACH ROW
+BEGIN
+   :NEW.ID := SEQ_MUNICIPIOS.NEXTVAL;
+END;
 /
 
-
 -- ============================================================
---  Usuarios
+--  USUARIOS
 -- ============================================================
 
-create or replace trigger trg_usuarios_pk before
-   insert on usuarios
-   for each row
-begin
-   :new.id := seq_usuarios.nextval;
-end;
+CREATE OR REPLACE TRIGGER TRG_USUARIOS_PK BEFORE
+   INSERT ON USUARIOS
+   FOR EACH ROW
+BEGIN
+   :NEW.ID := SEQ_USUARIOS.NEXTVAL;
+END;
 /
 
-
 -- ============================================================
--- Cuntivos_Catalogo
--- ============================================================
-
-create or replace trigger trg_cultivos_catalogo_pk before
-   insert on cultivos_catalogo
-   for each row
-begin
-   :new.id := seq_cultivos_catalogo.nextval;
-end;
-/
-
-create or replace trigger trg_catalogo_fecha_act before
-   update on cultivos_catalogo
-   for each row
-begin
-   :new.fecha_actualizacion := sysdate;
-end;
-/
-
-
--- ============================================================
---  Cultivos_Agricultor
+--  CULTIVOS_CATALOGO
 -- ============================================================
 
-create or replace trigger trg_cultivos_agricultor_pk before
-   insert on cultivos_agricultor
-   for each row
-begin
-   :new.id := seq_cultivos_agricultor.nextval;
-end;
+CREATE OR REPLACE TRIGGER TRG_CULTIVOS_CATALOGO_PK BEFORE
+   INSERT ON CULTIVOS_CATALOGO
+   FOR EACH ROW
+BEGIN
+   :NEW.ID := SEQ_CULTIVOS_CATALOGO.NEXTVAL;
+END;
 /
 
-create or replace trigger trg_cultagr_fecha_act before
-   update on cultivos_agricultor
-   for each row
-begin
-   :new.fecha_actualizacion := sysdate;
-end;
+CREATE OR REPLACE TRIGGER TRG_CATALOGO_FECHA_ACT BEFORE
+   UPDATE ON CULTIVOS_CATALOGO
+   FOR EACH ROW
+BEGIN
+   :NEW.FECHA_ACTUALIZACION := SYSDATE;
+END;
 /
 
-create or replace trigger trg_valida_fecha_siembra before
-   insert or update of fecha_siembra on cultivos_agricultor
-   for each row
-begin
-   if :new.fecha_siembra > trunc(sysdate) then
-      raise_application_error(
+-- ============================================================
+--  CULTIVOS_AGRICULTOR
+-- ============================================================
+
+CREATE OR REPLACE TRIGGER TRG_CULTIVOS_AGRICULTOR_PK BEFORE
+   INSERT ON CULTIVOS_AGRICULTOR
+   FOR EACH ROW
+BEGIN
+   :NEW.ID := SEQ_CULTIVOS_AGRICULTOR.NEXTVAL;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_CULTAGR_FECHA_ACT BEFORE
+   UPDATE ON CULTIVOS_AGRICULTOR
+   FOR EACH ROW
+BEGIN
+   :NEW.FECHA_ACTUALIZACION := SYSDATE;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_VALIDA_FECHA_SIEMBRA BEFORE
+   INSERT OR UPDATE OF FECHA_SIEMBRA ON CULTIVOS_AGRICULTOR
+   FOR EACH ROW
+BEGIN
+   IF :NEW.FECHA_SIEMBRA > TRUNC(SYSDATE) THEN
+      RAISE_APPLICATION_ERROR(
          -20010,
-         'La fecha de siembra ('
-         || to_char(
-            :new.fecha_siembra,
+         'LA FECHA DE SIEMBRA ('
+         || TO_CHAR(
+            :NEW.FECHA_SIEMBRA,
             'DD/MM/YYYY'
          )
-         || ') no puede ser una fecha futura. Fecha maxima permitida: '
-         || to_char(
-            trunc(sysdate),
+         || ') NO PUEDE SER UNA FECHA FUTURA. FECHA MAXIMA PERMITIDA: '
+         || TO_CHAR(
+            TRUNC(SYSDATE),
             'DD/MM/YYYY'
          )
       );
-   end if;
-end;
+   END IF;
+END;
 /
 
-create or replace trigger trg_catalogo_desactivar_cascade after
-   update of activo on cultivos_catalogo
-   for each row
-   when ( new.activo = 0
-      and old.activo = 1 )
-begin
-   update cultivos_agricultor
-      set
-      activo = 0
-    where catalogo_id = :new.id
-      and activo = 1;
-end;
+CREATE OR REPLACE TRIGGER TRG_CATALOGO_DESACTIVAR_CASCADE AFTER
+   UPDATE OF ACTIVO ON CULTIVOS_CATALOGO
+   FOR EACH ROW
+   WHEN ( NEW.ACTIVO = 0
+      AND OLD.ACTIVO = 1 )
+BEGIN
+   UPDATE CULTIVOS_AGRICULTOR
+      SET
+      ACTIVO = 0
+    WHERE CATALOGO_ID = :NEW.ID
+      AND ACTIVO = 1;
+END;
 /
-
 
 -- ============================================================
---  Alertas
+--  ALERTAS
 -- ============================================================
 
-create or replace trigger trg_alertas_pk before
-   insert on alertas
-   for each row
-begin
-   :new.id := seq_alertas.nextval;
-end;
+CREATE OR REPLACE TRIGGER TRG_ALERTAS_PK BEFORE
+   INSERT ON ALERTAS
+   FOR EACH ROW
+BEGIN
+   :NEW.ID := SEQ_ALERTAS.NEXTVAL;
+END;
 /
 
-create or replace trigger trg_alertas_fecha_lectura before
-   update of leida on alertas
-   for each row
-   when ( new.leida = 1
-      and old.leida = 0 )
-begin
-   :new.fecha_lectura := sysdate;
-end;
+CREATE OR REPLACE TRIGGER TRG_ALERTAS_FECHA_LECTURA BEFORE
+   UPDATE OF LEIDA ON ALERTAS
+   FOR EACH ROW
+   WHEN ( NEW.LEIDA = 1
+      AND OLD.LEIDA = 0 )
+BEGIN
+   :NEW.FECHA_LECTURA := SYSDATE;
+END;
 /

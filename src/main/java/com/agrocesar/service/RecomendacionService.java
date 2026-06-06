@@ -224,4 +224,33 @@ public class RecomendacionService {
             texto = texto.substring(0, MAX_CHARS);
         return texto;
     }
+
+    /**
+     * Genera un analisis inteligente del historial de alertas para el admin.
+     * Retorna null si Groq falla — no interrumpe el flujo (RNF05).
+     */
+    public String generarAnalisisDashboard(long totalAlertas, long alertasActivas,
+            String tipoMasFrecuente, String municipioMasAfectado,
+            int pctActivas, int dias) {
+        try {
+            String prompt = String.format(
+                    "Eres un analista agricola experto en el departamento del Cesar, Colombia. " +
+                            "En los ultimos %d dias el sistema registro %d alertas climaticas en cultivos de agricultores. "
+                            +
+                            "De esas, %d estan activas sin revisar (%d%% del total). " +
+                            "El tipo de alerta mas frecuente fue: %s. " +
+                            "El municipio con mas alertas fue: %s. " +
+                            "Genera exactamente dos partes separadas por el caracter |: " +
+                            "PARTE 1 (analisis): 2 oraciones que describan la situacion actual con los datos concretos. "
+                            +
+                            "PARTE 2 (recomendaciones): exactamente 3 acciones concretas separadas por punto y coma. " +
+                            "Usa lenguaje directo y simple. No uses markdown ni asteriscos.",
+                    dias, totalAlertas, alertasActivas, pctActivas,
+                    tipoMasFrecuente, municipioMasAfectado);
+            return llamarGroq(prompt, 300);
+        } catch (Exception e) {
+            log.warn("Groq no disponible para analisis dashboard: {}", e.getMessage());
+            return null;
+        }
+    }
 }

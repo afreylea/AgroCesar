@@ -23,12 +23,11 @@ public class CultivoAgricultorRepository {
     }
 
     // ----------------------------------------------------------------
-    //  CONSULTAS
+    // CONSULTAS
     // ----------------------------------------------------------------
 
     public List<CultivoAgricultor> findByUsuarioId(Long usuarioId) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
+        return jdbi.withHandle(handle -> handle.createCall(
                 "{ call PKG_CULTIVOS_AGRICULTOR.prc_find_by_usuario(:p_usuario_id, :p_cursor) }")
                 .bind("p_usuario_id", usuarioId)
                 .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
@@ -43,15 +42,13 @@ public class CultivoAgricultorRepository {
                         throw new RuntimeException(e);
                     }
                     return list;
-                })
-        );
+                }));
     }
 
     public Optional<CultivoAgricultor> findByIdAndUsuarioId(Long id, Long usuarioId) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
+        return jdbi.withHandle(handle -> handle.createCall(
                 "{ call PKG_CULTIVOS_AGRICULTOR.prc_find_by_id_and_usuario(:p_id, :p_usuario_id, :p_cursor) }")
-                .bind("p_id",         id)
+                .bind("p_id", id)
                 .bind("p_usuario_id", usuarioId)
                 .registerOutParameter("p_cursor", java.sql.Types.REF_CURSOR)
                 .invoke((Function<OutParameters, Optional<CultivoAgricultor>>) out -> {
@@ -64,64 +61,62 @@ public class CultivoAgricultorRepository {
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
-                })
-        );
+                }));
     }
 
     // ----------------------------------------------------------------
-    //  ESCRITURA
+    // ESCRITURA
     // ----------------------------------------------------------------
 
     public void insert(CultivoAgricultor cultivo) {
-        jdbi.useHandle(handle ->
-            handle.createCall(
+        jdbi.useHandle(handle -> handle.createCall(
                 "{ call PKG_CULTIVOS_AGRICULTOR.prc_insert(" +
-                ":p_usuario_id, :p_catalogo_id, :p_municipio_id, " +
-                ":p_hectareas, :p_fecha_siembra, " +
-                ":p_latitud_cultivo, :p_longitud_cultivo, :p_tipo_suelo) }")
-                .bind("p_usuario_id",        cultivo.getUsuarioId())
-                .bind("p_catalogo_id",       cultivo.getCatalogoId())
-                .bind("p_municipio_id",      cultivo.getMunicipioId())
-                .bind("p_hectareas",         cultivo.getHectareas())
-                .bind("p_fecha_siembra",     cultivo.getFechaSiembra())
-                .bind("p_latitud_cultivo",   cultivo.getLatitudCultivo())
-                .bind("p_longitud_cultivo",  cultivo.getLongitudCultivo())
-                .bind("p_tipo_suelo",        cultivo.getTipoSuelo())
-                .invoke()
-        );
+                        ":p_usuario_id, :p_catalogo_id, :p_municipio_id, " +
+                        ":p_hectareas, :p_fecha_siembra, " +
+                        ":p_latitud_cultivo, :p_longitud_cultivo, :p_tipo_suelo) }")
+                .bind("p_usuario_id", cultivo.getUsuarioId())
+                .bind("p_catalogo_id", cultivo.getCatalogoId())
+                .bind("p_municipio_id", cultivo.getMunicipioId())
+                .bind("p_hectareas", cultivo.getHectareas())
+                .bind("p_fecha_siembra", cultivo.getFechaSiembra())
+                .bind("p_latitud_cultivo", cultivo.getLatitudCultivo())
+                .bind("p_longitud_cultivo", cultivo.getLongitudCultivo())
+                .bind("p_tipo_suelo", cultivo.getTipoSuelo())
+                .invoke());
     }
 
     public int update(CultivoAgricultor cultivo) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
+        return jdbi.withHandle(handle -> handle.createCall(
                 "{ call PKG_CULTIVOS_AGRICULTOR.prc_update(" +
-                ":p_id, :p_usuario_id, :p_hectareas, " +
-                ":p_temp_min_override, :p_temp_max_override, " +
-                ":p_lluvia_min_override, :p_lluvia_max_override, " +
-                ":p_humedad_min_override, :p_humedad_max_override, " +
-                ":p_rows_updated) }")
-                .bind("p_id",                  cultivo.getId())
-                .bind("p_usuario_id",          cultivo.getUsuarioId())
-                .bind("p_hectareas",           cultivo.getHectareas())
-                .bind("p_temp_min_override",   cultivo.getTempMinOverride())
-                .bind("p_temp_max_override",   cultivo.getTempMaxOverride())
-                .bind("p_lluvia_min_override",  cultivo.getLluviaMinOverride())
-                .bind("p_lluvia_max_override",  cultivo.getLluviaMaxOverride())
+                        ":p_id, :p_usuario_id, :p_hectareas, " +
+                        ":p_fecha_siembra, :p_latitud_cultivo, :p_longitud_cultivo, :p_tipo_suelo, " +
+                        ":p_temp_min_override, :p_temp_max_override, " +
+                        ":p_lluvia_min_override, :p_lluvia_max_override, " +
+                        ":p_humedad_min_override, :p_humedad_max_override, " +
+                        ":p_rows_updated) }")
+                .bind("p_id", cultivo.getId())
+                .bind("p_usuario_id", cultivo.getUsuarioId())
+                .bind("p_hectareas", cultivo.getHectareas())
+                .bind("p_fecha_siembra", cultivo.getFechaSiembra())
+                .bind("p_latitud_cultivo", cultivo.getLatitudCultivo())
+                .bind("p_longitud_cultivo", cultivo.getLongitudCultivo())
+                .bind("p_tipo_suelo", cultivo.getTipoSuelo())
+                .bind("p_temp_min_override", cultivo.getTempMinOverride())
+                .bind("p_temp_max_override", cultivo.getTempMaxOverride())
+                .bind("p_lluvia_min_override", cultivo.getLluviaMinOverride())
+                .bind("p_lluvia_max_override", cultivo.getLluviaMaxOverride())
                 .bind("p_humedad_min_override", cultivo.getHumedadMinOverride())
                 .bind("p_humedad_max_override", cultivo.getHumedadMaxOverride())
                 .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
-                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
-        );
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated")));
     }
 
     public int deactivate(Long id, Long usuarioId) {
-        return jdbi.withHandle(handle ->
-            handle.createCall(
+        return jdbi.withHandle(handle -> handle.createCall(
                 "{ call PKG_CULTIVOS_AGRICULTOR.prc_deactivate(:p_id, :p_usuario_id, :p_rows_updated) }")
-                .bind("p_id",          id)
-                .bind("p_usuario_id",  usuarioId)
+                .bind("p_id", id)
+                .bind("p_usuario_id", usuarioId)
                 .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
-                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated"))
-        );
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated")));
     }
 }

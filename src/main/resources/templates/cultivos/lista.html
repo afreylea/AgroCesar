@@ -188,7 +188,7 @@
                     <div class="col-span-2 text-center">Municipio</div>
                     <div class="col-span-2 text-center">Hectareas</div>
                     <div class="col-span-2 text-center">Siembra</div>
-                    <div class="col-span-1 text-center">Accion</div>
+                    <div class="col-span-1 text-center">Acciones</div>
                 </div>
 
                 <!-- Filas con carga progresiva -->
@@ -244,13 +244,20 @@
                         </span>
                     </div>
 
-                    <!-- Eliminar -->
+                    <!-- Acciones -->
                     <div class="col-span-1 text-center">
-                        <div x-data="{ confirmar: false }">
+                        <div x-data="{ confirmar: false }" class="flex items-center justify-center gap-2">
+                            <!-- Editar -->
+                            <a th:href="@{/cultivos/{id}/editar(id=${c.id})}"
+                                class="w-9 h-9 rounded-lg bg-green-50 hover:bg-green-100 text-green-600 flex items-center justify-center transition">
+                                <i class="ph-bold ph-pencil-simple" style="font-size:15px;"></i>
+                            </a>
+                            <!-- Eliminar -->
                             <button @click="confirmar = true"
-                                class="w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 flex items-center justify-center transition mx-auto">
+                                class="w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 flex items-center justify-center transition">
                                 <i class="ph-bold ph-trash" style="font-size:15px;"></i>
                             </button>
+                            <!-- Modal confirmar eliminar -->
                             <div x-show="confirmar"
                                 class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
                                 style="display:none">
@@ -284,31 +291,31 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Boton mostrar mas con barra de progreso -->
-                <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                    <div class="flex items-center gap-4">
-                        <!-- Barra de progreso de carga -->
-                        <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                            <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                                :style="'width:' + progreso + '%'"></div>
-                        </div>
-                        <span class="text-xs text-gray-400 whitespace-nowrap"
-                            x-text="'Mostrando ' + visibles + ' de ' + total"></span>
-                        <button @click="mostrarMas()"
-                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
-                            <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
-                            Ver mas
-                        </button>
+            <!-- Boton mostrar mas con barra de progreso -->
+            <div x-show="hayMas" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex items-center gap-4">
+                    <!-- Barra de progreso de carga -->
+                    <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                        <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                            :style="'width:' + progreso + '%'"></div>
                     </div>
+                    <span class="text-xs text-gray-400 whitespace-nowrap"
+                        x-text="'Mostrando ' + visibles + ' de ' + total"></span>
+                    <button @click="mostrarMas()"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-700 hover:bg-green-800 text-white text-xs font-semibold transition whitespace-nowrap">
+                        <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
+                        Ver mas
+                    </button>
                 </div>
+            </div>
 
-                <!-- Todos visibles -->
-                <div x-show="!hayMas && total > 5"
-                    class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-                    <i class="ph-fill ph-check-circle" style="font-size:14px; color:#16a34a;"></i>
-                    Mostrando todos los cultivos
-                </div>
+           <!-- Todos visibles -->
+            <div x-show="!hayMas && total > 5"
+                class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+                <i class="ph-fill ph-check-circle" style="font-size:14px; color:#16a34a;"></i>
+                Mostrando todos los cultivos
             </div>
         </div>
 
@@ -338,6 +345,7 @@
             </div>
         </div>
 
+        
     </main>
 </body>
 

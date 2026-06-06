@@ -48,7 +48,7 @@ CREATE OR REPLACE PACKAGE PKG_CULTIVOS_AGRICULTOR AS
         p_hectareas        IN  CULTIVOS_AGRICULTOR.HECTAREAS%TYPE,
         p_fecha_siembra    IN  CULTIVOS_AGRICULTOR.FECHA_SIEMBRA%TYPE,
         p_latitud_cultivo  IN  CULTIVOS_AGRICULTOR.LATITUD_CULTIVO%TYPE,
-        p_longitud_cultivo IN CULTIVOS_AGRICULTOR.LONGITUD_CULTIVO%TYPE,
+        p_longitud_cultivo IN  CULTIVOS_AGRICULTOR.LONGITUD_CULTIVO%TYPE,
         p_tipo_suelo       IN  CULTIVOS_AGRICULTOR.TIPO_SUELO%TYPE
     );
 
@@ -56,12 +56,16 @@ CREATE OR REPLACE PACKAGE PKG_CULTIVOS_AGRICULTOR AS
         p_id                   IN  CULTIVOS_AGRICULTOR.ID%TYPE,
         p_usuario_id           IN  CULTIVOS_AGRICULTOR.USUARIO_ID%TYPE,
         p_hectareas            IN  CULTIVOS_AGRICULTOR.HECTAREAS%TYPE,
+        p_fecha_siembra        IN  CULTIVOS_AGRICULTOR.FECHA_SIEMBRA%TYPE,
+        p_latitud_cultivo      IN  CULTIVOS_AGRICULTOR.LATITUD_CULTIVO%TYPE,
+        p_longitud_cultivo     IN  CULTIVOS_AGRICULTOR.LONGITUD_CULTIVO%TYPE,
+        p_tipo_suelo           IN  CULTIVOS_AGRICULTOR.TIPO_SUELO%TYPE,
         p_temp_min_override    IN  CULTIVOS_AGRICULTOR.TEMP_MIN_OVERRIDE%TYPE,
         p_temp_max_override    IN  CULTIVOS_AGRICULTOR.TEMP_MAX_OVERRIDE%TYPE,
         p_lluvia_min_override  IN  CULTIVOS_AGRICULTOR.LLUVIA_MIN_OVERRIDE%TYPE,
         p_lluvia_max_override  IN  CULTIVOS_AGRICULTOR.LLUVIA_MAX_OVERRIDE%TYPE,
-        p_humedad_min_override IN CULTIVOS_AGRICULTOR.HUMEDAD_MIN_OVERRIDE%TYPE,
-        p_humedad_max_override IN CULTIVOS_AGRICULTOR.HUMEDAD_MAX_OVERRIDE%TYPE,
+        p_humedad_min_override IN  CULTIVOS_AGRICULTOR.HUMEDAD_MIN_OVERRIDE%TYPE,
+        p_humedad_max_override IN  CULTIVOS_AGRICULTOR.HUMEDAD_MAX_OVERRIDE%TYPE,
         p_rows_updated         OUT NUMBER
     );
 
@@ -144,6 +148,10 @@ CREATE OR REPLACE PACKAGE BODY PKG_CULTIVOS_AGRICULTOR AS
         p_id                   IN  CULTIVOS_AGRICULTOR.ID%TYPE,
         p_usuario_id           IN  CULTIVOS_AGRICULTOR.USUARIO_ID%TYPE,
         p_hectareas            IN  CULTIVOS_AGRICULTOR.HECTAREAS%TYPE,
+        p_fecha_siembra        IN  CULTIVOS_AGRICULTOR.FECHA_SIEMBRA%TYPE,
+        p_latitud_cultivo      IN  CULTIVOS_AGRICULTOR.LATITUD_CULTIVO%TYPE,
+        p_longitud_cultivo     IN  CULTIVOS_AGRICULTOR.LONGITUD_CULTIVO%TYPE,
+        p_tipo_suelo           IN  CULTIVOS_AGRICULTOR.TIPO_SUELO%TYPE,
         p_temp_min_override    IN  CULTIVOS_AGRICULTOR.TEMP_MIN_OVERRIDE%TYPE,
         p_temp_max_override    IN  CULTIVOS_AGRICULTOR.TEMP_MAX_OVERRIDE%TYPE,
         p_lluvia_min_override  IN  CULTIVOS_AGRICULTOR.LLUVIA_MIN_OVERRIDE%TYPE,
@@ -153,9 +161,13 @@ CREATE OR REPLACE PACKAGE BODY PKG_CULTIVOS_AGRICULTOR AS
         p_rows_updated         OUT NUMBER
     ) IS
     BEGIN
-        -- TRG_CULTAGR_FECHA_ACT actualiza FECHA_ACTUALIZACION automáticamente.
+        -- TRG_CULTAGR_FECHA_ACT actualiza FECHA_ACTUALIZACION automaticamente.
         UPDATE CULTIVOS_AGRICULTOR
         SET HECTAREAS            = p_hectareas,
+            FECHA_SIEMBRA        = p_fecha_siembra,
+            LATITUD_CULTIVO      = p_latitud_cultivo,
+            LONGITUD_CULTIVO     = p_longitud_cultivo,
+            TIPO_SUELO           = p_tipo_suelo,
             TEMP_MIN_OVERRIDE    = p_temp_min_override,
             TEMP_MAX_OVERRIDE    = p_temp_max_override,
             LLUVIA_MIN_OVERRIDE  = p_lluvia_min_override,

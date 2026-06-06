@@ -2,6 +2,7 @@ package com.agrocesar.controller;
 
 import java.util.List;
 
+import java.util.Optional;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -92,4 +93,42 @@ public class CultivoController {
         return "redirect:/cultivos";
     }
 
+    // GET /cultivos/{id}/editar
+    @GetMapping("/{id}/editar")
+    public String formularioEditar(@PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model, RedirectAttributes redirectAttributes) {
+        Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
+        Optional<CultivoAgricultor> cultivo = cultivoService.buscarPorIdYUsuario(id, usuario.getId());
+        if (cultivo.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Cultivo no encontrado.");
+            return "redirect:/cultivos";
+        }
+        // Cargar datos del catalogo para mostrar valores de referencia en la vista
+        var cat = catalogoRepository.findById(cultivo.get().getCatalogoId());
+        var mun = municipioRepository.findById(cultivo.get().getMunicipioId());
+
+        model.addAttribute("cultivo", cultivo.get());
+        model.addAttribute("catalogo", cat.orElse(null));
+        model.addAttribute("municipio", mun.orElse(null));
+        return "cultivos/editar";
+    }
+
+    // POST /cultivos/{id}/editar
+    @PostMapping("/{id}/editar")
+    public String guardarEdicion(@PathVariable Long id,
+            @ModelAttribute CultivoAgricultor cultivo,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
+            cultivo.setId(id);
+            cultivo.setUsuarioId(usuario.getId());
+            cultivoService.actualizar(cultivo, usuario.getId());
+            redirectAttributes.addFlashAttribute("exito", "Cultivo actualizado correctamente.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/cultivos";
+    }
 }

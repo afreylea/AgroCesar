@@ -4,8 +4,6 @@ import com.agrocesar.dto.AlertaVistaDTO;
 import com.agrocesar.service.AlertaService;
 import com.agrocesar.service.RecomendacionService;
 import com.agrocesar.service.UsuarioService;
-import com.ctc.wstx.shaded.msv_core.verifier.regexp.REDocumentDeclaration;
-
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

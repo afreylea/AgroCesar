@@ -1,11 +1,13 @@
 package com.agrocesar.controller;
 
+import com.agrocesar.dto.AlertaVistaDTO;
 import com.agrocesar.model.BitacoraCultivo;
 import com.agrocesar.model.Usuario;
 import com.agrocesar.repository.TipoActividadRepository;
 import com.agrocesar.service.BitacoraService;
 import com.agrocesar.service.CultivoAgricultorService;
 import com.agrocesar.service.UsuarioService;
+import com.agrocesar.service.AlertaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,6 +44,7 @@ public class BitacoraController {
     private final UsuarioService usuarioService;
     private final CultivoAgricultorService cultivoService;
     private final TipoActividadRepository tipoActividadRepository;
+    private final AlertaService alertaService;
 
     /**
      * Constructor con inyeccion por constructor.
@@ -50,15 +53,18 @@ public class BitacoraController {
      * @param usuarioService          servicio para obtener el usuario autenticado
      * @param cultivoService          servicio para listar cultivos del agricultor
      * @param tipoActividadRepository repositorio de tipos de actividad
+     * @param alertaService           servicio para gestionar alertas
      */
     public BitacoraController(BitacoraService bitacoraService,
             UsuarioService usuarioService,
             CultivoAgricultorService cultivoService,
-            TipoActividadRepository tipoActividadRepository) {
+            TipoActividadRepository tipoActividadRepository,
+            AlertaService alertaService) {
         this.bitacoraService = bitacoraService;
         this.usuarioService = usuarioService;
         this.cultivoService = cultivoService;
         this.tipoActividadRepository = tipoActividadRepository;
+        this.alertaService = alertaService;
     }
 
     /**
@@ -147,6 +153,13 @@ public class BitacoraController {
         model.addAttribute("cultivos", cultivoService.listarResumenPorUsuario(usuario.getId()));
         model.addAttribute("tiposActividad", tipoActividadRepository.listarActivos());
         model.addAttribute("cultivoId", cultivoId);
+       
+        List<AlertaVistaDTO> todasAlertas = alertaService.findByUsuarioId(usuario.getId());
+        List<AlertaVistaDTO> alertasRecientes = todasAlertas.stream()
+                .filter(a -> a.getFechaGeneracion() != null
+                        && a.getFechaGeneracion().toLocalDate().isAfter(LocalDate.now().minusDays(3)))
+                .collect(Collectors.toList());
+        model.addAttribute("alertas", alertasRecientes);
 
         return "cultivos/bitacora-form";
     }

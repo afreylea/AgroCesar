@@ -173,21 +173,24 @@ public class BitacoraController {
             @RequestParam String fechaActividad,
             @RequestParam(required = false) String responsable,
             @RequestParam(required = false) String ubicacion,
+            @RequestParam(defaultValue = "REALIZADO") String estado,
             RedirectAttributes redirectAttributes) {
         try {
             LocalDate fecha = LocalDate.parse(fechaActividad);
 
             bitacoraService.registrar(cultivoAgricultorId, tipoActividadId,
-                    alertaId, descripcion, fecha, responsable, ubicacion);
+                    alertaId, descripcion, fecha, responsable, ubicacion, estado);
 
             redirectAttributes.addFlashAttribute("exito",
                     "Actividad registrada correctamente.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/bitacora/nueva";
         } catch (Exception e) {
             log.error("[Bitacora] Error al registrar entrada: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("error",
                     "Error al registrar la actividad.");
+            return "redirect:/bitacora/nueva";
         }
         return "redirect:/bitacora";
     }
@@ -277,5 +280,29 @@ public class BitacoraController {
             return "\"" + valor.replace("\"", "\"\"") + "\"";
         }
         return valor;
+    }
+
+    /**
+     * Marca una entrada de la bitacora como completada (REALIZADO).
+     * 
+     * @param id
+     * @param redirectAttributes
+     * @return
+     */
+    @PostMapping("/{id}/completar")
+    public String completar(@PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            boolean actualizado = bitacoraService.cambiarEstado(id, "REALIZADO");
+            redirectAttributes.addFlashAttribute(
+                    actualizado ? "exito" : "error",
+                    actualizado ? "Actividad marcada como realizada."
+                            : "No se encontro la entrada.");
+        } catch (Exception e) {
+            log.error("[Bitacora] Error al completar entrada {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Error al marcar la actividad.");
+        }
+        return "redirect:/bitacora";
     }
 }

@@ -97,17 +97,13 @@ public class BitacoraService {
     public void registrar(Long cultivoAgricultorId, Long tipoActividadId,
             Long alertaId, String descripcion,
             LocalDate fechaActividad, String responsable,
-            String ubicacion) {
-
-        if (fechaActividad != null && fechaActividad.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("La fecha de actividad no puede ser futura.");
-        }
+            String ubicacion, String estado) {
 
         bitacoraCultivoRepository.insertar(cultivoAgricultorId, tipoActividadId,
-                alertaId, descripcion, fechaActividad, responsable, ubicacion);
+                alertaId, descripcion, fechaActividad, responsable, ubicacion, estado);
 
-        log.info("[Bitacora] Entrada registrada: cultivo={} tipo={} fecha={}",
-                cultivoAgricultorId, tipoActividadId, fechaActividad);
+        log.info("[Bitacora] Entrada registrada: cultivo={} tipo={} estado={}",
+                cultivoAgricultorId, tipoActividadId, estado);
     }
 
     /**
@@ -120,22 +116,31 @@ public class BitacoraService {
      * @param fechaActividad  nueva fecha de actividad
      * @param responsable     nombre de quien realizo la actividad
      * @param ubicacion       ubicacion donde se realizo
+     * @param estado          nuevo estado de la entrada
      * @return true si se actualizo, false si no se encontro la entrada
      * @throws IllegalArgumentException si la fecha es futura
      */
     public boolean actualizar(Long id, Long tipoActividadId, Long alertaId,
             String descripcion, LocalDate fechaActividad,
-            String responsable, String ubicacion) {
+            String responsable, String ubicacion, String estado) {
 
         if (fechaActividad != null && fechaActividad.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de actividad no puede ser futura.");
         }
 
         int filas = bitacoraCultivoRepository.actualizar(id, tipoActividadId,
-                alertaId, descripcion, fechaActividad, responsable, ubicacion);
+                alertaId, descripcion, fechaActividad, responsable, ubicacion, estado);
 
         if (filas > 0) {
             log.info("[Bitacora] Entrada actualizada: id={}", id);
+        }
+        return filas > 0;
+    }
+
+    public boolean cambiarEstado(Long id, String estado) {
+        int filas = bitacoraCultivoRepository.cambiarEstado(id, estado);
+        if (filas > 0) {
+            log.info("[Bitacora] Estado cambiado: id={} estado={}", id, estado);
         }
         return filas > 0;
     }

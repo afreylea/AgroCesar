@@ -16,6 +16,7 @@ public class BitacoraCultivo {
     private LocalDate fechaCreacion;
     private String responsable;
     private String ubicacion;
+    private String estado;
 
     private BitacoraCultivo() {
     }
@@ -23,7 +24,7 @@ public class BitacoraCultivo {
     public BitacoraCultivo(Long id, Long cultivoAgricultorId, Long tipoActividadId,
             String tipoNombre, String tipoIcono, Long alertaId,
             String descripcion, LocalDate fechaActividad,
-            LocalDate fechaCreacion, String cultivo, String responsable, String ubicacion) {
+            LocalDate fechaCreacion, String cultivo, String responsable, String ubicacion, String estado) {
         this.id = id;
         this.cultivoAgricultorId = cultivoAgricultorId;
         this.tipoActividadId = tipoActividadId;
@@ -36,6 +37,7 @@ public class BitacoraCultivo {
         this.fechaCreacion = fechaCreacion;
         this.responsable = responsable;
         this.ubicacion = ubicacion;
+        this.estado = estado;
     }
 
     public static Builder builder() {
@@ -104,10 +106,15 @@ public class BitacoraCultivo {
             o.ubicacion = v;
             return this;
         }
-
+        public Builder estado(String v) {
+            o.estado = v;
+            return this;
+        }
         public BitacoraCultivo build() {
             return o;
         }
+
+
 
     }
 
@@ -157,5 +164,9 @@ public class BitacoraCultivo {
 
     public String getUbicacion() {
         return ubicacion;
+    }
+
+    public String getEstado() {
+        return estado;
     }
 }

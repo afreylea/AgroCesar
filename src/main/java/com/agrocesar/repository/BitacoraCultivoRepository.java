@@ -104,10 +104,10 @@ public class BitacoraCultivoRepository {
 
     public void insertar(Long cultivoAgricultorId, Long tipoActividadId,
             Long alertaId, String descripcion, LocalDate fechaActividad,
-            String responsable, String ubicacion) {
+            String responsable, String ubicacion, String estado) {
         jdbi.useHandle(handle -> handle.createCall(
                 "{ call PKG_BITACORA.insertar(:p_cultivo_agricultor_id, :p_tipo_actividad_id, " +
-                        ":p_alerta_id, :p_descripcion, :p_fecha_actividad, :p_responsable, :p_ubicacion) }")
+                        ":p_alerta_id, :p_descripcion, :p_fecha_actividad, :p_responsable, :p_ubicacion, :p_estado) }")
                 .bind("p_cultivo_agricultor_id", cultivoAgricultorId)
                 .bind("p_tipo_actividad_id", tipoActividadId)
                 .bind("p_alerta_id", alertaId)
@@ -115,12 +115,22 @@ public class BitacoraCultivoRepository {
                 .bind("p_fecha_actividad", java.sql.Date.valueOf(fechaActividad))
                 .bind("p_responsable", responsable)
                 .bind("p_ubicacion", ubicacion)
+                .bind("p_estado", estado)
                 .invoke());
+    }
+
+    public int cambiarEstado(Long id, String estado) {
+        return jdbi.withHandle(handle -> handle.createCall(
+                "{ call PKG_BITACORA.cambiar_estado(:p_id, :p_estado, :p_rows_updated) }")
+                .bind("p_id", id)
+                .bind("p_estado", estado)
+                .registerOutParameter("p_rows_updated", java.sql.Types.NUMERIC)
+                .invoke((Function<OutParameters, Integer>) out -> out.getInt("p_rows_updated")));
     }
 
     public int actualizar(Long id, Long tipoActividadId, Long alertaId,
             String descripcion, LocalDate fechaActividad,
-            String responsable, String ubicacion) {
+            String responsable, String ubicacion, String estado) {
         return jdbi.withHandle(handle -> handle.createCall(
                 "{ call PKG_BITACORA.actualizar(:p_id, :p_tipo_actividad_id, " +
                         ":p_alerta_id, :p_descripcion, :p_fecha_actividad, " +

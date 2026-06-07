@@ -29,6 +29,7 @@ public class BitacoraCultivoMapper implements RowMapper<BitacoraCultivo> {
                 .cultivo(rs.getString("CULTIVO"))
                 .responsable(rs.getString("RESPONSABLE"))
                 .ubicacion(rs.getString("UBICACION"))
+                .estado(rs.getString("ESTADO")) 
                 .build();
     }
 }

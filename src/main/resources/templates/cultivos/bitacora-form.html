@@ -104,10 +104,10 @@
                                 <i class="ph-duotone ph-calendar-blank" style="font-size:18px;color:#16a34a;"></i>
                             </div>
                             <input type="date" name="fechaActividad" required
-                                th:max="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
                                 class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm hover:border-gray-300 transition">
                         </div>
-                        <p class="text-xs text-gray-400 mt-1.5">No se permiten fechas futuras.</p>
+                        <p class="text-xs text-gray-400 mt-1.5">Fecha pasada = Realizado. Fecha futura = Planificado.
+                        </p>
                     </div>
 
                     <!-- Descripcion -->
@@ -151,6 +151,32 @@
                                     class="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none text-gray-700 text-sm placeholder-gray-400 hover:border-gray-300 transition">
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <!-- Estado -->
+                    <div x-data="{ planificado: false }">
+                        <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+                            Estado de la actividad
+                        </label>
+                        <input type="hidden" name="estado" :value="planificado ? 'PLANIFICADO' : 'REALIZADO'">
+                        <div class="flex gap-3">
+                            <button type="button" @click="planificado = false"
+                                :class="!planificado ? 'bg-green-700 text-white border-green-700 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-green-400'"
+                                class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all">
+                                <i class="ph-fill ph-check-circle" style="font-size:16px;"></i>
+                                Ya la realice
+                            </button>
+                            <button type="button" @click="planificado = true"
+                                :class="planificado ? 'bg-amber-500 text-white border-amber-500 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-amber-400'"
+                                class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all">
+                                <i class="ph-fill ph-clock-countdown" style="font-size:16px;"></i>
+                                Planificar
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1.5"
+                            x-text="planificado ? 'Podras marcarla como realizada despues.' : 'Se registra como actividad completada.'">
+                        </p>
                     </div>
 
                     <!-- Botones -->

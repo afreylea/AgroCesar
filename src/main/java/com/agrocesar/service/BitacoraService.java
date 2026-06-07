@@ -45,6 +45,21 @@ public class BitacoraService {
     }
 
     /**
+     * Lista las entradas de bitacora de un agricultor filtradas
+     * por un rango de fechas de actividad.
+     *
+     * @param usuarioId  id del agricultor autenticado
+     * @param fechaDesde fecha inicial del rango (inclusive)
+     * @param fechaHasta fecha final del rango (inclusive)
+     * @return lista de entradas en el rango, vacia si no hay
+     */
+    public List<BitacoraCultivo> listarPorUsuarioRango(Long usuarioId,
+            LocalDate fechaDesde,
+            LocalDate fechaHasta) {
+        return bitacoraCultivoRepository.listarPorUsuarioRango(usuarioId, fechaDesde, fechaHasta);
+    }
+
+    /**
      * Lista las entradas de bitacora de un cultivo especifico,
      * ordenadas por fecha de actividad descendente.
      *
@@ -74,18 +89,22 @@ public class BitacoraService {
      * @param alertaId            id de la alerta asociada, puede ser null
      * @param descripcion         nota libre del agricultor, puede ser null
      * @param fechaActividad      fecha en que se realizo la actividad
+     * @param responsable         nombre de quien realizo la actividad, puede ser
+     *                            null
+     * @param ubicacion           ubicacion donde se realizo, puede ser null
      * @throws IllegalArgumentException si la fecha es futura
      */
     public void registrar(Long cultivoAgricultorId, Long tipoActividadId,
             Long alertaId, String descripcion,
-            LocalDate fechaActividad) {
+            LocalDate fechaActividad, String responsable,
+            String ubicacion) {
 
         if (fechaActividad != null && fechaActividad.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de actividad no puede ser futura.");
         }
 
         bitacoraCultivoRepository.insertar(cultivoAgricultorId, tipoActividadId,
-                alertaId, descripcion, fechaActividad);
+                alertaId, descripcion, fechaActividad, responsable, ubicacion);
 
         log.info("[Bitacora] Entrada registrada: cultivo={} tipo={} fecha={}",
                 cultivoAgricultorId, tipoActividadId, fechaActividad);
@@ -99,18 +118,21 @@ public class BitacoraService {
      * @param alertaId        nueva alerta asociada, puede ser null
      * @param descripcion     nueva descripcion
      * @param fechaActividad  nueva fecha de actividad
+     * @param responsable     nombre de quien realizo la actividad
+     * @param ubicacion       ubicacion donde se realizo
      * @return true si se actualizo, false si no se encontro la entrada
      * @throws IllegalArgumentException si la fecha es futura
      */
     public boolean actualizar(Long id, Long tipoActividadId, Long alertaId,
-            String descripcion, LocalDate fechaActividad) {
+            String descripcion, LocalDate fechaActividad,
+            String responsable, String ubicacion) {
 
         if (fechaActividad != null && fechaActividad.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de actividad no puede ser futura.");
         }
 
         int filas = bitacoraCultivoRepository.actualizar(id, tipoActividadId,
-                alertaId, descripcion, fechaActividad);
+                alertaId, descripcion, fechaActividad, responsable, ubicacion);
 
         if (filas > 0) {
             log.info("[Bitacora] Entrada actualizada: id={}", id);

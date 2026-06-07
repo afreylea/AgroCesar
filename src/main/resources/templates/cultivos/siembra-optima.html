@@ -38,14 +38,15 @@
                         </div>
                         <div>
                             <div class="text-white/50">Hum.</div>
-                            <div class="font-semibold" th:text="${resultado.pronostico()[0].humedadMax} + '%'"></div>
+                            <!-- humedadMedia es el promedio horario de Open-Meteo (relative_humidity_2m_mean) -->
+                            <div class="font-semibold" th:text="${resultado.pronostico()[0].humedadMedia} + '%'"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ── ESTADO VACIO ───────────────────────────────────── -->
+        <!-- ── ESTADO VACÍO ───────────────────────────────────── -->
         <div th:if="${#lists.isEmpty(cultivos)}"
             class="bg-white rounded-2xl border border-dashed border-gray-200 p-14 text-center">
             <i class="ph-duotone ph-plant" style="font-size:48px;color:#86efac;"></i>
@@ -142,7 +143,6 @@
                     <div
                         class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col items-center justify-center">
                         <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Indice de viabilidad</p>
-                        <!-- Score calculado: (diasSeguros / totalDias) * 100 -->
                         <div
                             th:with="score=${(resultado.totalDias() - resultado.diasEnRiesgo()) * 100 / resultado.totalDias()}">
                             <div class="relative w-28 h-28 mx-auto mb-3">
@@ -197,10 +197,13 @@
                     </div>
                 </div>
 
-                <!-- Fila media: factores + riesgos + guia + comparacion -->
+                <!-- Fila media: factores + guia + comparacion -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
 
-                    <!-- Factores evaluados -->
+                    <!-- ── FACTORES EVALUADOS (opción B) ──
+                         Los estados vienen de resultado.factoresHoy(), calculados
+                         por SiembraOptimaService con las mismas tolerancias que
+                         diaEsAdverso. La vista solo muestra, no evalúa. -->
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="ph-fill ph-sliders" style="font-size:16px;color:#16a34a;"></i>
@@ -209,65 +212,62 @@
                         <div class="space-y-3">
 
                             <!-- Temperatura -->
-                            <div th:with="hoy=${resultado.pronostico()[0]},
-                                          umbralTempMax=${resultado.umbrales().getTempMaxEfectiva()},
-                                          umbralTempMin=${resultado.umbrales().getTempMinEfectiva()}">
-                                <div th:with="esFavorable=${hoy.tempMax <= umbralTempMax && hoy.tempMin >= umbralTempMin}"
-                                    class="flex items-center justify-between p-2.5 rounded-xl"
-                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                            <div th:with="estadoTemp=${resultado.factoresHoy()['temperatura']},
+                                          esFav=${resultado.factoresHoy()['temperatura'] == 'Favorable'}">
+                                <div class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFav} ? 'bg-green-50' : 'bg-red-50'">
                                     <div class="flex items-center gap-2">
-                                        <i class="ph-fill ph-thermometer" style="font-size:18px;"
-                                            th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"></i>
+                                        <i class="ph-fill ph-thermometer"
+                                            th:style="${esFav} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"></i>
                                         <div>
                                             <p class="text-xs font-bold text-gray-700">Temperatura</p>
-                                            <p class="text-xs text-gray-400" th:text="${hoy.tempMax} + '°C hoy'"></p>
+                                            <p class="text-xs text-gray-400"
+                                                th:text="${resultado.pronostico()[0].tempMax} + '°C hoy'"></p>
                                         </div>
                                     </div>
                                     <span class="text-xs font-bold px-2 py-0.5 rounded-full"
-                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
-                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                        th:classappend="${esFav} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${estadoTemp}"></span>
                                 </div>
                             </div>
 
                             <!-- Lluvia -->
-                            <div th:with="hoy=${resultado.pronostico()[0]},
-                                          umbralLluviaMax=${resultado.umbrales().getLluviaMaxEfectiva()},
-                                          umbralLluviaMin=${resultado.umbrales().getLluviaMinEfectiva()}">
-                                <div th:with="esFavorable=${hoy.lluviaMm <= umbralLluviaMax && hoy.lluviaMm >= umbralLluviaMin}"
-                                    class="flex items-center justify-between p-2.5 rounded-xl"
-                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                            <div th:with="estadoLluvia=${resultado.factoresHoy()['lluvia']},
+                                          esFav=${resultado.factoresHoy()['lluvia'] == 'Favorable'}">
+                                <div class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFav} ? 'bg-green-50' : 'bg-red-50'">
                                     <div class="flex items-center gap-2">
-                                        <i th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"
-                                            class="ph-fill ph-drop"></i>
+                                        <i class="ph-fill ph-drop"
+                                            th:style="${esFav} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"></i>
                                         <div>
                                             <p class="text-xs font-bold text-gray-700">Lluvia</p>
-                                            <p class="text-xs text-gray-400" th:text="${hoy.lluviaMm} + ' mm hoy'"></p>
+                                            <p class="text-xs text-gray-400"
+                                                th:text="${resultado.pronostico()[0].lluviaMm} + ' mm hoy'"></p>
                                         </div>
                                     </div>
                                     <span class="text-xs font-bold px-2 py-0.5 rounded-full"
-                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
-                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                        th:classappend="${esFav} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${estadoLluvia}"></span>
                                 </div>
                             </div>
 
-                            <!-- Humedad -->
-                            <div th:with="hoy=${resultado.pronostico()[0]},
-                                          umbralHumMax=${resultado.umbrales().getHumedadMaxEfectiva()},
-                                          umbralHumMin=${resultado.umbrales().getHumedadMinEfectiva()}">
-                                <div th:with="esFavorable=${hoy.humedadMax <= umbralHumMax && hoy.humedadMin >= umbralHumMin}"
-                                    class="flex items-center justify-between p-2.5 rounded-xl"
-                                    th:classappend="${esFavorable} ? 'bg-green-50' : 'bg-red-50'">
+                            <!-- Humedad — muestra humedadMedia, que es lo que evalúa el servicio -->
+                            <div th:with="estadoHum=${resultado.factoresHoy()['humedad']},
+                                          esFav=${resultado.factoresHoy()['humedad'] == 'Favorable'}">
+                                <div class="flex items-center justify-between p-2.5 rounded-xl"
+                                    th:classappend="${esFav} ? 'bg-green-50' : 'bg-red-50'">
                                     <div class="flex items-center gap-2">
-                                        <i th:style="${esFavorable} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"
-                                            class="ph-fill ph-waves"></i>
+                                        <i class="ph-fill ph-waves"
+                                            th:style="${esFav} ? 'font-size:18px;color:#16a34a;' : 'font-size:18px;color:#dc2626;'"></i>
                                         <div>
                                             <p class="text-xs font-bold text-gray-700">Humedad</p>
-                                            <p class="text-xs text-gray-400" th:text="${hoy.humedadMax} + '% hoy'"></p>
+                                            <p class="text-xs text-gray-400"
+                                                th:text="${resultado.pronostico()[0].humedadMedia} + '% hoy'"></p>
                                         </div>
                                     </div>
                                     <span class="text-xs font-bold px-2 py-0.5 rounded-full"
-                                        th:classappend="${esFavorable} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
-                                        th:text="${esFavorable} ? 'Favorable' : 'Excesiva'"></span>
+                                        th:classappend="${esFav} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                        th:text="${estadoHum}"></span>
                                 </div>
                             </div>
                         </div>
@@ -308,7 +308,6 @@
                                         <p class="text-xs text-gray-400" th:text="${c.municipio}"></p>
                                     </div>
                                 </div>
-                                <!-- Estado simple basado en si es el seleccionado o no -->
                                 <span th:if="${c.id == cultivoId}" class="text-xs font-bold px-2.5 py-1 rounded-full"
                                     th:classappend="${resultado.esOptima()} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
                                     th:text="${resultado.esOptima()} ? 'Favorable' : 'Riesgo alto'"></span>
@@ -321,7 +320,10 @@
                     </div>
                 </div>
 
-                <!-- Pronostico extendido -->
+                <!-- ── PRONÓSTICO EXTENDIDO (opción A) ──
+                     diasAdversos[iterStat.index] indica si ese día es adverso
+                     según diaEsAdverso en SiembraOptimaService. La vista solo
+                     colorea la tarjeta; no reimplementa ninguna lógica. -->
                 <div class="mb-2">
                     <div class="flex items-center gap-2 mb-4">
                         <i class="ph-fill ph-cloud-sun" style="font-size:16px;color:#16a34a;"></i>
@@ -330,15 +332,13 @@
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                         <div th:each="dia, iterStat : ${resultado.pronostico()}"
-                            class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+                            th:with="esAdverso=${resultado.diasAdversos()[__${iterStat.index}__]}"
+                            class="rounded-2xl border shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+                            th:classappend="${esAdverso} ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'">
 
-                            <!-- Barra color -->
-                            <div class="h-1 rounded-full mb-3" th:classappend="${iterStat.index == 0} ? 'bg-green-400' :
-                                     (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
-                                     (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
-                                     (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
-                                     (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
-                                     (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300')))))">
+                            <!-- Barra color: rojo si adverso, verde si favorable -->
+                            <div class="h-1 rounded-full mb-3"
+                                th:classappend="${esAdverso} ? 'bg-red-400' : 'bg-green-400'">
                             </div>
 
                             <!-- Fecha -->
@@ -349,7 +349,7 @@
                                 th:text="${#strings.substring(dia.fecha,8,10)} + '/' + ${#strings.substring(dia.fecha,5,7)}">
                             </p>
 
-                            <!-- Icono -->
+                            <!-- Icono lluvia -->
                             <div class="mb-1">
                                 <i th:if="${dia.lluviaMm < 0.3}" class="ph-fill ph-sun"
                                     style="font-size:22px;color:#f59e0b;"></i>
@@ -373,7 +373,7 @@
                                 <p class="text-xs text-gray-400" th:text="${dia.tempMin} + '°'"></p>
                             </div>
 
-                            <!-- Lluvia + Humedad -->
+                            <!-- Lluvia + Humedad media -->
                             <div class="border-t border-gray-50 pt-2 space-y-1">
                                 <div class="flex items-center justify-center gap-1">
                                     <i class="ph-fill ph-drop" style="font-size:10px;color:#3b82f6;"></i>
@@ -382,8 +382,9 @@
                                 </div>
                                 <div class="flex items-center justify-center gap-1">
                                     <i class="ph-fill ph-waves" style="font-size:10px;color:#0d9488;"></i>
+                                    <!-- humedadMedia: promedio horario diario de Open-Meteo -->
                                     <span class="text-xs text-teal-500 font-semibold"
-                                        th:text="${dia.humedadMax} + '%'"></span>
+                                        th:text="${dia.humedadMedia} + '%'"></span>
                                 </div>
                             </div>
                         </div>

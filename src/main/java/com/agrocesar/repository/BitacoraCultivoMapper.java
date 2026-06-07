@@ -27,6 +27,8 @@ public class BitacoraCultivoMapper implements RowMapper<BitacoraCultivo> {
                 .fechaActividad(rs.getDate("FECHA_ACTIVIDAD").toLocalDate())
                 .fechaCreacion(rs.getDate("FECHA_CREACION").toLocalDate())
                 .cultivo(rs.getString("CULTIVO"))
+                .responsable(rs.getString("RESPONSABLE"))
+                .ubicacion(rs.getString("UBICACION"))
                 .build();
     }
 }

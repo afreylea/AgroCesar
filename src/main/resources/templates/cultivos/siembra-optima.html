@@ -320,7 +320,7 @@
                     </div>
                 </div>
 
-                <!-- ── PRONÓSTICO EXTENDIDO (opción A) ──
+                <!-- -- PRONÓSTICO EXTENDIDO --
                      diasAdversos[iterStat.index] indica si ese día es adverso
                      según diaEsAdverso en SiembraOptimaService. La vista solo
                      colorea la tarjeta; no reimplementa ninguna lógica. -->
@@ -336,9 +336,15 @@
                             class="rounded-2xl border shadow-sm p-3 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
                             th:classappend="${esAdverso} ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'">
 
-                            <!-- Barra color: rojo si adverso, verde si favorable -->
+                            <!-- Barra color: rojo si adverso, paleta original si favorable -->
                             <div class="h-1 rounded-full mb-3"
-                                th:classappend="${esAdverso} ? 'bg-red-400' : 'bg-green-400'">
+                                th:classappend="${esAdverso} ? 'bg-red-400' :
+                                    (${iterStat.index == 0} ? 'bg-green-400' :
+                                    (${iterStat.index % 7 == 1} ? 'bg-orange-400' :
+                                    (${iterStat.index % 7 == 2} ? 'bg-blue-400' :
+                                    (${iterStat.index % 7 == 3} ? 'bg-purple-400' :
+                                    (${iterStat.index % 7 == 4} ? 'bg-sky-400' :
+                                    (${iterStat.index % 7 == 5} ? 'bg-amber-400' : 'bg-yellow-300'))))))">
                             </div>
 
                             <!-- Fecha -->

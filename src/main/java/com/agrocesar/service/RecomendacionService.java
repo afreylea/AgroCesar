@@ -158,7 +158,7 @@ public class RecomendacionService {
                     i + 1,
                     d.getTempMax() != null ? d.getTempMax() : 0.0,
                     d.getLluviaMm() != null ? d.getLluviaMm() : 0.0,
-                    d.getHumedadMax() != null ? d.getHumedadMax() : 0.0));
+                    d.getHumedadMedia() != null ? d.getHumedadMedia() : 0.0));
         }
         sb.append("En maximo 3 oraciones concretas y simples, ");
         sb.append("genera una recomendacion agronomica practica para este cultivo ");
@@ -185,7 +185,7 @@ public class RecomendacionService {
                     i + 1,
                     d.getTempMax() != null ? d.getTempMax() : 0.0,
                     d.getLluviaMm() != null ? d.getLluviaMm() : 0.0,
-                    d.getHumedadMax() != null ? d.getHumedadMax() : 0.0));
+                    d.getHumedadMedia() != null ? d.getHumedadMedia() : 0.0));
         }
         if (!ranking.isEmpty()) {
             sb.append("Los cultivos mas populares del Cesar actualmente son: ");
@@ -202,7 +202,17 @@ public class RecomendacionService {
 
     /* ── Llamada a Groq reutilizable ──────────────────────────── */
 
-    private String llamarGroq(String prompt, int maxTokens) {
+    /**
+     * Realiza la llamada HTTP a la API de Groq y retorna el texto generado.
+     * Visibilidad package-private para permitir su uso desde otros servicios
+     * del mismo paquete (ej. SiembraOptimaService) sin duplicar la lógica
+     * de comunicación con Groq.
+     *
+     * @param prompt    texto del prompt a enviar al modelo
+     * @param maxTokens límite de tokens para la respuesta
+     * @return texto generado por Groq, o null si la respuesta es inválida
+     */
+    String llamarGroq(String prompt, int maxTokens) {
         Map<?, ?> body = Map.of(
                 "model", model,
                 "max_tokens", maxTokens,

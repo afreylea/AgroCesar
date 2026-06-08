@@ -195,6 +195,7 @@ public class AlertaRepository {
         );
     }
 
+
     public List<AlertaVistaDTO> findAll() {
         return jdbi.withHandle(handle ->
             handle.createCall("{ call PKG_ALERTAS.prc_find_all(:p_cursor) }")

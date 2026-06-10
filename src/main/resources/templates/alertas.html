@@ -525,7 +525,7 @@
                 <div class="col-span-2 text-center">Severidad</div>
                 <div class="col-span-2 text-center">Categoria</div>
                 <div class="col-span-3">Descripcion</div>
-                <div class="col-span-2 text-center">Fecha</div>
+                <div class="col-span-2 text-center">Fecha Pronostico</div>
             </div>
 
             <!-- Filas — paginacion JS pura -->
@@ -556,7 +556,7 @@
                 <div class="col-span-2 text-center">
                     <span class="text-xs text-gray-400 font-mono flex items-center justify-center gap-1">
                         <i class="ph-fill ph-calendar-blank" style="font-size:11px;color:#9ca3af;"></i>
-                        <span th:text="${#temporals.format(a.fechaGeneracion, 'dd/MM/yyyy')}"></span>
+                        <span th:text="${#temporals.format(a.fechaDiaPronostico, 'dd/MM/yyyy')}"></span>
                     </span>
                 </div>
             </div>

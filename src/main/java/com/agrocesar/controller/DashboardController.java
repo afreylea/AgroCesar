@@ -18,8 +18,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.agrocesar.dto.RankingCultivoDTO;
 import com.agrocesar.repository.CultivoConUmbralesRepository;
+import com.agrocesar.service.RecomendacionService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -50,19 +52,21 @@ public class DashboardController {
     private final CultivoAgricultorService cultivoService;
     private final CatalogoRepository catalogoRepository;
     private final CultivoConUmbralesRepository cultivoConUmbralesRepository;
+    private final RecomendacionService recomendacionService;
 
     public DashboardController(WeatherService weatherService,
             MunicipioRepository municipioRepository,
             UsuarioService usuarioService,
             CultivoAgricultorService cultivoService,
             CatalogoRepository catalogoRepository,
-            CultivoConUmbralesRepository cultivoConUmbralesRepository) {
+            CultivoConUmbralesRepository cultivoConUmbralesRepository, RecomendacionService recomendacionService) {
         this.weatherService = weatherService;
         this.municipioRepository = municipioRepository;
         this.usuarioService = usuarioService;
         this.cultivoService = cultivoService;
         this.catalogoRepository = catalogoRepository;
         this.cultivoConUmbralesRepository = cultivoConUmbralesRepository;
+        this.recomendacionService = recomendacionService;
     }
 
     /**
@@ -85,9 +89,10 @@ public class DashboardController {
         if (municipio.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
                 municipio.get().getLatitud(),
-                municipio.get().getLongitud());
+                municipio.get().getLongitud(), 
+                7);
         return pronostico.isEmpty()
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.ok(pronostico);
@@ -158,8 +163,8 @@ public class DashboardController {
             if (primero.getMunicipioId() != null) {
                 Optional<Municipio> mun = municipioRepository.findById(primero.getMunicipioId());
                 mun.ifPresent(m -> {
-                    List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                            m.getLatitud(), m.getLongitud());
+                    List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                            m.getLatitud(), m.getLongitud(), 7);
                     model.addAttribute("pronostico", pronostico);
                     model.addAttribute("municipio", m.getNombre());
                     model.addAttribute("latInicial", m.getLatitud());
@@ -180,5 +185,83 @@ public class DashboardController {
         return ranking.isEmpty()
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.ok(ranking);
+    }
+
+    /**
+     * Recomendacion especifica para el cultivo activo del dashboard.
+     * Llamado por Alpine.js cuando el agricultor selecciona un cultivo.
+     */
+    @GetMapping(value = "/api/recomendacion/cultivo", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> getRecomendacionCultivo(
+            @RequestParam String cultivoNombre,
+            @RequestParam Long municipioId,
+            @RequestParam double hectareas,
+            @RequestParam String fechaSiembra) {
+
+        Optional<Municipio> municipio = municipioRepository.findById(municipioId);
+        if (municipio.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                municipio.get().getLatitud(), municipio.get().getLongitud(), 7);
+
+        String texto = recomendacionService.generarRecomendacionCultivo(
+                cultivoNombre, municipio.get().getNombre(),
+                hectareas, fechaSiembra, pronostico);
+
+        if (texto == null)
+            return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("recomendacion", texto));
+    }
+
+    /**
+     * Recomendacion general para todos los cultivos del agricultor autenticado.
+     * Llamado una sola vez al cargar el dashboard.
+     */
+    @GetMapping(value = "/api/recomendacion/general", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> getRecomendacionGeneral(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
+        List<CultivoAgricultor> cultivosRaw = cultivoService.listarPorUsuario(usuario.getId());
+
+        /* Construye CultivoResumen igual que en dashboard() */
+        List<CultivoResumen> cultivos = cultivosRaw.stream().map(c -> {
+            var cat = catalogoRepository.findById(c.getCatalogoId());
+            Optional<Municipio> mun = municipioRepository.findById(c.getMunicipioId());
+            return new CultivoResumen(
+                    c.getId(),
+                    cat.map(x -> x.getNombre()).orElse("Sin nombre"),
+                    cat.map(x -> x.getCategoria()).orElse(""),
+                    mun.map(Municipio::getNombre).orElse("Sin municipio"),
+                    c.getHectareas(), c.getFechaSiembra(),
+                    c.getMunicipioId(),
+                    mun.map(Municipio::getLatitud).orElse(null),
+                    mun.map(Municipio::getLongitud).orElse(null),
+                    cat.map(x -> x.getImagenUrl()).orElse(null));
+        }).toList();
+
+        if (cultivos.isEmpty())
+            return ResponseEntity.noContent().build();
+
+        /* Pronostico del municipio del primer cultivo */
+        Long municipioId = cultivos.get(0).getMunicipioId();
+        Optional<Municipio> mun = municipioRepository.findById(municipioId);
+        if (mun.isEmpty())
+            return ResponseEntity.noContent().build();
+
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                mun.get().getLatitud(), mun.get().getLongitud(), 7);
+
+        List<RankingCultivoDTO> ranking = cultivoConUmbralesRepository.findRankingCultivos();
+
+        String texto = recomendacionService.generarRecomendacionGeneral(
+                cultivos, mun.get().getNombre(), pronostico, ranking);
+
+        if (texto == null)
+            return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("recomendacion", texto));
     }
 }

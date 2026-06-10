@@ -14,6 +14,7 @@ public class RankingCultivoDTOMapper implements RowMapper<RankingCultivoDTO> {
         return new RankingCultivoDTO(
                 rs.getString("NOMBRE"),
                 rs.getInt("TOTAL_AGRICULTORES"),
-                rs.getDouble("TOTAL_HECTAREAS"));
+                rs.getDouble("TOTAL_HECTAREAS"),
+                rs.getString("MUNICIPIO_PRINCIPAL"));
     }
 }

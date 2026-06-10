@@ -42,7 +42,7 @@ public class WeatherService {
      * @return lista de 7 DailyForecast ordenados por fecha ascendente,
      *         o lista vacia si la API no responde o devuelve error.
      */
-    public List<DailyForecast> obtenerPronostico7Dias(double latitud, double longitud) {
+    public List<DailyForecast> obtenerPronostico(double latitud, double longitud, int dias) {
         log.info("Llamando Open-Meteo lat={} lng={}", latitud, longitud);
 
         try {
@@ -58,8 +58,9 @@ public class WeatherService {
                             .queryParam("daily", "precipitation_sum")
                             .queryParam("daily", "relative_humidity_2m_max")
                             .queryParam("daily", "relative_humidity_2m_min")
+                            .queryParam("daily", "relative_humidity_2m_mean")
                             .queryParam("daily", "weathercode")
-                            .queryParam("forecast_days", 7)
+                            .queryParam("forecast_days", dias)
                             .queryParam("timezone", "America/Bogota")
                             .build())
                     .retrieve()
@@ -100,6 +101,7 @@ public class WeatherService {
                     .lluviaMm(valorSeguro(daily.getPrecipitationSum(), i))
                     .humedadMax(valorSeguro(daily.getHumidityMax(), i))
                     .humedadMin(valorSeguro(daily.getHumidityMin(), i))
+                    .humedadMedia(valorSeguro(daily.getHumidityMean(), i))
                     .weatherCode(weatherCodeSeguro(daily.getWeatherCode(), i))
                     .build());
         }
@@ -107,15 +109,15 @@ public class WeatherService {
         return resultado;
     }
 
-    private double valorSeguro(List<Double> lista, int i) {
-        if (lista == null || i >= lista.size() || lista.get(i) == null)
-            return 0.0;
+    private Double valorSeguro(List<Double> lista, int i) {
+        if (lista == null || i >= lista.size())
+            return null;
         return lista.get(i);
     }
 
-    private int weatherCodeSeguro(List<Integer> lista, int i) {
-        if (lista == null || i >= lista.size() || lista.get(i) == null)
-            return 0;
+    private Integer weatherCodeSeguro(List<Integer> lista, int i) {
+        if (lista == null || i >= lista.size())
+            return null;
         return lista.get(i);
     }
 }

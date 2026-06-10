@@ -2,16 +2,21 @@ package com.agrocesar.controller.admin;
 
 import com.agrocesar.dto.AlertaVistaDTO;
 import com.agrocesar.service.AlertaService;
+import com.agrocesar.service.RecomendacionService;
 import com.agrocesar.service.UsuarioService;
-
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import java.time.LocalDate;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controlador del dashboard de administracion.
@@ -26,7 +31,7 @@ public class AdminDashboardController {
 
     private final AlertaService alertaService;
     private final UsuarioService usuarioService;
-
+    private final RecomendacionService recomendacionService;
     /**
      * Constructor con inyeccion por constructor.
      *
@@ -34,9 +39,10 @@ public class AdminDashboardController {
      * @param usuarioService servicio de usuarios y agricultores
      */
     public AdminDashboardController(AlertaService alertaService,
-            UsuarioService usuarioService) {
+            UsuarioService usuarioService, RecomendacionService recomendacionService) {
         this.alertaService = alertaService;
         this.usuarioService = usuarioService;
+        this.recomendacionService = recomendacionService;
     }
 
     /**
@@ -110,6 +116,96 @@ public class AdminDashboardController {
         model.addAttribute("fechaHasta", fechaHasta);
 
         return "admin/dashboard";
+    }
+
+    /**
+     * Retorna el historial de alertas de los ultimos N dias en JSON.
+     * Consumido por Alpine.js al cambiar el filtro de dias en la grafica.
+     */
+    @GetMapping(value = "/admin/dashboard/alertas", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAlertasPorDias(
+            @RequestParam(defaultValue = "7") int dias) {
+
+        LocalDate desde = LocalDate.now().minusDays(dias);
+        LocalDate hasta = LocalDate.now();
+
+        List<AlertaVistaDTO> historial = alertaService.findAll().stream()
+                .filter(a -> {
+                    if (a.getFechaGeneracion() == null)
+                        return false;
+                    LocalDate fecha = a.getFechaGeneracion().toLocalDate();
+                    return !fecha.isBefore(desde) && !fecha.isAfter(hasta);
+                })
+                .toList();
+
+        List<Map<String, Object>> result = historial.stream().map(a -> Map.<String, Object>of(
+                "fecha", a.getFechaGeneracion() != null ? a.getFechaGeneracion().toLocalDate().toString() : "",
+                "leida", a.isLeida(),
+                "severidad", a.getSeveridad() != null ? a.getSeveridad() : "",
+                "tipoAlerta", a.getTipoAlerta() != null ? a.getTipoAlerta() : "",
+                "cultivo", a.getCultivo() != null ? a.getCultivo() : "",
+                "municipio", a.getMunicipio() != null ? a.getMunicipio() : "",
+                "categoria", a.getCategoria() != null ? a.getCategoria() : "")).toList();
+
+        return result.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(result);
+    }
+
+    /**
+     * Genera un analisis IA del periodo usando Groq.
+     * Consumido por Alpine.js automaticamente al cambiar el filtro de dias.
+     */
+    @GetMapping(value = "/admin/dashboard/analisis", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> getAnalisisIA(
+            @RequestParam(defaultValue = "7") int dias) {
+
+        LocalDate desde = LocalDate.now().minusDays(dias);
+        LocalDate hasta = LocalDate.now();
+
+        List<AlertaVistaDTO> historial = alertaService.findAll().stream()
+                .filter(a -> {
+                    if (a.getFechaGeneracion() == null)
+                        return false;
+                    LocalDate fecha = a.getFechaGeneracion().toLocalDate();
+                    return !fecha.isBefore(desde) && !fecha.isAfter(hasta);
+                })
+                .toList();
+
+        if (historial.isEmpty())
+            return ResponseEntity.noContent().build();
+
+        long totalAlertas = historial.size();
+        long alertasActivas = historial.stream().filter(a -> !a.isLeida()).count();
+        int pctActivas = (int) (alertasActivas * 100 / totalAlertas);
+
+        /* Tipo de alerta mas frecuente */
+        String tipoMasFrecuente = historial.stream()
+                .filter(a -> a.getTipoAlerta() != null)
+                .collect(Collectors.groupingBy(AlertaVistaDTO::getTipoAlerta, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+
+        /* Municipio con mas alertas */
+        String municipioMasAfectado = historial.stream()
+                .filter(a -> a.getMunicipio() != null)
+                .collect(Collectors.groupingBy(AlertaVistaDTO::getMunicipio, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+
+        String texto = recomendacionService.generarAnalisisDashboard(
+                totalAlertas, alertasActivas, tipoMasFrecuente,
+                municipioMasAfectado, pctActivas, dias);
+
+        if (texto == null)
+            return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("analisis", texto));
     }
 
     /**

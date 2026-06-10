@@ -170,340 +170,652 @@
         </div>
 
         <!-- ── GRAFICAS ───────────────────────────────────────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900">Evolucion de alertas</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Activas vs totales por dia</p>
-                    </div>
-                    <div class="flex items-center gap-3 text-xs text-gray-500">
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-0.5 bg-red-400 inline-block rounded"></span>Activas
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-0.5 bg-green-500 inline-block rounded"></span>Totales
-                        </span>
-                    </div>
-                </div>
-                <div style="position:relative; height:200px;">
-                    <canvas id="chartEvolucion"></canvas>
-                </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <div class="mb-4">
-                    <h3 class="text-sm font-bold text-gray-900">Alertas por tipo</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Distribucion por categoria climatica</p>
-                </div>
-                <div style="position:relative; height:160px;">
-                    <canvas id="chartDonut"></canvas>
-                </div>
-                <div id="donutLeyenda" class="mt-4 space-y-1.5"></div>
-            </div>
-        </div>
+        <div <!-- ── GRAFICAS ───────────────────────────────────────── -->
+            <div x-data="{
+    diasActivo: 7,
+    datos: [],
+    cargando: false,
+    analisis: null,
+    recomendaciones: [],
+    cargandoIA: false,
+    errorIA: false,
 
-        <!-- ── CULTIVOS MAS AFECTADOS + ALERTAS CRITICAS ──────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900">Cultivos mas afectados</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Ranking por numero de alertas en el periodo</p>
-                    </div>
-                    <i class="ph-fill ph-chart-bar" style="font-size:18px;color:#d1d5db;"></i>
-                </div>
-                <div id="rankingCultivos" class="space-y-3"></div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900">Alertas criticas</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Sin revisar — severidad ALTA</p>
-                    </div>
-                    <span id="badgeCriticas"
-                        class="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full">0</span>
-                </div>
-                <div id="listaCriticas" class="space-y-2.5 max-h-[280px] overflow-y-auto pr-1"></div>
-                <div id="sinCriticas" class="hidden flex-col items-center justify-center py-8 text-center">
-                    <i class="ph-fill ph-seal-check" style="font-size:32px;color:#86efac;"></i>
-                    <p class="text-xs text-gray-400 mt-2">Sin alertas criticas activas</p>
-                </div>
-            </div>
-        </div>
+    async cargarDatos(dias) {
+        this.diasActivo   = dias;
+        this.cargando     = true;
+        this.analisis     = null;
+        this.recomendaciones = [];
+        this.errorIA      = false;
 
-        <!-- ── HISTORIAL TABLA ────────────────────────────────── -->
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
-                <i class="ph-fill ph-clock-counter-clockwise" style="font-size:16px;color:#16a34a;"></i>
-            </div>
-            <div>
-                <h3 class="text-base font-bold text-gray-900">Historial de Alertas</h3>
-                <p class="text-xs text-gray-400">Detalle del periodo seleccionado</p>
-            </div>
-            <span th:if="${not #lists.isEmpty(historialAlertas)}"
-                class="ml-auto text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full"
-                th:text="${#lists.size(historialAlertas)} + ' registros'"></span>
-        </div>
+        try {
+            const r = await fetch('/admin/dashboard/alertas?dias=' + dias);
+            this.datos  = r.ok ? await r.json() : [];
+        } catch { this.datos = []; }
 
-        <div th:if="${#lists.isEmpty(historialAlertas)}"
-            class="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
-            <i class="ph-duotone ph-bell-slash" style="font-size:40px;color:#d1d5db;"></i>
-            <p class="text-gray-400 text-sm mt-3">No hay alertas en el periodo seleccionado.</p>
-        </div>
+        this.cargando = false;
+        this.renderGrafica();
+        this.cargarIA(dias);
+    },
 
-        <div th:if="${not #lists.isEmpty(historialAlertas)}"
-            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    async cargarIA(dias) {
+        this.cargandoIA = true;
+        try {
+            const r = await fetch('/admin/dashboard/analisis?dias=' + dias);
+            if (r.ok) {
+                const json = await r.json();
+                const partes = (json.analisis || '').split('|');
+                this.analisis        = partes[0] ? partes[0].trim() : null;
+                this.recomendaciones = partes[1]
+                    ? partes[1].trim().split(';').map(s => s.trim()).filter(s => s.length > 0)
+                    : [];
+            } else {
+                this.errorIA = true;
+            }
+        } catch { this.errorIA = true; }
+        this.cargandoIA = false;
+    },
 
-            <!-- Banner -->
-            <div class="bg-gradient-to-r from-green-900 to-green-700 px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="ph-fill ph-bell" style="font-size:16px;color:#86efac;"></i>
-                    <span class="text-white font-semibold text-sm">Registro de Alertas</span>
-                </div>
-                <span id="infoBanner" class="text-green-300 text-xs"></span>
-            </div>
+    get stats() {
+        if (!this.datos.length) return { total: 0, activas: 0, pctActivas: 0, tipoTop: '—', municipioTop: '—' };
+        const total   = this.datos.length;
+        const activas = this.datos.filter(a => !a.leida).length;
+        const pctActivas = total > 0 ? Math.round(activas * 100 / total) : 0;
 
-            <!-- Encabezado -->
-            <div
-                class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                <div class="col-span-3">Agricultor</div>
-                <div class="col-span-2">Cultivo</div>
-                <div class="col-span-2 text-center">Severidad</div>
-                <div class="col-span-2 text-center">Categoria</div>
-                <div class="col-span-2">Tipo</div>
-                <div class="col-span-1 text-center">Fecha</div>
-            </div>
+        const tipos = {};
+        this.datos.forEach(a => { if (a.tipoAlerta) tipos[a.tipoAlerta] = (tipos[a.tipoAlerta] || 0) + 1; });
+        const tipoTop = Object.entries(tipos).sort((x, y) => y[1] - x[1])[0]?.[0] || '—';
 
-            <!-- Filas -->
-            <div th:each="a, iterStat : ${historialAlertas}" th:attr="data-idx=${iterStat.index}"
-                class="fila-tabla grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-gray-50 items-center hover:bg-gray-50/60 transition">
-                <div class="col-span-3 flex items-center gap-2">
-                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                        <span class="text-xs font-black text-green-700"
-                            th:text="${#strings.toUpperCase(#strings.substring(a.nombreAgricultor, 0, 1))}"></span>
-                    </div>
-                    <span class="text-sm font-medium text-gray-800 truncate" th:text="${a.nombreAgricultor}"></span>
-                </div>
-                <div class="col-span-2">
-                    <span class="text-sm font-semibold text-gray-900" th:text="${a.nombreCultivo}"></span>
-                </div>
-                <div class="col-span-2 text-center">
-                    <span class="inline-block text-xs font-bold px-2.5 py-1 rounded-full"
-                        th:classappend="${a.severidad == 'ALTA'} ? 'bg-red-100 text-red-600' : (${a.severidad == 'MEDIA'} ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600')"
-                        th:text="${a.severidad}"></span>
-                </div>
-                <div class="col-span-2 text-center">
-                    <span th:if="${a.categoria == 'TRANSITORIO'}"
-                        class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full">
-                        <i class="ph-fill ph-clock-countdown" style="font-size:9px;"></i>Transitorio
-                    </span>
-                    <span th:if="${a.categoria == 'PERMANENTE'}"
-                        class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-xs font-semibold px-2.5 py-1 rounded-full">
-                        <i class="ph-fill ph-tree-evergreen" style="font-size:9px;"></i>Permanente
-                    </span>
-                </div>
-                <div class="col-span-2">
-                    <span class="text-xs text-gray-600 font-medium" th:text="${a.tipoAlerta}"></span>
-                </div>
-                <div class="col-span-1 text-center">
-                    <span class="text-xs text-gray-400 font-mono"
-                        th:text="${a.fechaCreacion != null ? #temporals.format(a.fechaCreacion, 'dd/MM/yy') : '—'}"></span>
-                </div>
-            </div>
+        const munis = {};
+        this.datos.forEach(a => { if (a.municipio) munis[a.municipio] = (munis[a.municipio] || 0) + 1; });
+        const municipioTop = Object.entries(munis).sort((x, y) => y[1] - x[1])[0]?.[0] || '—';
+        const pctMuni = municipioTop !== '—' ? Math.round((munis[municipioTop] / total) * 100) : 0;
 
-            <!-- Paginacion -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                <p id="infoPagina" class="text-xs text-gray-400"></p>
-                <div class="flex items-center gap-1">
-                    <button id="btnAnterior"
-                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
-                        <i class="ph-bold ph-caret-left" style="font-size:12px;color:#6b7280;"></i>
-                    </button>
-                    <div id="numsPagina" class="flex items-center gap-1"></div>
-                    <button id="btnSiguiente"
-                        class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
-                        <i class="ph-bold ph-caret-right" style="font-size:12px;color:#6b7280;"></i>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 text-xs text-gray-400">
-                    <span>Registros por pagina</span>
-                    <span
-                        class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 font-semibold text-gray-700">5</span>
-                </div>
-            </div>
-        </div>
+        return { total, activas, pctActivas, tipoTop, municipioTop, pctMuni };
+    },
 
-        <!-- ── SCRIPTS ────────────────────────────────────────── -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script>
-            (function () {
-                const datos = historialRaw.map(a => ({
-                    fecha: a.fechaCreacion ? a.fechaCreacion.substring(0, 10) : null,
-                    leida: a.leida,
-                    cultivo: a.nombreCultivo,
-                    severidad: a.severidad,
-                    tipo: a.tipoAlerta
-                })).filter(a => a.fecha);
+    renderGrafica() {
+    const fechasMap = {};
+    this.datos.forEach(a => {
+        if (!a.fecha) return;
+        if (!fechasMap[a.fecha]) fechasMap[a.fecha] = { total: 0, activas: 0 };
+        fechasMap[a.fecha].total++;
+        if (!a.leida) fechasMap[a.fecha].activas++;
+    });
+    const fechas = Object.keys(fechasMap).sort();
+    const labels = fechas.map(f => { const [y, m, d] = f.split('-'); return d + '/' + m; });
 
-                /* Evolucion */
-                const fechasMap = {};
-                datos.forEach(a => {
-                    if (!fechasMap[a.fecha]) fechasMap[a.fecha] = { total: 0, activas: 0 };
-                    fechasMap[a.fecha].total++;
-                    if (!a.leida) fechasMap[a.fecha].activas++;
-                });
-                const fechasOrdenadas = Object.keys(fechasMap).sort();
-                const labelsEvol = fechasOrdenadas.map(f => { const [y, m, d] = f.split('-'); return d + '/' + m; });
-                const dataTotales = fechasOrdenadas.map(f => fechasMap[f].total);
-                const dataActivas = fechasOrdenadas.map(f => fechasMap[f].activas);
+    const ctx = document.getElementById('chartEvolucion');
+    if (!ctx) return;
 
-                const ctxEvol = document.getElementById('chartEvolucion');
-                if (ctxEvol) {
-                    new Chart(ctxEvol, {
-                        type: 'line',
-                        data: {
-                            labels: labelsEvol,
-                            datasets: [
-                                { label: 'Totales', data: dataTotales, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', borderWidth: 2.5, pointBackgroundColor: '#16a34a', pointRadius: 4, pointHoverRadius: 6, tension: 0.4, fill: true },
-                                { label: 'Activas', data: dataActivas, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 2, pointBackgroundColor: '#ef4444', pointRadius: 3, pointHoverRadius: 5, tension: 0.4, fill: true, borderDash: [5, 3] }
-                            ]
-                        },
-                        options: {
-                            responsive: true, maintainAspectRatio: false,
-                            plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2e1a', titleColor: '#86efac', bodyColor: '#d1fae5', cornerRadius: 10, padding: 10 } },
-                            scales: {
-                                x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
-                                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, color: '#9ca3af', stepSize: 1 } }
-                            }
-                        }
-                    });
+    /* Destruye cualquier instancia previa — incluyendo el chart estatico de Thymeleaf */
+    const chartExistente = Chart.getChart('chartEvolucion');
+    if (chartExistente) chartExistente.destroy();
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Totales',
+                    data: fechas.map(f => fechasMap[f].total),
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22,163,74,0.08)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#16a34a',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Activas',
+                    data: fechas.map(f => fechasMap[f].activas),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239,68,68,0.07)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ef4444',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true,
+                    borderDash: [5, 3]
                 }
-
-                /* Donut */
-                const tiposMap = {};
-                datos.forEach(a => { const t = a.tipo || 'OTRO'; tiposMap[t] = (tiposMap[t] || 0) + 1; });
-                const tiposEntries = Object.entries(tiposMap).sort((a, b) => b[1] - a[1]);
-                const dataTipos = tiposEntries.map(([, v]) => v);
-                const coloresTipos = ['#16a34a', '#3b82f6', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6b7280'];
-
-                const ctxDonut = document.getElementById('chartDonut');
-                if (ctxDonut && dataTipos.length > 0) {
-                    const pluginCentro = {
-                        id: 'centroTotal',
-                        beforeDraw(chart) {
-                            const { width, height, ctx } = chart;
-                            ctx.restore();
-                            const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#111827';
-                            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                            ctx.fillText(total, width / 2, height / 2 - 8);
-                            ctx.font = '11px sans-serif'; ctx.fillStyle = '#9ca3af';
-                            ctx.fillText('alertas', width / 2, height / 2 + 14);
-                            ctx.save();
-                        }
-                    };
-                    new Chart(ctxDonut, {
-                        type: 'doughnut', plugins: [pluginCentro],
-                        data: { labels: tiposEntries.map(([k]) => k), datasets: [{ data: dataTipos, backgroundColor: coloresTipos.slice(0, dataTipos.length), borderWidth: 2, borderColor: '#ffffff', hoverOffset: 6 }] },
-                        options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2e1a', titleColor: '#86efac', bodyColor: '#d1fae5', cornerRadius: 10, padding: 10 } } }
-                    });
-                    const totalD = dataTipos.reduce((a, b) => a + b, 0);
-                    const leyenda = document.getElementById('donutLeyenda');
-                    tiposEntries.forEach(([tipo, count], i) => {
-                        const pct = Math.round(count / totalD * 100);
-                        const div = document.createElement('div');
-                        div.className = 'flex items-center justify-between';
-                        div.innerHTML = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${coloresTipos[i] || '#9ca3af'}"></span><span class="text-xs text-gray-600 truncate" style="max-width:120px">${tipo}</span></div><span class="text-xs font-bold text-gray-700">${count} <span class="font-normal text-gray-400">(${pct}%)</span></span>`;
-                        leyenda.appendChild(div);
-                    });
-                }
-
-                /* Ranking cultivos */
-                const cultivosMap = {};
-                datos.forEach(a => { cultivosMap[a.cultivo] = (cultivosMap[a.cultivo] || 0) + 1; });
-                const cultivosRanking = Object.entries(cultivosMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
-                const maxCultivo = cultivosRanking[0]?.[1] || 1;
-                const coloresMedalla = ['#f59e0b', '#9ca3af', '#b45309', '#16a34a', '#16a34a', '#16a34a'];
-                const rankingEl = document.getElementById('rankingCultivos');
-                if (cultivosRanking.length === 0) {
-                    rankingEl.innerHTML = `<div class="text-center py-6 text-gray-300"><i class="ph-duotone ph-plant" style="font-size:32px;"></i><p class="text-xs mt-2">Sin datos en el periodo</p></div>`;
-                } else {
-                    cultivosRanking.forEach(([nombre, count], i) => {
-                        const pct = Math.round(count / maxCultivo * 100);
-                        const div = document.createElement('div');
-                        div.className = 'flex items-center gap-3';
-                        div.innerHTML = `<span class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs text-white shrink-0" style="background:${coloresMedalla[i]}">${i + 1}</span><div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><span class="text-sm font-semibold text-gray-800 truncate">${nombre}</span><span class="text-sm font-black text-gray-900 ml-2 shrink-0">${count}</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="h-1.5 rounded-full transition-all duration-500" style="width:${pct}%;background:${coloresMedalla[i]}"></div></div></div>`;
-                        rankingEl.appendChild(div);
-                    });
-                }
-
-                /* Alertas criticas */
-                const criticas = datos.filter(a => !a.leida && a.severidad === 'ALTA');
-                const badge = document.getElementById('badgeCriticas');
-                const lista = document.getElementById('listaCriticas');
-                const sinCrit = document.getElementById('sinCriticas');
-                badge.textContent = criticas.length;
-                if (criticas.length === 0) {
-                    lista.classList.add('hidden');
-                    sinCrit.classList.remove('hidden');
-                    sinCrit.classList.add('flex');
-                } else {
-                    criticas.slice(0, 8).forEach(a => {
-                        const div = document.createElement('div');
-                        div.className = 'flex items-start gap-2.5 p-3 bg-red-50/60 rounded-xl border border-red-100';
-                        div.innerHTML = `<div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5"><i class="ph-fill ph-warning" style="font-size:14px;color:#dc2626;"></i></div><div class="min-w-0"><p class="text-xs font-bold text-gray-900 truncate">${a.tipo || 'ALERTA'}</p><p class="text-xs text-gray-500 truncate">${a.cultivo}</p><p class="text-xs text-gray-400 mt-0.5">${a.fecha ? a.fecha.split('-').reverse().join('/') : '—'}</p></div>`;
-                        lista.appendChild(div);
-                    });
-                }
-
-                /* Paginacion */
-                let paginaActual = 1;
-                const porPagina = 5;
-                const filas = Array.from(document.querySelectorAll('.fila-tabla'));
-                const totalFilas = filas.length;
-                const totalPaginas = Math.ceil(totalFilas / porPagina);
-
-                function renderPagina() {
-                    const desde = (paginaActual - 1) * porPagina;
-                    const hasta = paginaActual * porPagina;
-                    filas.forEach(el => {
-                        el.style.display = (Number(el.dataset.idx) >= desde && Number(el.dataset.idx) < hasta) ? '' : 'none';
-                    });
-                    const info = 'Mostrando ' + (desde + 1) + ' a ' + Math.min(hasta, totalFilas) + ' de ' + totalFilas + ' registros';
-                    document.getElementById('infoPagina').textContent = info;
-                    document.getElementById('infoBanner').textContent = info;
-
-                    const nums = document.getElementById('numsPagina');
-                    nums.innerHTML = '';
-                    for (let i = 1; i <= totalPaginas; i++) {
-                        if (i === 1 || i === totalPaginas || (i >= paginaActual - 2 && i <= paginaActual + 2)) {
-                            const btn = document.createElement('button');
-                            btn.textContent = i;
-                            btn.className = 'w-8 h-8 rounded-lg text-xs font-semibold transition ' +
-                                (i === paginaActual ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
-                            btn.addEventListener('click', () => { paginaActual = i; renderPagina(); });
-                            nums.appendChild(btn);
-                        } else if ((i === paginaActual - 3 && i > 1) || (i === paginaActual + 3 && i < totalPaginas)) {
-                            const sep = document.createElement('span');
-                            sep.textContent = '…';
-                            sep.className = 'w-8 h-8 flex items-center justify-center text-xs text-gray-400';
-                            nums.appendChild(sep);
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1a2e1a',
+                    titleColor: '#86efac',
+                    bodyColor: '#d1fae5',
+                    cornerRadius: 12,
+                    padding: 12,
+                    callbacks: {
+                        afterBody: (items) => {
+                            const idx  = items[0].dataIndex;
+                            const fecha = fechas[idx];
+                            const dia  = fechasMap[fecha];
+                            const pct  = dia.total > 0 ? Math.round(dia.activas * 100 / dia.total) : 0;
+                            return ['', pct + '% sin revisar'];
                         }
                     }
-                    document.getElementById('btnAnterior').style.opacity = paginaActual === 1 ? '0.4' : '1';
-                    document.getElementById('btnSiguiente').style.opacity = paginaActual === totalPaginas ? '0.4' : '1';
                 }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, color: '#9ca3af', stepSize: 1 } }
+            }
+        }
+    });
+}
+}" x-init="cargarDatos(7)" class="mb-6">
 
-                document.getElementById('btnAnterior').addEventListener('click', () => {
-                    if (paginaActual > 1) { paginaActual--; renderPagina(); }
-                });
-                document.getElementById('btnSiguiente').addEventListener('click', () => {
-                    if (paginaActual < totalPaginas) { paginaActual++; renderPagina(); }
-                });
+                <!-- Mini stats cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-fill ph-trend-up" style="font-size:14px;color:#dc2626;"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Activas</p>
+                        </div>
+                        <p class="text-2xl font-black"
+                            :class="stats.pctActivas > 50 ? 'text-red-600' : 'text-orange-500'"
+                            x-text="'+' + stats.pctActivas + '%'"></p>
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="'de ' + stats.total + ' alertas'"></p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-fill ph-drop" style="font-size:14px;color:#3b82f6;"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Tipo principal</p>
+                        </div>
+                        <p class="text-sm font-black text-blue-700 truncate" x-text="stats.tipoTop"></p>
+                        <p class="text-xs text-gray-400 mt-0.5">Factor mas frecuente</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                                :class="stats.pctActivas > 50 ? 'bg-red-50' : stats.pctActivas > 20 ? 'bg-orange-50' : 'bg-green-50'">
+                                <i class="ph-fill ph-warning-octagon" style="font-size:14px;"
+                                    :style="stats.pctActivas > 50 ? 'color:#dc2626' : stats.pctActivas > 20 ? 'color:#ea580c' : 'color:#16a34a'"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Riesgo</p>
+                        </div>
+                        <p class="text-sm font-black"
+                            :class="stats.pctActivas > 50 ? 'text-red-600' : stats.pctActivas > 20 ? 'text-orange-500' : 'text-green-600'"
+                            x-text="stats.pctActivas > 50 ? 'Alto' : stats.pctActivas > 20 ? 'Medio' : 'Bajo'"></p>
+                        <p class="text-xs text-gray-400 mt-0.5">Nivel actual</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-7 h-7 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-fill ph-map-pin" style="font-size:14px;color:#7c3aed;"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Zona critica</p>
+                        </div>
+                        <p class="text-sm font-black text-purple-700 truncate" x-text="stats.municipioTop"></p>
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="stats.pctMuni + '% del total'"></p>
+                    </div>
+                </div>
 
-                renderPagina();
-            })();
-        </script>
+                <!-- Card grafica -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+                                <i class="ph-duotone ph-chart-line-up" style="font-size:20px;color:#16a34a;"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900">Evolucion de alertas</h3>
+                                <p class="text-xs text-gray-400 mt-0.5">Activas vs totales por dia</p>
+                            </div>
+                        </div>
+                        <!-- Filtros de periodo -->
+                        <div class="flex items-center gap-1">
+                            <template x-for="d in [7, 15, 30, 90]" :key="d">
+                                <button @click="cargarDatos(d)" :class="diasActivo === d
+                                ? 'bg-green-700 text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                                    x-text="d + ' dias'"></button>
+                            </template>
+                        </div>
+                        <!-- Leyenda -->
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-5 h-0.5 bg-red-400 inline-block rounded"></span>
+                                Activas
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-5 h-0.5 bg-green-500 inline-block rounded"></span>
+                                Totales
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Spinner carga grafica -->
+                    <div x-show="cargando" class="flex items-center justify-center" style="height:200px;">
+                        <div class="flex items-center gap-3 text-gray-400 text-sm">
+                            <div class="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin">
+                            </div>
+                            Cargando datos...
+                        </div>
+                    </div>
+
+                    <div x-show="!cargando" style="position:relative; height:200px;">
+                        <canvas id="chartEvolucion"></canvas>
+                    </div>
+
+                    <!-- Estado vacio -->
+                    <div x-show="!cargando && datos.length === 0"
+                        class="flex flex-col items-center justify-center py-8 text-gray-300">
+                        <i class="ph-duotone ph-chart-line" style="font-size:36px;"></i>
+                        <p class="text-xs mt-2">Sin alertas en el periodo seleccionado</p>
+                    </div>
+                </div>
+
+                <!-- Analisis IA + Recomendaciones -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                    <!-- Analisis inteligente -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-duotone ph-sparkle" style="font-size:18px;color:#16a34a;"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-900">Analisis inteligente</p>
+                                <p class="text-xs text-gray-400">Generado con Groq · Llama 3.3</p>
+                            </div>
+                            <span
+                                class="ml-auto text-xs font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">IA</span>
+                        </div>
+
+                        <!-- Cargando -->
+                        <div x-show="cargandoIA" class="flex items-center gap-3 text-gray-400 text-xs py-3">
+                            <div
+                                class="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin shrink-0">
+                            </div>
+                            Analizando el periodo de <span class="font-semibold mx-1" x-text="diasActivo"></span>
+                            dias...
+                        </div>
+
+                        <!-- Error -->
+                        <div x-show="!cargandoIA && errorIA"
+                            class="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+                            <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+                            No se pudo generar el analisis. Intenta mas tarde.
+                        </div>
+
+                        <!-- Contenido -->
+                        <div x-show="!cargandoIA && analisis && !errorIA">
+                            <p class="text-sm text-gray-700 leading-relaxed" x-text="analisis"></p>
+                        </div>
+
+                        <!-- Vacio -->
+                        <div x-show="!cargandoIA && !analisis && !errorIA"
+                            class="text-xs text-gray-300 flex items-center gap-2 py-3">
+                            <i class="ph-duotone ph-info" style="font-size:16px;"></i>
+                            Sin datos suficientes para el analisis.
+                        </div>
+                    </div>
+
+                    <!-- Recomendaciones -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <i class="ph-fill ph-lightbulb" style="font-size:18px;color:#3b82f6;"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-900">Recomendaciones</p>
+                        </div>
+
+                        <!-- Cargando -->
+                        <div x-show="cargandoIA" class="flex items-center gap-3 text-gray-400 text-xs py-3">
+                            <div
+                                class="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin shrink-0">
+                            </div>
+                            Generando recomendaciones...
+                        </div>
+
+                        <!-- Lista -->
+                        <ul x-show="!cargandoIA && recomendaciones.length > 0" class="space-y-2.5">
+                            <template x-for="(rec, i) in recomendaciones" :key="i">
+                                <li class="flex items-start gap-2.5">
+                                    <div
+                                        class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                        <i class="ph-fill ph-check" style="font-size:10px;color:#16a34a;"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-700 leading-snug" x-text="rec"></span>
+                                </li>
+                            </template>
+                        </ul>
+
+                        <!-- Vacio -->
+                        <div x-show="!cargandoIA && recomendaciones.length === 0 && !errorIA"
+                            class="text-xs text-gray-300 flex items-center gap-2 py-3">
+                            <i class="ph-duotone ph-info" style="font-size:16px;"></i>
+                            Sin recomendaciones disponibles.
+                        </div>
+
+                        <!-- Error -->
+                        <div x-show="!cargandoIA && errorIA"
+                            class="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+                            <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+                            No se pudieron generar recomendaciones.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── CULTIVOS MAS AFECTADOS + ALERTAS CRITICAS ──────── -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900">Cultivos mas afectados</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Ranking por numero de alertas en el periodo</p>
+                        </div>
+                        <i class="ph-fill ph-chart-bar" style="font-size:18px;color:#d1d5db;"></i>
+                    </div>
+                    <div id="rankingCultivos" class="space-y-3"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900">Alertas criticas</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Sin revisar — severidad ALTA</p>
+                        </div>
+                        <span id="badgeCriticas"
+                            class="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full">0</span>
+                    </div>
+                    <div id="listaCriticas" class="space-y-2.5 max-h-[280px] overflow-y-auto pr-1"></div>
+                    <div id="sinCriticas" class="hidden flex-col items-center justify-center py-8 text-center">
+                        <i class="ph-fill ph-seal-check" style="font-size:32px;color:#86efac;"></i>
+                        <p class="text-xs text-gray-400 mt-2">Sin alertas criticas activas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── HISTORIAL TABLA ────────────────────────────────── -->
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
+                    <i class="ph-fill ph-clock-counter-clockwise" style="font-size:16px;color:#16a34a;"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Historial de Alertas</h3>
+                    <p class="text-xs text-gray-400">Detalle del periodo seleccionado</p>
+                </div>
+                <span th:if="${not #lists.isEmpty(historialAlertas)}"
+                    class="ml-auto text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full"
+                    th:text="${#lists.size(historialAlertas)} + ' registros'"></span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(historialAlertas)}"
+                class="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
+                <i class="ph-duotone ph-bell-slash" style="font-size:40px;color:#d1d5db;"></i>
+                <p class="text-gray-400 text-sm mt-3">No hay alertas en el periodo seleccionado.</p>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(historialAlertas)}"
+                class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+                <!-- Banner -->
+                <div class="bg-gradient-to-r from-green-900 to-green-700 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="ph-fill ph-bell" style="font-size:16px;color:#86efac;"></i>
+                        <span class="text-white font-semibold text-sm">Registro de Alertas</span>
+                    </div>
+                    <span id="infoBanner" class="text-green-300 text-xs"></span>
+                </div>
+
+                <!-- Encabezado -->
+                <div
+                    class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <div class="col-span-3">Agricultor</div>
+                    <div class="col-span-2">Cultivo</div>
+                    <div class="col-span-2 text-center">Severidad</div>
+                    <div class="col-span-2 text-center">Categoria</div>
+                    <div class="col-span-2">Tipo</div>
+                    <div class="col-span-1 text-center">Fecha</div>
+                </div>
+
+                <!-- Filas -->
+                <div th:each="a, iterStat : ${historialAlertas}" th:attr="data-idx=${iterStat.index}"
+                    class="fila-tabla grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-gray-50 items-center hover:bg-gray-50/60 transition">
+                    <div class="col-span-3 flex items-center gap-2">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                            <span class="text-xs font-black text-green-700"
+                                th:text="${#strings.toUpperCase(#strings.substring(a.nombreAgricultor, 0, 1))}"></span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-800 truncate" th:text="${a.nombreAgricultor}"></span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-sm font-semibold text-gray-900" th:text="${a.nombreCultivo}"></span>
+                    </div>
+                    <div class="col-span-2 text-center">
+                        <span class="inline-block text-xs font-bold px-2.5 py-1 rounded-full"
+                            th:classappend="${a.severidad == 'ALTA'} ? 'bg-red-100 text-red-600' : (${a.severidad == 'MEDIA'} ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600')"
+                            th:text="${a.severidad}"></span>
+                    </div>
+                    <div class="col-span-2 text-center">
+                        <span th:if="${a.categoria == 'TRANSITORIO'}"
+                            class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            <i class="ph-fill ph-clock-countdown" style="font-size:9px;"></i>Transitorio
+                        </span>
+                        <span th:if="${a.categoria == 'PERMANENTE'}"
+                            class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            <i class="ph-fill ph-tree-evergreen" style="font-size:9px;"></i>Permanente
+                        </span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-xs text-gray-600 font-medium" th:text="${a.tipoAlerta}"></span>
+                    </div>
+                    <div class="col-span-1 text-center">
+                        <span class="text-xs text-gray-400 font-mono"
+                            th:text="${a.fechaCreacion != null ? #temporals.format(a.fechaCreacion, 'dd/MM/yy') : '—'}"></span>
+                    </div>
+                </div>
+
+                <!-- Paginacion -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                    <p id="infoPagina" class="text-xs text-gray-400"></p>
+                    <div class="flex items-center gap-1">
+                        <button id="btnAnterior"
+                            class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                            <i class="ph-bold ph-caret-left" style="font-size:12px;color:#6b7280;"></i>
+                        </button>
+                        <div id="numsPagina" class="flex items-center gap-1"></div>
+                        <button id="btnSiguiente"
+                            class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center transition hover:bg-gray-200">
+                            <i class="ph-bold ph-caret-right" style="font-size:12px;color:#6b7280;"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                        <span>Registros por pagina</span>
+                        <span
+                            class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 font-semibold text-gray-700">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SCRIPTS ────────────────────────────────────────── -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+            <script>
+                (function () {
+                    const datos = historialRaw.map(a => ({
+                        fecha: a.fechaCreacion ? a.fechaCreacion.substring(0, 10) : null,
+                        leida: a.leida,
+                        cultivo: a.nombreCultivo,
+                        severidad: a.severidad,
+                        tipo: a.tipoAlerta
+                    })).filter(a => a.fecha);
+
+                    /* Evolucion */
+                    const fechasMap = {};
+                    datos.forEach(a => {
+                        if (!fechasMap[a.fecha]) fechasMap[a.fecha] = { total: 0, activas: 0 };
+                        fechasMap[a.fecha].total++;
+                        if (!a.leida) fechasMap[a.fecha].activas++;
+                    });
+                    const fechasOrdenadas = Object.keys(fechasMap).sort();
+                    const labelsEvol = fechasOrdenadas.map(f => { const [y, m, d] = f.split('-'); return d + '/' + m; });
+                    const dataTotales = fechasOrdenadas.map(f => fechasMap[f].total);
+                    const dataActivas = fechasOrdenadas.map(f => fechasMap[f].activas);
+
+                    const ctxEvol = document.getElementById('chartEvolucion');
+                    if (ctxEvol) {
+                        new Chart(ctxEvol, {
+                            type: 'line',
+                            data: {
+                                labels: labelsEvol,
+                                datasets: [
+                                    { label: 'Totales', data: dataTotales, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', borderWidth: 2.5, pointBackgroundColor: '#16a34a', pointRadius: 4, pointHoverRadius: 6, tension: 0.4, fill: true },
+                                    { label: 'Activas', data: dataActivas, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 2, pointBackgroundColor: '#ef4444', pointRadius: 3, pointHoverRadius: 5, tension: 0.4, fill: true, borderDash: [5, 3] }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2e1a', titleColor: '#86efac', bodyColor: '#d1fae5', cornerRadius: 10, padding: 10 } },
+                                scales: {
+                                    x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+                                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, color: '#9ca3af', stepSize: 1 } }
+                                }
+                            }
+                        });
+                    }
+
+                    /* Donut */
+                    const tiposMap = {};
+                    datos.forEach(a => { const t = a.tipo || 'OTRO'; tiposMap[t] = (tiposMap[t] || 0) + 1; });
+                    const tiposEntries = Object.entries(tiposMap).sort((a, b) => b[1] - a[1]);
+                    const dataTipos = tiposEntries.map(([, v]) => v);
+                    const coloresTipos = ['#16a34a', '#3b82f6', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6b7280'];
+
+                    const ctxDonut = document.getElementById('chartDonut');
+                    if (ctxDonut && dataTipos.length > 0) {
+                        const pluginCentro = {
+                            id: 'centroTotal',
+                            beforeDraw(chart) {
+                                const { width, height, ctx } = chart;
+                                ctx.restore();
+                                const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#111827';
+                                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                                ctx.fillText(total, width / 2, height / 2 - 8);
+                                ctx.font = '11px sans-serif'; ctx.fillStyle = '#9ca3af';
+                                ctx.fillText('alertas', width / 2, height / 2 + 14);
+                                ctx.save();
+                            }
+                        };
+                        new Chart(ctxDonut, {
+                            type: 'doughnut', plugins: [pluginCentro],
+                            data: { labels: tiposEntries.map(([k]) => k), datasets: [{ data: dataTipos, backgroundColor: coloresTipos.slice(0, dataTipos.length), borderWidth: 2, borderColor: '#ffffff', hoverOffset: 6 }] },
+                            options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2e1a', titleColor: '#86efac', bodyColor: '#d1fae5', cornerRadius: 10, padding: 10 } } }
+                        });
+                        const totalD = dataTipos.reduce((a, b) => a + b, 0);
+                        const leyenda = document.getElementById('donutLeyenda');
+                        tiposEntries.forEach(([tipo, count], i) => {
+                            const pct = Math.round(count / totalD * 100);
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center justify-between';
+                            div.innerHTML = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${coloresTipos[i] || '#9ca3af'}"></span><span class="text-xs text-gray-600 truncate" style="max-width:120px">${tipo}</span></div><span class="text-xs font-bold text-gray-700">${count} <span class="font-normal text-gray-400">(${pct}%)</span></span>`;
+                            leyenda.appendChild(div);
+                        });
+                    }
+
+                    /* Ranking cultivos */
+                    const cultivosMap = {};
+                    datos.forEach(a => { cultivosMap[a.cultivo] = (cultivosMap[a.cultivo] || 0) + 1; });
+                    const cultivosRanking = Object.entries(cultivosMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+                    const maxCultivo = cultivosRanking[0]?.[1] || 1;
+                    const coloresMedalla = ['#f59e0b', '#9ca3af', '#b45309', '#16a34a', '#16a34a', '#16a34a'];
+                    const rankingEl = document.getElementById('rankingCultivos');
+                    if (cultivosRanking.length === 0) {
+                        rankingEl.innerHTML = `<div class="text-center py-6 text-gray-300"><i class="ph-duotone ph-plant" style="font-size:32px;"></i><p class="text-xs mt-2">Sin datos en el periodo</p></div>`;
+                    } else {
+                        cultivosRanking.forEach(([nombre, count], i) => {
+                            const pct = Math.round(count / maxCultivo * 100);
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center gap-3';
+                            div.innerHTML = `<span class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs text-white shrink-0" style="background:${coloresMedalla[i]}">${i + 1}</span><div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><span class="text-sm font-semibold text-gray-800 truncate">${nombre}</span><span class="text-sm font-black text-gray-900 ml-2 shrink-0">${count}</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="h-1.5 rounded-full transition-all duration-500" style="width:${pct}%;background:${coloresMedalla[i]}"></div></div></div>`;
+                            rankingEl.appendChild(div);
+                        });
+                    }
+
+                    /* Alertas criticas */
+                    const criticas = datos.filter(a => !a.leida && a.severidad === 'ALTA');
+                    const badge = document.getElementById('badgeCriticas');
+                    const lista = document.getElementById('listaCriticas');
+                    const sinCrit = document.getElementById('sinCriticas');
+                    badge.textContent = criticas.length;
+                    if (criticas.length === 0) {
+                        lista.classList.add('hidden');
+                        sinCrit.classList.remove('hidden');
+                        sinCrit.classList.add('flex');
+                    } else {
+                        criticas.slice(0, 8).forEach(a => {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-start gap-2.5 p-3 bg-red-50/60 rounded-xl border border-red-100';
+                            div.innerHTML = `<div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5"><i class="ph-fill ph-warning" style="font-size:14px;color:#dc2626;"></i></div><div class="min-w-0"><p class="text-xs font-bold text-gray-900 truncate">${a.tipo || 'ALERTA'}</p><p class="text-xs text-gray-500 truncate">${a.cultivo}</p><p class="text-xs text-gray-400 mt-0.5">${a.fecha ? a.fecha.split('-').reverse().join('/') : '—'}</p></div>`;
+                            lista.appendChild(div);
+                        });
+                    }
+
+                    /* Paginacion */
+                    let paginaActual = 1;
+                    const porPagina = 5;
+                    const filas = Array.from(document.querySelectorAll('.fila-tabla'));
+                    const totalFilas = filas.length;
+                    const totalPaginas = Math.ceil(totalFilas / porPagina);
+
+                    function renderPagina() {
+                        const desde = (paginaActual - 1) * porPagina;
+                        const hasta = paginaActual * porPagina;
+                        filas.forEach(el => {
+                            el.style.display = (Number(el.dataset.idx) >= desde && Number(el.dataset.idx) < hasta) ? '' : 'none';
+                        });
+                        const info = 'Mostrando ' + (desde + 1) + ' a ' + Math.min(hasta, totalFilas) + ' de ' + totalFilas + ' registros';
+                        document.getElementById('infoPagina').textContent = info;
+                        document.getElementById('infoBanner').textContent = info;
+
+                        const nums = document.getElementById('numsPagina');
+                        nums.innerHTML = '';
+                        for (let i = 1; i <= totalPaginas; i++) {
+                            if (i === 1 || i === totalPaginas || (i >= paginaActual - 2 && i <= paginaActual + 2)) {
+                                const btn = document.createElement('button');
+                                btn.textContent = i;
+                                btn.className = 'w-8 h-8 rounded-lg text-xs font-semibold transition ' +
+                                    (i === paginaActual ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
+                                btn.addEventListener('click', () => { paginaActual = i; renderPagina(); });
+                                nums.appendChild(btn);
+                            } else if ((i === paginaActual - 3 && i > 1) || (i === paginaActual + 3 && i < totalPaginas)) {
+                                const sep = document.createElement('span');
+                                sep.textContent = '…';
+                                sep.className = 'w-8 h-8 flex items-center justify-center text-xs text-gray-400';
+                                nums.appendChild(sep);
+                            }
+                        }
+                        document.getElementById('btnAnterior').style.opacity = paginaActual === 1 ? '0.4' : '1';
+                        document.getElementById('btnSiguiente').style.opacity = paginaActual === totalPaginas ? '0.4' : '1';
+                    }
+
+                    document.getElementById('btnAnterior').addEventListener('click', () => {
+                        if (paginaActual > 1) { paginaActual--; renderPagina(); }
+                    });
+                    document.getElementById('btnSiguiente').addEventListener('click', () => {
+                        if (paginaActual < totalPaginas) { paginaActual++; renderPagina(); }
+                    });
+
+                    renderPagina();
+                })();
+            </script>
 
     </main>
 </body>

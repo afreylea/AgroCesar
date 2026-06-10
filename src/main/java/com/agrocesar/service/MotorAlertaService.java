@@ -15,10 +15,32 @@ import java.util.Map;
 
 @Service
 public class MotorAlertaService {
+
+    private static final Logger log = LoggerFactory.getLogger(MotorAlertaService.class);
+
+    /** Porcentaje del umbral quincenal usado como tolerancia para lluvia insuficiente. */
+    private static final double LLUVIA_TOLERANCIA_PCT = 0.10;
+
+    /** Tolerancia mínima absoluta en mm, aplicada cuando el 10% del umbral es menor a este valor.
+     *  Evita que cultivos con requerimientos hídricos bajos sean demasiado permisivos. */
+    private static final double LLUVIA_TOLERANCIA_MIN = 5.0;
+
+    /**
+     * Tolerancia fija para temperatura (°C).
+     * Reduce falsas alarmas por variaciones naturales intradiarias.
+     */
+    private static final double TOLERANCIA_TEMPERATURA = 2.0;
+
+    /**
+     * Tolerancia fija para humedad relativa (%).
+     * Reduce falsas alarmas por variaciones naturales intradiarias.
+     */
+    private static final double TOLERANCIA_HUMEDAD = 5.0;
+
     private final AlertaRepository alertaRepository;
     private final CultivoConUmbralesRepository cultivoRepo;
     private final WeatherService weatherService;
-    private final Map<String, SeveridadStrategy> estrategias; // inyectado por Spring
+    private final Map<String, SeveridadStrategy> estrategias;
     private final RecomendacionService recomendacionService;
     private final SmsService smsService;
 
@@ -28,21 +50,18 @@ public class MotorAlertaService {
             Map<String, SeveridadStrategy> estrategias,
             RecomendacionService recomendacionService,
             SmsService smsService) {
-
-        this.alertaRepository = alertaRepository;
-        this.cultivoRepo = cultivoRepo;
-        this.estrategias = estrategias;
+        this.alertaRepository     = alertaRepository;
+        this.cultivoRepo          = cultivoRepo;
+        this.estrategias          = estrategias;
         this.recomendacionService = recomendacionService;
-        this.smsService = smsService;
-        this.weatherService = weatherService;
+        this.smsService           = smsService;
+        this.weatherService       = weatherService;
     }
-
-    private static final Logger log = LoggerFactory.getLogger(MotorAlertaService.class);
 
     /**
      * Punto de entrada del motor de alertas.
      * Invocado por AlertaScheduler a las 6AM y 6PM.
-     * Para cada cultivo activo consulta el pronóstico de 7 días y
+     * Para cada cultivo activo consulta el pronóstico de 16 días y
      * genera alertas si algún valor supera los umbrales efectivos.
      */
     public void ejecutarMotor() {
@@ -57,15 +76,28 @@ public class MotorAlertaService {
     }
 
     private void procesarCultivo(CultivoConUmbralesDTO cultivo) {
-        List<DailyForecast> pronostico = weatherService.obtenerPronostico7Dias(
-                cultivo.getLatitud(), cultivo.getLongitud());
+        List<DailyForecast> pronostico = weatherService.obtenerPronostico(
+                cultivo.getLatitud(), cultivo.getLongitud(), 16);
 
         if (pronostico.isEmpty()) {
             log.warn("Sin pronóstico para cultivo id={} ({})", cultivo.getId(), cultivo.getCultivo());
             return;
         }
 
-        LocalDate hoy = LocalDate.now();
+        // --- Lluvia: dos evaluaciones independientes ---
+        // 1. Mínimo: acumulado 15 días vs umbral quincenal normalizado
+        double lluviaAcumulada = pronostico.stream()
+                .limit(15)
+                .filter(d -> d.getLluviaMm() != null)
+                .mapToDouble(DailyForecast::getLluviaMm)
+                .sum();
+        evaluarLluviaMinima(cultivo, lluviaAcumulada, LocalDate.now());
+
+        // 2. Máximo: evento extremo diario > LLUVIA_EXTREMA_MM en los próximos 15 días
+        evaluarLluviaExtrema(cultivo, pronostico);
+
+        // --- Temperatura y humedad: hoy y mañana ---
+        LocalDate hoy    = LocalDate.now();
         LocalDate manana = hoy.plusDays(1);
 
         pronostico.stream()
@@ -77,60 +109,120 @@ public class MotorAlertaService {
                 .forEach(dia -> evaluarDia(cultivo, dia));
     }
 
-    private void evaluarDia(CultivoConUmbralesDTO cultivo, DailyForecast dia) {
-        LocalDate fechaDia = LocalDate.parse(dia.getFecha(), DateTimeFormatter.ISO_LOCAL_DATE);
+    /**
+     * Evalúa si el acumulado de lluvia de los próximos 15 días
+     * es insuficiente para el requerimiento hídrico del cultivo
+     * en su etapa fenológica actual.
+     * Tolerancia: max(10 mm, 10% del umbral quincenal).
+     */
+    private void evaluarLluviaMinima(CultivoConUmbralesDTO cultivo,
+                                     double lluviaAcumulada, LocalDate fechaRef) {
+        if (cultivo.getLluviaMinEfectiva() == null) return;
 
-        // Los 6 tipos de alerta posibles
-        if (cultivo.getTempMaxEfectiva() != null && dia.getTempMax() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "TEMPERATURA_ALTA",
-                    dia.getTempMax(), cultivo.getTempMaxEfectiva(), true);
+        SeveridadStrategy estrategia = estrategias.get(cultivo.getCategoria());
+        double lluviaMinQuincenal = estrategia.normalizarLluvia(
+                cultivo.getLluviaMinEfectiva(), cultivo.getDiasCosechaProm(),
+                15, cultivo.getDiasRestantes());
 
-        if (cultivo.getTempMinEfectiva() != null && dia.getTempMin() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "TEMPERATURA_BAJA",
-                    dia.getTempMin(), cultivo.getTempMinEfectiva(), false);
+        // Tolerancia proporcional: evita falsas alarmas en cultivos con umbrales
+        // hídricos muy distintos (5 mm fijo sería muy estricto para arroceros
+        // y muy permisivo para cultivos de secano).
+        double tolerancia = Math.max(LLUVIA_TOLERANCIA_MIN, lluviaMinQuincenal * LLUVIA_TOLERANCIA_PCT);
+        double umbralConTolerancia = lluviaMinQuincenal - tolerancia;
 
-        if (cultivo.getLluviaMaxEfectiva() != null && dia.getLluviaMm() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "LLUVIA_EXCESIVA",
-                    dia.getLluviaMm(), cultivo.getLluviaMaxEfectiva(), true);
-
-        if (cultivo.getLluviaMinEfectiva() != null && dia.getLluviaMm() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "LLUVIA_INSUFICIENTE",
-                    dia.getLluviaMm(), cultivo.getLluviaMinEfectiva(), false);
-
-        if (cultivo.getHumedadMaxEfectiva() != null && dia.getHumedadMax() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "HUMEDAD_EXCESIVA",
-                    dia.getHumedadMax(), cultivo.getHumedadMaxEfectiva(), true);
-
-        if (cultivo.getHumedadMinEfectiva() != null && dia.getHumedadMin() != null)
-            verificarUmbral(cultivo, dia, fechaDia, "HUMEDAD_INSUFICIENTE",
-                    dia.getHumedadMin(), cultivo.getHumedadMinEfectiva(), false);
+        verificarUmbral(cultivo, fechaRef, "LLUVIA_INSUFICIENTE",
+                lluviaAcumulada, lluviaMinQuincenal, umbralConTolerancia, false);
     }
 
     /**
-     * @param superaUmbral true = alerta cuando valorDetectado > umbral (excesivo)
-     *                     false = alerta cuando valorDetectado < umbral
-     *                     (insuficiente)
+     * Evalúa si algún día de los próximos 15 tiene un evento de lluvia
+     * extrema (> LLUVIA_EXTREMA_MM). No aplica tolerancia: el riesgo de
+     * inundación o daño mecánico viene del pico diario, no del acumulado.
      */
-    private void verificarUmbral(CultivoConUmbralesDTO cultivo, DailyForecast dia,
-            LocalDate fechaDia, String tipoAlerta,
-            double valorDetectado, double valorUmbral,
-            boolean superaUmbral) {
+    private void evaluarLluviaExtrema(CultivoConUmbralesDTO cultivo,
+                                      List<DailyForecast> pronostico) {
+
+        pronostico.stream()
+                .limit(15)
+                .filter(d -> d.getLluviaMm() != null
+                          && d.getLluviaMm() >= SeveridadStrategy.LLUVIA_EXTREMA_MM)
+                .forEach(d -> {
+                    LocalDate fechaDia = LocalDate.parse(d.getFecha(),
+                            DateTimeFormatter.ISO_LOCAL_DATE);
+                    // Se pasa directamente al constructor de la alerta sin pasar
+                    // por verificarUmbral porque la tolerancia mínima no aplica aquí.
+                    SeveridadStrategy estrategia = estrategias.get(cultivo.getCategoria());
+                    String severidad = estrategia.calcularSeveridadLluviaExtrema(
+                            cultivo.getDiasRestantes(), cultivo.getDiasCosechaProm());
+                    generarAlerta(cultivo, fechaDia, "LLUVIA_EXCESIVA",
+                            d.getLluviaMm(), SeveridadStrategy.LLUVIA_EXTREMA_MM, severidad);
+                });
+    }
+
+    /**
+     * Evalúa temperatura y humedad para un día concreto del pronóstico.
+     * Humedad: se evalúa humedadMin contra el umbral mínimo del cultivo
+     * y humedadMax contra el umbral máximo, aplicando ±TOLERANCIA_HUMEDAD
+     * para reducir falsas alarmas por variaciones naturales intradiarias.
+     */
+    private void evaluarDia(CultivoConUmbralesDTO cultivo, DailyForecast dia) {
+        LocalDate fechaDia = LocalDate.parse(dia.getFecha(), DateTimeFormatter.ISO_LOCAL_DATE);
+
+        if (cultivo.getTempMaxEfectiva() != null && dia.getTempMax() != null){
+            double umbralOriginal = cultivo.getTempMaxEfectiva();
+            double umbralAjustado = cultivo.getTempMaxEfectiva() + TOLERANCIA_TEMPERATURA;
+            verificarUmbral(cultivo, fechaDia, "TEMPERATURA_ALTA",
+                    dia.getTempMax(), umbralOriginal, umbralAjustado, true);
+        }
+
+        if (cultivo.getTempMinEfectiva() != null && dia.getTempMin() != null){
+            double umbralOriginal = cultivo.getTempMinEfectiva();
+            double umbralAjustado = cultivo.getTempMinEfectiva() - TOLERANCIA_TEMPERATURA;
+            verificarUmbral(cultivo, fechaDia, "TEMPERATURA_BAJA",
+                    dia.getTempMin(), umbralOriginal, umbralAjustado, false);
+        }
+
+        if (dia.getHumedadMedia() != null && cultivo.getHumedadMaxEfectiva() != null) {
+            double umbralOriginal  = cultivo.getHumedadMaxEfectiva();
+            double umbralAjustado  = umbralOriginal + TOLERANCIA_HUMEDAD;
+            verificarUmbral(cultivo, fechaDia, "HUMEDAD_EXCESIVA",
+                    dia.getHumedadMedia(), umbralOriginal, umbralAjustado, true);
+        }
+
+        if (dia.getHumedadMedia() != null && cultivo.getHumedadMinEfectiva() != null) {
+            double umbralOriginal  = cultivo.getHumedadMinEfectiva();
+            double umbralAjustado  = umbralOriginal - TOLERANCIA_HUMEDAD;
+            verificarUmbral(cultivo, fechaDia, "HUMEDAD_INSUFICIENTE",
+                    dia.getHumedadMedia(), umbralOriginal, umbralAjustado, false);
+        }
+    }
+
+    /**
+     * Comprueba si el valor detectado supera el umbral mínimo o máximo
+     *
+     * @param superaUmbral true = alerta cuando valorDetectado > umbral (excesivo)
+     *                     false = alerta cuando valorDetectado < umbral (insuficiente)
+     */
+    private void verificarUmbral(CultivoConUmbralesDTO cultivo, LocalDate fechaDia,
+            String tipoAlerta, double valorDetectado,
+            double valorUmbralReal, double valorUmbralComparacion, boolean superaUmbral) {
 
         boolean disparar = superaUmbral
-                ? valorDetectado > valorUmbral
-                : valorDetectado < valorUmbral;
-
-        if (!disparar)
-            return;
+                ? valorDetectado > valorUmbralComparacion
+                : valorDetectado < valorUmbralComparacion;
+        if (!disparar) return;
 
         SeveridadStrategy estrategia = estrategias.get(cultivo.getCategoria());
-        String severidad = estrategia.calcular(
+        String severidad = estrategia.calcularSeveridad(
                 cultivo.getDiasRestantes(), cultivo.getDiasCosechaProm());
 
-        String descripcion = String.format(
-                "Alerta %s en cultivo de %s (%s). Valor: %.2f — Umbral: %.2f",
-                tipoAlerta, cultivo.getCultivo(), cultivo.getMunicipio(),
-                valorDetectado, valorUmbral);
+        generarAlerta(cultivo, fechaDia, tipoAlerta, valorDetectado, valorUmbralReal, severidad);
+    }
+
+    private void generarAlerta(CultivoConUmbralesDTO cultivo, LocalDate fechaDia,
+            String tipoAlerta, double valorDetectado, double valorUmbral, String severidad) {
+
+        String descripcion = construirDescripcion(tipoAlerta, cultivo, valorDetectado, valorUmbral);
 
         Alerta alerta = Alerta.builder()
                 .cultivoAgricultorId(cultivo.getId())
@@ -147,14 +239,32 @@ public class MotorAlertaService {
         persistirAlerta(alerta, cultivo);
     }
 
+    private String construirDescripcion(String tipoAlerta, CultivoConUmbralesDTO cultivo,
+            double valorDetectado, double valorUmbral) {
+        return switch (tipoAlerta) {
+            case "LLUVIA_INSUFICIENTE" -> String.format(
+                    "Lluvia acumulada proyectada (%.0f mm) insuficiente para los proximos 15 dias " +
+                    "en cultivo de %s (%s). Requerimiento estimado: %.0f mm.",
+                    valorDetectado, cultivo.getCultivo(), cultivo.getMunicipio(), valorUmbral);
+            case "LLUVIA_EXCESIVA" -> String.format(
+                    "Evento de lluvia extrema proyectado (%.0f mm/dia) supera el umbral de riesgo " +
+                    "de %.0f mm/dia en cultivo de %s (%s).",
+                    valorDetectado, valorUmbral, cultivo.getCultivo(), cultivo.getMunicipio());
+            default -> String.format(
+                    "Alerta %s en cultivo de %s (%s). Valor: %.2f — Umbral: %.2f",
+                    tipoAlerta, cultivo.getCultivo(), cultivo.getMunicipio(),
+                    valorDetectado, valorUmbral);
+        };
+    }
+
     private void persistirAlerta(Alerta alerta, CultivoConUmbralesDTO cultivo) {
         try {
             // 1. Genera recomendación (fallo no interrumpe)
             try {
                 String recomendacion = recomendacionService.generar(
                         alerta.getTipoAlerta(), cultivo.getCultivo(), alerta.getValorDetectado(),
-                        alerta.getSeveridad(), cultivo.getDiasRestantes(), cultivo.getDiasCosechaProm());
-
+                        alerta.getSeveridad(), cultivo.getDiasRestantes(), cultivo.getDiasCosechaProm(),
+                        cultivo.getCategoria());
                 alerta.setRecomendacion(recomendacion);
             } catch (Exception e) {
                 log.warn("RecomendacionService falló, alerta se persiste sin recomendación: {}", e.getMessage());
@@ -162,16 +272,16 @@ public class MotorAlertaService {
 
             // 2. Persiste la alerta (UQ_ALERTAS_NODUP evita duplicados)
             alertaRepository.insert(alerta);
-            log.info("Alerta generada: {} - {} - {}", alerta.getTipoAlerta(),
-                    alerta.getSeveridad(), alerta.getFechaDiaPronostico());
+            log.info("Alerta generada: {} - {} - {}",
+                    alerta.getTipoAlerta(), alerta.getSeveridad(), alerta.getFechaDiaPronostico());
 
             // 3. Envía SMS (fallo no interrumpe)
             if (cultivo.getTelefono() != null && !cultivo.getTelefono().isBlank()) {
                 try {
                     String sms = String.format(
                             "[AgroCesar] Apreciado %s, se ha detectado %s para su cultivo de %s. Severidad: %s",
-                            cultivo.getAgricultor(), alerta.getTipoAlerta(), cultivo.getCultivo(),
-                            alerta.getSeveridad());
+                            cultivo.getAgricultor(), alerta.getTipoAlerta(),
+                            cultivo.getCultivo(), alerta.getSeveridad());
                     smsService.enviarSms(cultivo.getTelefono(), sms);
                 } catch (Exception e) {
                     log.warn("SmsService falló: {}", e.getMessage());
@@ -179,8 +289,6 @@ public class MotorAlertaService {
             }
 
         } catch (Exception e) {
-            // UQ_ALERTAS_NODUP lanza excepción si ya existe la alerta para ese día —
-            // ignorar
             if (e.getMessage() != null && e.getMessage().contains("UQ_ALERTAS_NODUP")) {
                 log.debug("Alerta duplicada ignorada: {} - {} - {}",
                         alerta.getTipoAlerta(), alerta.getCultivoAgricultorId(),
